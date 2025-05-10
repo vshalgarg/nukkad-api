@@ -23,6 +23,7 @@ public class ItemEntity {
     private String image;
     private String unit;
 
+
     @ManyToMany
     @JoinTable(
             name = "item_category",
