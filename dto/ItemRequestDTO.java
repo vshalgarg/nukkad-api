@@ -1,0 +1,16 @@
+package com.neepanlokInfotech.nukkad_App.dto;
+
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
+@Getter @Setter
+
+public class ItemRequestDTO {
+    private String itemName;
+    private String image;
+    private String unit;
+
+    private List<Long> categoryIds = new ArrayList<>();
+}
