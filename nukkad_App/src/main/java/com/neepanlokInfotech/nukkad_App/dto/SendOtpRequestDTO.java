@@ -7,5 +7,6 @@ import java.time.LocalDateTime;
 @Data
 public class SendOtpRequestDTO {
 
+    public String name;
     private String mobileNumber;
 }
