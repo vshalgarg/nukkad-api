@@ -6,5 +6,5 @@ import lombok.Data;
 public class CreateCategoryDTO {
 
 //    private Long categoryId;
-    private String categoryName;
+    private String name;
 }

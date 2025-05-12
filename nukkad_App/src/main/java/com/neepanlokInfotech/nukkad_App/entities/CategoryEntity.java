@@ -17,12 +17,12 @@ public class CategoryEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long categoryId;
+    private Long id;
 
-    private String categoryName;
+    private String name;
 
     @ManyToMany(mappedBy = "categories")
-    @JsonManagedReference
+//    @JsonManagedReference
     private List<ItemEntity> items = new ArrayList<>();
 
 }

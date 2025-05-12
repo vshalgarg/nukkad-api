@@ -8,19 +8,25 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import static com.neepanlokInfotech.nukkad_App.constants.UrlConstants.OTP;
+import static com.neepanlokInfotech.nukkad_App.constants.UrlConstants.SEND_OTP;
+
 @RestController
-@RequestMapping("/api/otp")
+@RequestMapping(OTP)
 public class OtpController {
 
     @Autowired
     private OtpService otpService;
 
-
     // to sent otp
-    @PostMapping("/send")
+    @PostMapping(SEND_OTP )
     public ResponseEntity<SendOtpResponseDTO> sendOtp(@RequestBody SendOtpRequestDTO sendOtpRequestDTO){
        SendOtpResponseDTO sendOtpResponseDTO  = otpService.sendOtp(sendOtpRequestDTO);
-       return ResponseEntity.ok(sendOtpResponseDTO);
+       if(sendOtpResponseDTO.getMessage().equalsIgnoreCase("")){
+           return ResponseEntity.ok(sendOtpResponseDTO);
+       }else {
+           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SendOtpResponseDTO(""));
+       }
     }
 
 }

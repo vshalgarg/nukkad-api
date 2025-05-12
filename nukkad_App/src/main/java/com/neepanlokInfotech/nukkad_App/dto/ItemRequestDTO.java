@@ -8,7 +8,7 @@ import java.util.List;
 @Getter @Setter
 
 public class ItemRequestDTO {
-    private String itemName;
+    private String name;
     private String image;
     private String unit;
 

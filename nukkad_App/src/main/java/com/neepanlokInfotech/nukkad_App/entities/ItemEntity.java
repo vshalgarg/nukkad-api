@@ -17,9 +17,9 @@ import java.util.List;
 public class ItemEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long itemId;
+    private Long id;
     
-    private String itemName;
+    private String name;
     private String image;
     private String unit;
 
@@ -30,7 +30,7 @@ public class ItemEntity {
             joinColumns = @JoinColumn(name = "item_id"),
             inverseJoinColumns = @JoinColumn(name = "category_id")
     )
-    @JsonBackReference
+//    @JsonBackReference
     private List<CategoryEntity> categories = new ArrayList<>();
 
 }

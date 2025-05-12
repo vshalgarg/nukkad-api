@@ -14,7 +14,7 @@ public class ItemMapper {
     // Convert DTO to Entity
     public static ItemEntity toEntity(ItemRequestDTO dto) {
         ItemEntity item = new ItemEntity();
-        item.setItemName(dto.getItemName());
+        item.setName(dto.getName());
         item.setImage(dto.getImage());
         item.setUnit(dto.getUnit());
         return item;
@@ -23,15 +23,15 @@ public class ItemMapper {
     // Convert Entity to DTO
     public static ItemResponseDTO toDTO(ItemEntity item) {
         ItemResponseDTO dto = new ItemResponseDTO();
-        dto.setItemId(item.getItemId());
-        dto.setItemName(item.getItemName());
+        dto.setId(item.getId());
+        dto.setName(item.getName());
         dto.setImage(item.getImage());
         dto.setUnit(item.getUnit());
 
 
             List<Long> categoryIds = new ArrayList<>();
             for (CategoryEntity category : item.getCategories()) {
-                categoryIds.add(category.getCategoryId());
+                categoryIds.add(category.getId());
             }
 
             dto.setCategoryIds(categoryIds);

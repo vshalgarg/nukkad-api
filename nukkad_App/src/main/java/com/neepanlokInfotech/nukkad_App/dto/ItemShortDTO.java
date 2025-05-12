@@ -4,8 +4,8 @@ import lombok.Data;
 
 @Data
 public class ItemShortDTO {
-    private Long itemId;
-    private String itemName;
+    private Long id;
+    private String name;
     private String image;
     private String unit;
 }

@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CategoryRepository extends JpaRepository<CategoryEntity,Long>{
 
-
+    boolean existsByNameIgnoreCase(String name); // Checks case-insensitive duplicates
 }

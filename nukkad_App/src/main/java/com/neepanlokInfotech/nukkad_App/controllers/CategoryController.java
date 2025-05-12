@@ -12,8 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.neepanlokInfotech.nukkad_App.constants.UrlConstants.CATEGORY;
-import static com.neepanlokInfotech.nukkad_App.constants.UrlConstants.CREATE_CATEGORY;
+import static com.neepanlokInfotech.nukkad_App.constants.UrlConstants.*;
 
 
 @RestController
@@ -24,30 +23,46 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
- // create Category
+    /*
+
+    *create Category
+
+     */
     @PostMapping(CREATE_CATEGORY)
-    public ResponseEntity<CategoryEntity> saveCategory(@RequestBody CreateCategoryDTO category) {
+    public ResponseEntity<CreateCategoryDTO> saveCategory(@RequestBody CreateCategoryDTO category) {
         log.info("Received request for saveCategory: {}", category);
-       CategoryEntity categoryInDB =  categoryService.saveCategory(category);
+       CreateCategoryDTO categoryInDB =  categoryService.saveCategory(category);
          return new ResponseEntity<>(categoryInDB, HttpStatus.CREATED);
     }
 
-// get category by id
- @GetMapping("/{id}")
+/*
+
+ *get category by id
+
+ */
+ @GetMapping(GET_CATEGORY_BY_ID)
  public ResponseEntity<GetCategoryDTO> getCategoryById(@PathVariable Long id) {
     GetCategoryDTO categoryDTO = categoryService.getCategoryDtoById(id);
     return ResponseEntity.ok(categoryDTO);
  }
 
-    // GET - Get all categories
-     @GetMapping
+   /*
+
+   *Get all categories
+
+    */
+     @GetMapping(GET_ALL_CATEGORY)
     public ResponseEntity<List<GetCategoryDTO>> getAllCategories() {
         List<GetCategoryDTO> categories = categoryService.getAllCategories();
         return ResponseEntity.ok(categories);
     }
 
-    // Update category
-    @PutMapping("/{id}")
+    /*
+
+    *Update category
+
+     */
+    @PutMapping(UPDATE_CATEGORY_BY_ID)
     public ResponseEntity<GetCategoryDTO> updateCategory(@PathVariable Long id, @RequestBody CreateCategoryDTO dto) {
 
         GetCategoryDTO updatedCategory = categoryService.updateCategory(id, dto);

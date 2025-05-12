@@ -4,18 +4,21 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 @Entity
 @Data
-public class OtpEntity {
-
+@NoArgsConstructor
+@AllArgsConstructor
+public class CustomerEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String mobileNumber;
-    private String otp;
-    private String message;
-    private LocalDateTime createdAt;
+    private String name;
+    private String email;
+    private String address;
+    private String dob;
+
 }
