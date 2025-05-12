@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface OtpRepository extends JpaRepository<OtpEntity,Long> {
     Optional<OtpEntity> findTopByMobileNumberOrderByCreatedAtDesc (String mobileNumber);
+
 }

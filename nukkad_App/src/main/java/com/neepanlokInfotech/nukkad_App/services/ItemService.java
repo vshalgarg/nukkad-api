@@ -26,7 +26,7 @@ public class ItemService {
     public ItemResponseDTO createItem(ItemRequestDTO dto) {
         ItemEntity item = ItemMapper.toEntity(dto);
 
-        dto.getCategoryIds().stream().map(new CategoryEntity(id)).forEach(item.getCategories()::add);
+//        dto.getCategoryIds().stream().map(new CategoryEntity(id)).forEach(item.getCategories()::add);
         List<CategoryEntity> categories = categoryRepository.findAllById(dto.getCategoryIds());
         item.setCategories(categories);
         ItemEntity saved = itemRepository.save(item);

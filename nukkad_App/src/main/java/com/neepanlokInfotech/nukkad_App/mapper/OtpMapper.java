@@ -2,6 +2,7 @@ package com.neepanlokInfotech.nukkad_App.mapper;
 
 import com.neepanlokInfotech.nukkad_App.dto.SendOtpRequestDTO;
 import com.neepanlokInfotech.nukkad_App.dto.SendOtpResponseDTO;
+import com.neepanlokInfotech.nukkad_App.dto.VerifyRequestDTO;
 import com.neepanlokInfotech.nukkad_App.entities.OtpEntity;
 
 public class OtpMapper {
@@ -15,4 +16,5 @@ public class OtpMapper {
         dto.setMessage(entity.getMessage());
         return dto;
     }
+//    public static VerifyRequestDTO
 }

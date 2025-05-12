@@ -18,4 +18,7 @@ public class OtpEntity {
     private String otp;
     private String message;
     private LocalDateTime createdAt;
+    private boolean verified;
+
 }
+

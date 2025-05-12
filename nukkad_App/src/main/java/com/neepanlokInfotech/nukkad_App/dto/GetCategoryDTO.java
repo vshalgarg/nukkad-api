@@ -9,9 +9,9 @@ public class GetCategoryDTO {
     private String categoryName;
     private List<ItemShortDTO> items;
 
-    public static fromDbDto(DbDto) {
-
-    }
-
-    public static toDbDto()
+//    public static fromDbDto(DbDto) {
+//
+//    }
+//
+//    public static toDbDto()
 }
