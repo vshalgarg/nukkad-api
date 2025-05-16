@@ -48,7 +48,7 @@ public class OtpService {
 
         otpRepository.save(otpEntity);
 
-       return OtpMapper.otpResponseDTODto(otpEntity);
+              return OtpMapper.otpResponseDTODto(otpEntity);
 
     }
     public VerifyResponseDTO verifyDTO(VerifyRequestDTO dto)
