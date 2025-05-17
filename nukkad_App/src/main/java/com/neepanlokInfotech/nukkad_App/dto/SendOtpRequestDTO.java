@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SendOtpRequestDTO {
 
-//    public String name;
+    public String name;
     private String mobileNumber;
 }

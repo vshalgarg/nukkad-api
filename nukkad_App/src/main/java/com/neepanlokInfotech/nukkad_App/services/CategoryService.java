@@ -3,7 +3,6 @@ package com.neepanlokInfotech.nukkad_App.services;
 import com.neepanlokInfotech.nukkad_App.dto.CreateCategoryDTO;
 import com.neepanlokInfotech.nukkad_App.dto.GetCategoryDTO;
 import com.neepanlokInfotech.nukkad_App.entities.CategoryEntity;
-import com.neepanlokInfotech.nukkad_App.exception.DuplicateResourceException;
 import com.neepanlokInfotech.nukkad_App.exception.ResourceNotFoundException;
 import com.neepanlokInfotech.nukkad_App.mapper.CategoryMapper;
 import com.neepanlokInfotech.nukkad_App.repositories.CategoryRepository;
@@ -29,17 +28,9 @@ public class CategoryService {
    public CreateCategoryDTO saveCategory(CreateCategoryDTO categoryDto){
        log.info("Attempting to save new category with name: {}", categoryDto.getName());
 
-       // Check for duplicate name
-       boolean exists = categoryRepository.existsByNameIgnoreCase(categoryDto.getName());
-       if (exists) {
-           log.warn("Category already exists with name: {}", categoryDto.getName());
-           throw new DuplicateResourceException("Category with name '" + categoryDto.getName() + "' already exists.");
-       }
-
         CategoryEntity category = new CategoryEntity();
         category.setName(categoryDto.getName());
        CategoryEntity savedEntity = categoryRepository.save(category);
-
        log.info("category successfully saved to db: {}", savedEntity);
 
        CreateCategoryDTO createCategoryDTO = new CreateCategoryDTO();
@@ -56,14 +47,13 @@ public GetCategoryDTO getCategoryDtoById(Long id) {
     log.info("Fetching category with ID: {}", id);
 
     CategoryEntity category = categoryRepository.findById(id)
-            .orElseThrow(() ->{
+            .orElseThrow(() -> {
                 log.warn("Category not found with ID: {}", id);
                 return new ResourceNotFoundException("Category not found with id: " + id);
-
-});
+            });
 
     log.info("Category found: ID={}, Name={}", category.getId(), category.getName());
-    return CategoryMapper.toDTOWithItems(category);  // Include items
+    return CategoryMapper.toDTOWithItems(category);
 }
 
 
@@ -84,7 +74,7 @@ public GetCategoryDTO getCategoryDtoById(Long id) {
         }
 
         List<GetCategoryDTO> dtoList = categories.stream()
-                .map(CategoryMapper::toDTOWithoutItems)  // No items here
+                .map(CategoryMapper::toDTOWithoutItems)
                 .collect(Collectors.toList());
 
         return dtoList;
@@ -104,11 +94,10 @@ public GetCategoryDTO getCategoryDtoById(Long id) {
                     log.error("Category not found with ID: {}", id);
                     return new ResourceNotFoundException("Category not found with id: " + id);
                 });
-
         log.debug("Existing category before update: {}", existingCategory);
 
         existingCategory.setName(dto.getName());
-        CategoryEntity updatedCategory = categoryRepository.save(existingCategory);
+         CategoryEntity updatedCategory = categoryRepository.save(existingCategory);
 
         log.info("Category successfully updated: {}", updatedCategory);
 

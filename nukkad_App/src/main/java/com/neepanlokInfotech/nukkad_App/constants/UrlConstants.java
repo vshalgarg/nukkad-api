@@ -22,6 +22,5 @@ public class UrlConstants {
     public static final String GET_SHOPKEEPER_DETAILS_BY_ID = "/v1/shopkeeper/profile/getShopkeeperDetailsById/{id}";
     public static final String UPDATE_SHOPKEEPER_DETAILS = "/v1/shopkeeper/profile/update/{id}";
 
-
     private UrlConstants() {}
 }
