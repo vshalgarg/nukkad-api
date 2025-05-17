@@ -7,7 +7,7 @@ import com.code.monks.nukkad.entities.CategoryEntity;
 import com.code.monks.nukkad.exception.DuplicateResourceException;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
 import com.code.monks.nukkad.exception.UnhandledException;
-import com.code.monks.nukkad.mapper.CategoryMapper;
+
 import com.code.monks.nukkad.repositories.CategoryRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,46 +64,6 @@ public class CategoryService {
 		}
 	}
 
-	/*
-	 *
-	 * update Category
-	 *
-	 */
-	public GetCategoryRequestDTO updateCategory(Long id, CreateCategoryRequestDTO dto) {
-		log.info("Updating category with ID: {}", id);
 
-		CategoryEntity existingCategory = categoryRepository.findById(id).orElseThrow(() -> {
-			log.error("Category not found with ID: {}", id);
-			return new ResourceNotFoundException("Category not found with id: " + id);
-		});
-
-		log.debug("Existing category before update: {}", existingCategory);
-
-		existingCategory.setCategoryName(dto.getCategoryName());
-		CategoryEntity updatedCategory = categoryRepository.save(existingCategory);
-
-		log.info("Category successfully updated: {}", updatedCategory);
-
-		GetCategoryRequestDTO updatedCategoryDTO = new GetCategoryRequestDTO();
-		updatedCategoryDTO.setCategoryId(updatedCategory.getCategoryId());
-		updatedCategoryDTO.setCategoryName(updatedCategory.getCategoryName());
-
-		return updatedCategoryDTO;
-	}
-
-	/*
-	 *
-	 * delete category
-	 *
-	 */
-	// public String deleteCategory(Long id) {
-	// Category category = categoryRepository.findById(id)
-	// .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
-	//
-	// // Delete the category
-	// categoryRepository.delete(category);
-	//
-	// return "Category with ID " + id + " has been successfully deleted.";
-	// }
 
 }

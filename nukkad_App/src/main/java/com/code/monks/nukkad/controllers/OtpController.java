@@ -13,7 +13,7 @@ import static com.code.monks.nukkad.constants.UrlConstants.SEND_OTP;
 
 @RestController
 @RequestMapping(OTP)
-public class OtpController {
+public class  OtpController {
 
 	@Autowired
 	private OtpService otpService;

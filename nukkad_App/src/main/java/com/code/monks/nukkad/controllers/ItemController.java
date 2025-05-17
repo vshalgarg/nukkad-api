@@ -1,9 +1,10 @@
 package com.code.monks.nukkad.controllers;
 
-import com.code.monks.nukkad.dto.ItemRequestDTO;
-import com.code.monks.nukkad.dto.ItemResponseDTO;
+import com.code.monks.nukkad.dto.request.CreateItemRequestDTO;
+import com.code.monks.nukkad.dto.response.CreateItemResponseDTO;
+import com.code.monks.nukkad.dto.response.GetAllItemResponseDTO;
 import com.code.monks.nukkad.services.ItemService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,54 +13,29 @@ import java.util.List;
 import static com.code.monks.nukkad.constants.UrlConstants.*;
 
 @RestController
-@RequestMapping(ITEM)
+@RequestMapping(ITEM.BASE)
+@AllArgsConstructor
 public class ItemController {
 
-	@Autowired
-	private ItemService itemService;
+	private final ItemService itemService;
 
-	/*
-	 *
-	 * Create new item
-	 *
-	 */
-	@PostMapping(SAVE_ITEM)
-	public ResponseEntity<ItemResponseDTO> createItem(@RequestBody ItemRequestDTO dto) {
-		ItemResponseDTO savedItem = itemService.createItem(dto);
-		return ResponseEntity.ok(savedItem);
+	@PostMapping(ITEM.CREATE)
+	public ResponseEntity<CreateItemResponseDTO> createItem(@RequestBody CreateItemRequestDTO dto) {
+		return ResponseEntity.ok(itemService.createItem(dto));
 	}
 
-	/*
-	 *
-	 * Get all items
-	 *
-	 */
-	@GetMapping(GET_ALL_ITEMS)
-	public ResponseEntity<List<ItemResponseDTO>> getAllItems() {
-		List<ItemResponseDTO> items = itemService.getAllItems();
-		return ResponseEntity.ok(items);
+	@GetMapping(ITEM.GET_ALL)
+	public ResponseEntity<List<GetAllItemResponseDTO>> getAllItems() {
+		return ResponseEntity.ok(itemService.getAllItems());
 	}
 
-	/*
-	 *
-	 * Get item by ID
-	 *
-	 */
-	@GetMapping(GET_ITEM_BY_ID)
-	public ResponseEntity<ItemResponseDTO> getItemById(@PathVariable Long id) {
-		ItemResponseDTO item = itemService.getItemById(id);
-		return ResponseEntity.ok(item);
+	@GetMapping(ITEM.GET_BY_ID)
+	public ResponseEntity<CreateItemResponseDTO> getItemById(@PathVariable Long id) {
+		return ResponseEntity.ok(itemService.getItemById(id));
 	}
 
-	/*
-	 *
-	 * Update item
-	 *
-	 */
-	@PutMapping(UPDATE_ITEM_BY_ID)
-	public ResponseEntity<ItemResponseDTO> updateItem(@PathVariable Long id, @RequestBody ItemRequestDTO dto) {
-		ItemResponseDTO updatedItem = itemService.updateItem(id, dto);
-		return ResponseEntity.ok(updatedItem);
+	@PutMapping(ITEM.UPDATE)
+	public ResponseEntity<CreateItemResponseDTO> updateItem(@PathVariable Long id, @RequestBody CreateItemRequestDTO dto) {
+		return ResponseEntity.ok(itemService.updateItem(id, dto));
 	}
-
 }

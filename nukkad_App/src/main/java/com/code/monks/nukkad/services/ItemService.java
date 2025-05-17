@@ -1,140 +1,115 @@
 package com.code.monks.nukkad.services;
 
-import com.code.monks.nukkad.dto.ItemRequestDTO;
-import com.code.monks.nukkad.dto.ItemResponseDTO;
+import com.code.monks.nukkad.dto.request.CreateItemRequestDTO;
+import com.code.monks.nukkad.dto.response.CreateItemResponseDTO;
+import com.code.monks.nukkad.dto.response.GetAllItemResponseDTO;
 import com.code.monks.nukkad.entities.CategoryEntity;
 import com.code.monks.nukkad.entities.ItemEntity;
+import com.code.monks.nukkad.exception.DuplicateResourceException;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
-import com.code.monks.nukkad.mapper.ItemMapper;
+import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.CategoryRepository;
 import com.code.monks.nukkad.repositories.ItemRepository;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.code.monks.nukkad.enums.ResponseErrorCodes.DUPLICATE_CATEGORY_EXCEPTION;
+import static com.code.monks.nukkad.enums.ResponseErrorCodes.UNHANDLED_EXCEPTION;
 
 @Service
 @Slf4j
+@AllArgsConstructor
 public class ItemService {
 
-	@Autowired
-	private ItemRepository itemRepository;
+	private final ItemRepository itemRepository;
+	private final CategoryRepository categoryRepository;
 
-	@Autowired
-	private CategoryRepository categoryRepository;
-
-	/*
-	 *
-	 * To save item with category
-	 *
-	 */
-	public ItemResponseDTO createItem(ItemRequestDTO dto) {
-		log.info("Creating new item with name: {}", dto.getName());
-
-		ItemEntity item = ItemMapper.toEntity(dto);
-		log.debug("Mapped ItemEntity: {}", item);
-
-		List<Long> categoryIds = dto.getCategoryIds();
-		log.debug("Fetching categories with IDs: {}", categoryIds);
-
-		List<CategoryEntity> categories = categoryRepository.findAllById(categoryIds);
-		item.setCategories(categories);
-
-		ItemEntity savedItem = itemRepository.save(item);
-		log.info("Item successfully saved with ID: {}", savedItem.getId());
-
-		ItemResponseDTO responseDTO = ItemMapper.toDTO(savedItem);
-		log.debug("Mapped ItemResponseDTO: {}", responseDTO);
-
-		return responseDTO;
-	}
-
-	/*
-	 *
-	 * get all items
-	 *
-	 */
-	public List<ItemResponseDTO> getAllItems() {
-		log.info("Fetching all items from the database");
-
-		List<ItemEntity> items = itemRepository.findAll();
-		log.info("Total items fetched: {}", items.size());
-
-		List<ItemResponseDTO> dtos = new ArrayList<>();
-		for (ItemEntity item : items) {
-			ItemResponseDTO dto = ItemMapper.toDTO(item);
-			dtos.add(dto);
-			log.debug("Mapped ItemEntity to DTO: {}", dto); // Optional: keep at debug
-															// level
-		}
-
-		return dtos;
-	}
-
-	/*
-	 *
-	 * get item by id
-	 *
-	 */
-	public ItemResponseDTO getItemById(Long id) {
-		log.info("Fetching item with ID: {}", id);
-
-		ItemEntity item = itemRepository.findById(id).orElseThrow(() -> {
-			log.error("Item not found with ID: {}", id);
-			return new ResourceNotFoundException("Item not found with ID: " + id);
-		});
-
-		ItemResponseDTO dto = ItemMapper.toDTO(item);
-		log.info("Successfully fetched and mapped item with ID: {}", id);
-		return dto;
-	}
-
-	/*
-	 *
-	 * Update Item
-	 *
-	 */
-	public ItemResponseDTO updateItem(Long id, ItemRequestDTO dto) {
-		log.info("Request to update item with ID: {}", id);
-
-		// Fetching the existing item
-		ItemEntity item = itemRepository.findById(id).orElseThrow(() -> {
-			log.error("Item not found with ID: {}", id);
-			return new ResourceNotFoundException("Item not found with ID: " + id);
-		});
-
-		log.info("Item found with ID: {}", id);
-
-		// Updating item details
+	public CreateItemResponseDTO createItem(CreateItemRequestDTO dto) {
+		log.info("Attempting to save new item: {}", dto);
+		try{
+		ItemEntity item = new ItemEntity();
 		item.setName(dto.getName());
 		item.setImage(dto.getImage());
 		item.setUnit(dto.getUnit());
 
-		// Setting categories
 		List<CategoryEntity> categories = categoryRepository.findAllById(dto.getCategoryIds());
 		item.setCategories(categories);
-		log.info("Categories associated with item ID {}: {}", id, dto.getCategoryIds());
 
-		// Saving the updated item
-		ItemEntity updated = itemRepository.save(item);
-		log.info("Item updated successfully with ID: {}", updated.getId());
+		ItemEntity saved = itemRepository.save(item);
+		log.info("Item successfully saved to db: {}", saved);
+		return CreateItemResponseDTO.fromEntity(saved);
+	}catch(DataIntegrityViolationException e){
+			log.error("Duplicated item data or constraint violation: {}", dto, e);
+			throw new DuplicateResourceException(DUPLICATE_CATEGORY_EXCEPTION);
+		}catch(Exception e){
+			throw new UnhandledException(UNHANDLED_EXCEPTION,e);
+		}
+		}
 
-		// Returning updated DTO
-		return ItemMapper.toDTO(updated);
+	public List<GetAllItemResponseDTO> getAllItems() {
+		log.info("Fetching all items");
+		try {
+			List<ItemEntity> items = itemRepository.findAll();
+			if (items.isEmpty()) {
+				log.warn("No items found in database");
+				return Collections.emptyList();
+			}
+			log.info("Successfully fetched {} items", items.size());
+			return items.stream()
+					.map(GetAllItemResponseDTO::fromEntity)
+					.collect(Collectors.toList());
+		} catch (Exception e) {
+			log.error("Unhandled exception while fetching all items", e);
+			throw new UnhandledException(UNHANDLED_EXCEPTION, e);
+		}
 	}
 
-	/*
-	 * Delete Items By id
-	 *
-	 */
-	// public String deleteItem(Long id) {
-	// if (!itemRepository.existsById(id)) {
-	// throw new RuntimeException("Item not found");
-	// }
-	// itemRepository.deleteById(id);
-	// return "Item got deleted";
-	// }
+	public CreateItemResponseDTO getItemById(Long id) {
+		log.info("Fetching item by ID: {}", id);
+		try {
+			ItemEntity item = itemRepository.findById(id).orElseThrow(() -> {
+				log.warn("Item not found with ID: {}", id);
+				return new ResourceNotFoundException("Item not found with ID: " + id);
+			});
+			log.info("Item successfully fetched: {}", item);
+			return CreateItemResponseDTO.fromEntity(item);
+		} catch (ResourceNotFoundException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("Unhandled exception while fetching item with ID: {}", id, e);
+			throw new UnhandledException(UNHANDLED_EXCEPTION, e);
+		}
+	}
 
+	public CreateItemResponseDTO updateItem(Long id, CreateItemRequestDTO dto) {
+		log.info("Attempting to update item with ID: {}", id);
+		try {
+			ItemEntity item = itemRepository.findById(id).orElseThrow(() -> {
+				log.warn("Item not found for update with ID: {}", id);
+				return new ResourceNotFoundException("Item not found with ID: " + id);
+			});
+
+			item.setName(dto.getName());
+			item.setImage(dto.getImage());
+			item.setUnit(dto.getUnit());
+			List<CategoryEntity> categories = categoryRepository.findAllById(dto.getCategoryIds());
+			item.setCategories(categories);
+
+			ItemEntity updated = itemRepository.save(item);
+			log.info("Item successfully updated: {}", updated);
+			return CreateItemResponseDTO.fromEntity(updated);
+		} catch (ResourceNotFoundException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("Unhandled exception while updating item with ID: {}", id, e);
+			throw new UnhandledException(UNHANDLED_EXCEPTION, e);
+		}
+	}
 }
+
