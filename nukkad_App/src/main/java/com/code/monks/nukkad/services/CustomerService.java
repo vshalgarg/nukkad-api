@@ -1,80 +1,71 @@
 package com.code.monks.nukkad.services;
 
-import com.code.monks.nukkad.dto.CustomerRequestDTO;
-import com.code.monks.nukkad.dto.CustomerResponseDTO;
+import com.code.monks.nukkad.dto.request.CreateCustomerRequestDTO;
+import com.code.monks.nukkad.dto.response.CreateCustomerResponseDTO;
 import com.code.monks.nukkad.entities.CustomerEntity;
+import com.code.monks.nukkad.enums.ResponseErrorCodes;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
-import com.code.monks.nukkad.mapper.CustomerMapper;
+import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.CustomerRepository;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import static com.code.monks.nukkad.enums.ResponseErrorCodes.UNHANDLED_EXCEPTION;
+
 @Slf4j
 @Service
+@AllArgsConstructor
 public class CustomerService {
 
-	@Autowired
-	private CustomerRepository customerRepository;
 
-	/*
-	 *
-	 * To save customer data
-	 *
-	 */
-	public CustomerResponseDTO saveCustomerData(CustomerRequestDTO customerRequestDTO) {
-		log.info("Saving new customer: {}", customerRequestDTO.getEmail());
+	private final CustomerRepository customerRepository;
 
-		CustomerEntity customerEntity = CustomerMapper.customerEntity(customerRequestDTO);
 
-		log.debug("Mapped CustomerEntity: {}", customerEntity);
-
-		CustomerEntity saved = customerRepository.save(customerEntity);
-
-		log.info("Customer saved with ID: {}", saved.getId());
-
-		CustomerResponseDTO customerResponseDTO = CustomerMapper.customerResponseDTO(saved);
-		log.debug("Returning CustomerResponseDTO: {}", customerResponseDTO);
-
-		return customerResponseDTO;
-
-		// catch(Exception e){
-		// log.error("Error occurred while saving customer", e);
-		// // Wrap the original exception in ValidationException to trigger the handler
-		// throw new BadRequestException("Failed to save customer due to invalid data.");
-		// }
+	public CreateCustomerResponseDTO saveCustomerData(CreateCustomerRequestDTO requestDTO) {
+		log.info("Saving new customer: {}", requestDTO.getEmail());
+		try {
+			CustomerEntity customer = new CustomerEntity();
+			customer.setName(requestDTO.getName());
+			customer.setEmail(requestDTO.getEmail());
+			customer.setAddress(requestDTO.getAddress());
+			customer.setDob(requestDTO.getDob());
+			CustomerEntity saved = customerRepository.save(customer);
+			log.info("Customer saved with ID: {}", saved.getId());
+			return CreateCustomerResponseDTO.fromDbDto(saved);
+		}
+		catch (Exception e){
+			log.error("Unhandled exception while saving customer: {}", requestDTO, e);
+			throw new UnhandledException(UNHANDLED_EXCEPTION,e);
+		}
 	}
 
-	/*
-	 *
-	 * To update customer data
-	 *
-	 */
 
-	public CustomerResponseDTO updateCustomer(Long id, CustomerRequestDTO customerRequestDTO) {
+	public CreateCustomerResponseDTO updateCustomer(Long id, CreateCustomerRequestDTO requestDTO) {
 		log.info("Updating customer with ID: {}", id);
+		try {
+			CustomerEntity customer = customerRepository.findById(id).orElseThrow(() ->
+					new ResourceNotFoundException("Customer not found with id: " + id));
 
-		CustomerEntity existingCustomer = customerRepository.findById(id).orElseThrow(() -> {
-			log.warn("Customer not found with ID: {}", id);
-			return new ResourceNotFoundException("Customer not found with id: " + id);
-		});
-		log.debug("Existing customer data: {}", existingCustomer);
-		// Update the fields
-		existingCustomer.setName(customerRequestDTO.getName());
-		existingCustomer.setEmail(customerRequestDTO.getEmail());
-		existingCustomer.setAddress(customerRequestDTO.getAddress());
-		existingCustomer.setDob(customerRequestDTO.getDob());
+			customer.setName(requestDTO.getName());
+			customer.setEmail(requestDTO.getEmail());
+			customer.setAddress(requestDTO.getAddress());
+			customer.setDob(requestDTO.getDob());
 
-		log.debug("Updated customer entity before saving: {}", existingCustomer);
-		// Save updated entity
-		CustomerEntity updatedCustomer = customerRepository.save(existingCustomer);
-		log.info("Customer updated successfully with ID: {}", updatedCustomer.getId());
+			CustomerEntity updated = customerRepository.save(customer);
+			log.info("Customer updated successfully with ID: {}", updated.getId());
 
-		// Convert to ResponseDTO
-		CustomerResponseDTO customerResponseDTO = CustomerMapper.customerResponseDTO(updatedCustomer);
-		log.debug("Returning CustomerResponseDTO: {}", customerResponseDTO);
-
-		return customerResponseDTO;
+			return CreateCustomerResponseDTO.fromDbDto(updated);
+		}
+		catch (ResourceNotFoundException e) {
+			log.warn("Customer not found: {}", id, e);
+			throw e;
+		}
+		catch (Exception e) {
+			log.error("Unhandled exception while updating customer: {}", requestDTO, e);
+			throw new UnhandledException(UNHANDLED_EXCEPTION,e);
+		}
 	}
 
 }

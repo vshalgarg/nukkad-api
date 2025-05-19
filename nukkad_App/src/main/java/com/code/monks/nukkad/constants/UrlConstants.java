@@ -27,24 +27,27 @@ public class UrlConstants {
 
  }
 
+ public static class CUSTOMER{
+		public static final String BASE = CONTEXT + "/api/customer";
 
-	public static final String OTP = "/api/otp";
+		public static final String CREATE = "/v1/create";
 
-	public static final String SEND_OTP = "/send";
+		public static final String UPDATE = "/v1/update/{id}";
 
-	public static final String CUSTOMER = "/customer";
+ }
 
-	public static final String CREATE_CUSTOMER = "/v1/customer/profile/create";
+ public static class OTP{
+	 public static final String BASE = CONTEXT +  "/api/otp";
 
-	public static final String UPDATE_CUSTOMER = "/v1/customer/profile/update/{id}";
+	 public static final String SENDOTP = "/v1/send";
+ }
 
-	public static final String SHOPKEEPER = "/shopkeeper";
 
-	public static final String SAVE_SHOPKEEPER_DETAILS = "/v1/shopkeeper/profile/save";
-
-	public static final String GET_SHOPKEEPER_DETAILS_BY_ID = "/v1/shopkeeper/profile/getShopkeeperDetailsById/{id}";
-
-	public static final String UPDATE_SHOPKEEPER_DETAILS = "/v1/shopkeeper/profile/update/{id}";
+public static class SHOPKEEPER{
+		public static final String BASE = CONTEXT + "/api/shopkeeper";
+		public static final String CREATE = "/v1/profile/save";
+		public static  final String UPDATE = "/v1/profile/update/{id}";
+}
 
 	private UrlConstants() {
 	}

@@ -1,4 +1,4 @@
-package com.code.monks.nukkad.dto;
+package com.code.monks.nukkad.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,10 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SendOtpRequestDTO {
+public class SendOtpResponseDTO {
 
-	public String name;
-
-	private String mobileNumber;
+	private String message;
 
 }

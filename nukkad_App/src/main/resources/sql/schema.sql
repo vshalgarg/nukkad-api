@@ -1,0 +1,51 @@
+CREATE TABLE category (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE customer (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255),
+    email VARCHAR(255),
+    address VARCHAR(255),
+    dob VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE item (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255),
+    image VARCHAR(255),
+    unit VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE item_category (
+    item_id INT NOT NULL,
+    category_id INT NOT NULL,
+    PRIMARY KEY (item_id, category_id),
+    FOREIGN KEY (item_id) REFERENCES item(id),
+    FOREIGN KEY (category_id) REFERENCES category(id)
+);
+
+CREATE TABLE shopkeeper (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255),
+    store_number VARCHAR(255),
+    gst_in VARCHAR(255),
+    address VARCHAR(255),
+    city VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE shopkeeper_pictures (
+    shopkeeper_id INT NOT NULL,
+    picture_url VARCHAR(1024),
+    FOREIGN KEY (shopkeeper_id) REFERENCES shopkeeper(id)
+);
+

@@ -6,17 +6,18 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-@Entity
+@EqualsAndHashCode(callSuper = true)
+@Entity(name  = "customer")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CustomerEntity {
+public class CustomerEntity extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	private int id;
 
 	private String name;
 

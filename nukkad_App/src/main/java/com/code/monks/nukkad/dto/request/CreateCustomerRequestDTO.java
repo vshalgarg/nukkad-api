@@ -1,4 +1,4 @@
-package com.code.monks.nukkad.dto;
+package com.code.monks.nukkad.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -9,7 +9,7 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CustomerRequestDTO {
+public class CreateCustomerRequestDTO {
 
 	@NotBlank(message = "Name is mandatory")
 	private String name;
@@ -24,5 +24,6 @@ public class CustomerRequestDTO {
 	@NotBlank(message = "Date of birth is mandatory")
 	@Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "DOB must be in format YYYY-MM-DD")
 	private String dob;
+
 
 }

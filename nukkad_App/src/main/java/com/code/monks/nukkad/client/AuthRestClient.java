@@ -1,7 +1,7 @@
 package com.code.monks.nukkad.client;
 
-import com.code.monks.nukkad.dto.SendOtpRequestDTO;
-import com.code.monks.nukkad.dto.SendOtpResponseDTO;
+import com.code.monks.nukkad.dto.request.SendOtpRequestDTO;
+import com.code.monks.nukkad.dto.response.SendOtpResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
