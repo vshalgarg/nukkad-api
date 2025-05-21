@@ -2,7 +2,7 @@ package com.code.monks.nukkad.constants;
 
 public class UrlConstants {
 
-	public static final String CONTEXT = "nukkad";
+	public static final String CONTEXT = "/nukkad";
 
 	public static class CATEGORY {
 
@@ -45,6 +45,16 @@ public class UrlConstants {
 	public static final String GET_SHOPKEEPER_DETAILS_BY_ID = "/v1/shopkeeper/profile/getShopkeeperDetailsById/{id}";
 
 	public static final String UPDATE_SHOPKEEPER_DETAILS = "/v1/shopkeeper/profile/update/{id}";
+
+
+	public static class ORDER
+	{
+		public static final String BASE =CONTEXT +"/api/order";
+		public static final String CREATE = "/v1/create";
+		public static final String GET_ALL = "/v1/orders/status";
+//		public static final String GET_ALL_TRACKING_NUMBER= "/v1/fetch/order/fetch?trackingNumber";
+		public static final String GET_BY_TRACKING = "/v1/fetch/order/fetch";
+	}
 
 	private UrlConstants() {
 	}

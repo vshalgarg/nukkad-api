@@ -1,4 +1,4 @@
-package com.neepanlokInfotech.nukkad_App.entities;
+package com.code.monks.nukkad.entities;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -9,7 +9,8 @@ import lombok.Data;
 import java.time.LocalDateTime;
 @Entity
 @Data
-public class OtpEntity {
+public class OtpEntity extends BaseEntity
+{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

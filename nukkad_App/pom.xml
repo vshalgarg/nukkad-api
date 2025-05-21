@@ -28,6 +28,11 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<properties>
+			<maven.compiler.source>21</maven.compiler.source>
+			<maven.compiler.target>21</maven.compiler.target>
+		</properties>
+
 	</properties>
 	<dependencies>
 		<dependency>
@@ -86,6 +91,10 @@
 							<version>1.18.38</version>
 						</path>
 					</annotationProcessorPaths>
+					<release>17</release>
+					<source>17</source>
+					<target>17</target>
+
 				</configuration>
 			</plugin>
 			<plugin>

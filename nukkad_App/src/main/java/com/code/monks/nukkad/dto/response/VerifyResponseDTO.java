@@ -1,6 +1,5 @@
-package com.neepanlokInfotech.nukkad_App.dto;
+package com.code.monks.nukkad.dto.response;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

@@ -1,8 +1,8 @@
-package com.neepanlokInfotech.nukkad_App.mapper;
+package com.code.monks.nukkad.mapper;
 
-import com.neepanlokInfotech.nukkad_App.dto.OrderRequestDTO;
-import com.neepanlokInfotech.nukkad_App.dto.OrderResponseDTO;
-import com.neepanlokInfotech.nukkad_App.entities.OrderEntity;
+import com.code.monks.nukkad.dto.request.OrderRequestDTO;
+import com.code.monks.nukkad.dto.response.OrderResponseDTO;
+import com.code.monks.nukkad.entities.OrderEntity;
 
 import java.time.LocalDateTime;
 import java.time.format.TextStyle;
@@ -18,7 +18,7 @@ public class OrderMapper {
         orderEntity.setStatus(dto.getStatus());
         orderEntity.setTrackingNumber(dto.getTrackingNumber());
         orderEntity.setQuantity(dto.getQuantity());
-//        orderEntity.setShopKeeperId(dto.getShopKeeperId());
+        orderEntity.setShopKeeperId(dto.getShopKeeperId());
 //        orderEntity.setStatusOrderEnum(dto.getStatusOrderEnum());
 
         LocalDateTime now = LocalDateTime.now();
@@ -26,7 +26,6 @@ public class OrderMapper {
         orderEntity.setDayName(now.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH));
         return orderEntity;
     }
-
 
     // Convert Entity to ResponseDTO
 
@@ -40,7 +39,7 @@ public class OrderMapper {
         responseDTO.setTrackingNumber(entity.getTrackingNumber());
         responseDTO.setDayName(entity.getDayName());
         responseDTO.setShopKeeperId(entity.getShopKeeperId());
-//        responseDTO.setStatusOrderEnum(entity.getStatusOrderEnum());
+        responseDTO.setStatusOrderEnum(entity.getStatusOrderEnum());
 
         return responseDTO;
     }

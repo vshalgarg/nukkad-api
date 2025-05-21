@@ -1,4 +1,4 @@
-package com.neepanlokInfotech.nukkad_App.dto;
+package com.code.monks.nukkad.dto.request;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -20,6 +20,6 @@ public class OrderRequestDTO {
     @NotNull(message = "Order ID is required")
     private Long orderId;
 
-//    @NotNull(message = "Shopkeeper ID is required")
-//    private Long shopKeeperId;
+    @NotNull(message = "Shopkeeper ID is required")
+    private Long shopKeeperId;
 }

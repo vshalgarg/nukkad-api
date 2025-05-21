@@ -3,6 +3,8 @@ package com.code.monks.nukkad.controllers;
 import com.code.monks.nukkad.dto.SendOtpRequestDTO;
 import com.code.monks.nukkad.dto.SendOtpResponseDTO;
 import com.code.monks.nukkad.services.OtpService;
+import com.code.monks.nukkad.dto.request.VerifyRequestDTO;
+import com.code.monks.nukkad.dto.response.VerifyResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +30,14 @@ public class  OtpController {
 		else {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SendOtpResponseDTO(""));
 		}
+	}
+
+	// to verify otp
+	@PostMapping("/verify")
+	public ResponseEntity<VerifyResponseDTO> verifyOTP(@RequestBody VerifyRequestDTO dto)
+	{
+		VerifyResponseDTO verifyResponseDTO=otpService.verifyDTO(dto);
+		return ResponseEntity.ok(verifyResponseDTO);
 	}
 
 }

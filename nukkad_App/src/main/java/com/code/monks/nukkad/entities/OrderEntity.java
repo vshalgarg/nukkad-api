@@ -1,13 +1,13 @@
-package com.neepanlokInfotech.nukkad_App.entities;
+package com.code.monks.nukkad.entities;
 
-import com.neepanlokInfotech.nukkad_App.enums.StatusOrderEnum;
+import com.code.monks.nukkad.enums.StatusOrderEnum;
 import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 @Entity
 @Data
-public class OrderEntity
+public class OrderEntity extends BaseEntity
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,6 +22,7 @@ public class OrderEntity
 
     @Enumerated(EnumType.STRING)
     private StatusOrderEnum statusOrderEnum;
+
 
 
 }

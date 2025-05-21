@@ -1,5 +1,6 @@
-package com.neepanlokInfotech.nukkad_App.dto;
+package com.code.monks.nukkad.dto.response;
 
+import com.code.monks.nukkad.enums.StatusOrderEnum;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -15,5 +16,6 @@ public class OrderResponseDTO {
     private LocalDateTime orderDate;
     private String dayName;
     private Long shopKeeperId;
+    private StatusOrderEnum statusOrderEnum;
 
 }

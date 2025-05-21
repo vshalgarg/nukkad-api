@@ -1,9 +1,8 @@
-package com.neepanlokInfotech.nukkad_App.mapper;
+package com.code.monks.nukkad.mapper;
 
-import com.neepanlokInfotech.nukkad_App.dto.SendOtpRequestDTO;
-import com.neepanlokInfotech.nukkad_App.dto.SendOtpResponseDTO;
-import com.neepanlokInfotech.nukkad_App.dto.VerifyRequestDTO;
-import com.neepanlokInfotech.nukkad_App.entities.OtpEntity;
+import com.code.monks.nukkad.dto.SendOtpRequestDTO;
+import com.code.monks.nukkad.dto.SendOtpResponseDTO;
+import com.code.monks.nukkad.entities.OtpEntity;
 
 public class OtpMapper {
     public static SendOtpRequestDTO otpRequestDTODto(OtpEntity entity) {

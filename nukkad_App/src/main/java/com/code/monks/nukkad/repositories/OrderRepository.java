@@ -1,10 +1,13 @@
-package com.neepanlokInfotech.nukkad_App.repositories;
+package com.code.monks.nukkad.repositories;
 
-import com.neepanlokInfotech.nukkad_App.entities.OrderEntity;
+import com.code.monks.nukkad.entities.OrderEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
 public interface OrderRepository extends JpaRepository<OrderEntity,Long> {
+
    List<OrderEntity> findByStatusIgnoreCase(String status);
+
+   List<OrderEntity> findByTrackingNumberIgnoreCase(String trackingNumber);
 }

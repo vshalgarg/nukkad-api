@@ -1,14 +1,19 @@
 package com.code.monks.nukkad.exception;
 
+//import com.code.monks.nukkad.exceptionHanlder.OrderNotFoundException;
+import com.code.monks.nukkad.exception.OrderNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -64,4 +69,33 @@ public class GlobalExceptionHandler {
 		return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
+    @ExceptionHandler(com.code.monks.nukkad.exception.OrderNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleOrderNotFound(com.code.monks.nukkad.exception.OrderNotFoundException exception)
+    {
+        ErrorResponse response= new ErrorResponse
+				("Order Not Found :" + LocalDateTime.now(), 400);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+
+    }
+
+//    @ExceptionHandler(MethodArgumentNotValidException.class)
+//    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException exception) {
+//
+//        Map<String, String> fieldErrors = new HashMap<>();
+//
+//        for (FieldError error : exception.getBindingResult().getFieldErrors()) {
+//            fieldErrors.put(error.getField(), error.getDefaultMessage());
+//        }
+//
+//        // Combine field errors into a single message (optional)
+//        StringBuilder messageBuilder = new StringBuilder("Invalid fields: ");
+//        fieldErrors.forEach((field, msg) -> messageBuilder.append(field).append(" - ").append(msg).append("; "));
+//
+//		ErrorResponse errorResponse = new ErrorResponse(
+//                messageBuilder.toString(),
+//                LocalDateTime.now(),
+//                HttpStatus.BAD_REQUEST.value()
+//                );
+//		return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+//    }
 }

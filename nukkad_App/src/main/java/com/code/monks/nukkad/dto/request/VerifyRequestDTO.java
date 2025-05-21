@@ -1,4 +1,4 @@
-package com.neepanlokInfotech.nukkad_App.dto;
+package com.code.monks.nukkad.dto.request;
 
 import lombok.Data;
 
