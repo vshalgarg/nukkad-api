@@ -14,12 +14,16 @@ public class ItemEntity extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id")
 	private int id;
 
+	@Column(name = "name")
 	private String name;
 
+	@Column(name = "image")
 	private String image;
 
+	@Column(name = "unit")
 	private String unit;
 
 	@ManyToMany(fetch = FetchType.LAZY)

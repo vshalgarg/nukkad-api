@@ -1,11 +1,11 @@
-CREATE TABLE category (
+CREATE TABLE IF NOT EXISTS category (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE customer (
+CREATE TABLE IF NOT EXISTS customer(
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255),
     email VARCHAR(255),
@@ -15,7 +15,7 @@ CREATE TABLE customer (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE item (
+CREATE TABLE IF NOT EXISTS item(
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255),
     image VARCHAR(255),
@@ -24,7 +24,7 @@ CREATE TABLE item (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE item_category (
+CREATE TABLE IF NOT EXISTS item_category(
     item_id INT NOT NULL,
     category_id INT NOT NULL,
     PRIMARY KEY (item_id, category_id),
@@ -32,7 +32,7 @@ CREATE TABLE item_category (
     FOREIGN KEY (category_id) REFERENCES category(id)
 );
 
-CREATE TABLE shopkeeper (
+CREATE TABLE IF NOT EXISTS shopkeeper (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255),
     store_number VARCHAR(255),
@@ -43,9 +43,12 @@ CREATE TABLE shopkeeper (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE shopkeeper_pictures (
+CREATE TABLE IF NOT EXISTS shopkeeper_pictures (
     shopkeeper_id INT NOT NULL,
     picture_url VARCHAR(1024),
     FOREIGN KEY (shopkeeper_id) REFERENCES shopkeeper(id)
 );
+INSERT INTO shopkeeper (name, store_number, gst_in, address, city)
+VALUES ('John Doe', 'S123', '29ABCDE1234F2Z5', '123 Market Street', 'New York');
+
 
