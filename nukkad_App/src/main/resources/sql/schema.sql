@@ -48,7 +48,22 @@ CREATE TABLE IF NOT EXISTS shopkeeper_pictures (
     picture_url VARCHAR(1024),
     FOREIGN KEY (shopkeeper_id) REFERENCES shopkeeper(id)
 );
-INSERT INTO shopkeeper (name, store_number, gst_in, address, city)
-VALUES ('John Doe', 'S123', '29ABCDE1234F2Z5', '123 Market Street', 'New York');
+
+CREATE TABLE IF NOT EXISTS addresses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    address_line1 VARCHAR(255),
+    address_line2 VARCHAR(255),
+    city VARCHAR(100),
+    state VARCHAR(100),
+    pincode VARCHAR(20),
+    landmark VARCHAR(255),
+    label VARCHAR(50),
+    is_selected BOOLEAN DEFAULT FALSE,
+    customer_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customer(id)
+);
+
 
 

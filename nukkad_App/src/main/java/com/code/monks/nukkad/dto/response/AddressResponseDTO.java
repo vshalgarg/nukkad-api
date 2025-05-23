@@ -6,27 +6,24 @@ import lombok.Data;
 
 @Data
 public class AddressResponseDTO {
-    private int id;
-    private AddressLabel label;
+    private Long id;
     private String addressLine1;
     private String addressLine2;
     private String landmark;
     private String city;
     private String state;
     private String pincode;
-    private boolean isSelected;
+    private AddressLabel label;
 
-    public static AddressResponseDTO fromEntity(AddressEntity entity) {
+    public static AddressResponseDTO fromEntity(AddressEntity address) {
         AddressResponseDTO addressResponseDTO = new AddressResponseDTO();
-        addressResponseDTO.setId(entity.getId());
-        addressResponseDTO.setLabel(entity.getLabel());
-        addressResponseDTO.setAddressLine1(entity.getAddressLine1());
-        addressResponseDTO.setAddressLine2(entity.getAddressLine2());
-        addressResponseDTO.setLandmark(entity.getLandmark());
-        addressResponseDTO.setCity(entity.getCity());
-        addressResponseDTO.setState(entity.getState());
-        addressResponseDTO.setPincode(entity.getPincode());
-        addressResponseDTO.setSelected(entity.isSelected());
-        return addressResponseDTO;
+        addressResponseDTO.setAddressLine1(address.getAddressLine1());
+        addressResponseDTO.setAddressLine2(address.getAddressLine2());
+        addressResponseDTO.setLandmark(address.getLandmark());
+        addressResponseDTO.setCity(address.getCity());
+        addressResponseDTO.setState(address.getState());
+        addressResponseDTO.setPincode(address.getPincode());
+        addressResponseDTO.setLabel(address.getLabel());
+        return  addressResponseDTO;
     }
 }
