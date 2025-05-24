@@ -1,9 +1,11 @@
 package com.code.monks.nukkad.controllers;
 
-import com.code.monks.nukkad.dto.ShopkeeperRequestDTO;
-import com.code.monks.nukkad.dto.ShopkeeperResponseDTO;
+import com.code.monks.nukkad.dto.request.CreateShopkeeperRequestDTO;
+import com.code.monks.nukkad.dto.response.CreateShopkeeperResponseDTO;
 import com.code.monks.nukkad.services.ShopkeeperService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,29 +13,26 @@ import org.springframework.web.bind.annotation.*;
 import static com.code.monks.nukkad.constants.UrlConstants.*;
 
 @RestController
-@RequestMapping(SHOPKEEPER)
+@RequestMapping(SHOPKEEPER.BASE)
+@Slf4j
+@AllArgsConstructor
 public class ShopkeeperController {
 
-	@Autowired
-	private ShopkeeperService shopkeeperService;
+	private  final ShopkeeperService shopkeeperService;
 
-	@PostMapping(SAVE_SHOPKEEPER_DETAILS)
-	public ResponseEntity<ShopkeeperResponseDTO> createShopkeeper(@RequestBody ShopkeeperRequestDTO dto) {
-		ShopkeeperResponseDTO createdShopkeeper = shopkeeperService.createShopkeeper(dto);
+	@PostMapping(SHOPKEEPER.CREATE)
+	public ResponseEntity<CreateShopkeeperResponseDTO> createShopkeeper(@Valid @RequestBody CreateShopkeeperRequestDTO dto) {
+		log.info("Received request to createShopkeeper: {}", dto);
+		CreateShopkeeperResponseDTO createdShopkeeper = shopkeeperService.createShopkeeper(dto);
 		return new ResponseEntity<>(createdShopkeeper, HttpStatus.CREATED);
 	}
 
-	@GetMapping(GET_SHOPKEEPER_DETAILS_BY_ID)
-	public ResponseEntity<ShopkeeperResponseDTO> getShopkeeperById(@PathVariable Long id) {
-		ShopkeeperResponseDTO shopkeeper = shopkeeperService.getById(id);
-		return new ResponseEntity<>(shopkeeper, HttpStatus.OK);
-	}
-
-	@PutMapping(UPDATE_SHOPKEEPER_DETAILS)
-	public ResponseEntity<ShopkeeperResponseDTO> updateShopkeeper(@PathVariable Long id,
-			@RequestBody ShopkeeperRequestDTO dto) {
-		ShopkeeperResponseDTO updatedShopkeeper = shopkeeperService.updateShopkeeper(id, dto);
-		return new ResponseEntity<>(updatedShopkeeper, HttpStatus.OK);
+	@PutMapping(SHOPKEEPER.UPDATE)
+	public ResponseEntity<CreateShopkeeperResponseDTO> updateShopkeeper(@PathVariable("id") Long id,
+																		@Valid @RequestBody CreateShopkeeperRequestDTO dto) {
+		log.info("Received request to updateShopkeeper with id {}: {}", id, dto);
+		CreateShopkeeperResponseDTO updatedShopkeeper = shopkeeperService.updateShopkeeper(id, dto);
+		return ResponseEntity.ok(updatedShopkeeper);
 	}
 
 }

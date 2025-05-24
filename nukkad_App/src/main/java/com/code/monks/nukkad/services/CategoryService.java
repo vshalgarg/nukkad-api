@@ -5,27 +5,22 @@ import com.code.monks.nukkad.dto.response.CreateCategoryResponseDTO;
 import com.code.monks.nukkad.dto.response.GetAllCategoryResponseDTO;
 import com.code.monks.nukkad.entities.CategoryEntity;
 import com.code.monks.nukkad.exception.DuplicateResourceException;
-import com.code.monks.nukkad.exception.ResourceNotFoundException;
 import com.code.monks.nukkad.exception.UnhandledException;
-
 import com.code.monks.nukkad.repositories.CategoryRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.DUPLICATE_CATEGORY_EXCEPTION;
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.UNHANDLED_EXCEPTION;
 
 @Service
 @Slf4j
 @AllArgsConstructor
-public class CategoryService {
+public class  CategoryService {
 
 	private CategoryRepository categoryRepository;
 
