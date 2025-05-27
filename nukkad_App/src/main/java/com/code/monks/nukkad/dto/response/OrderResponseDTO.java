@@ -1,6 +1,7 @@
 package com.code.monks.nukkad.dto.response;
 
-import com.code.monks.nukkad.enums.StatusOrderEnum;
+import com.code.monks.nukkad.entities.OrderEntity;
+import com.code.monks.nukkad.enums.StatusEnum;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -9,13 +10,24 @@ import java.time.LocalDateTime;
 public class OrderResponseDTO {
 
     private Long id;
+    private Long userId;
     private String trackingNumber;
-    private int quantity;
-    private String status;
-    private Long orderId;
+    private int orderCount;
     private LocalDateTime orderDate;
-    private String dayName;
     private Long shopKeeperId;
-    private StatusOrderEnum statusOrderEnum;
+    private StatusEnum statusOrderEnum;
+
+    public static OrderResponseDTO toResponseDTO(OrderEntity entity) {
+        OrderResponseDTO responseDTO = new OrderResponseDTO();
+        responseDTO.setOrderCount(entity.getOrderCount());
+        responseDTO.setId(entity.getId());
+        responseDTO.setUserId(entity.getUserId());
+        responseDTO.setTrackingNumber(entity.getTrackingNumber());
+        responseDTO.setOrderDate(entity.getOrderDate());
+        responseDTO.setShopKeeperId(entity.getShopKeeperId());
+        responseDTO.setStatusOrderEnum(entity.getStatusEnum());
+
+        return responseDTO;
+    }
 
 }

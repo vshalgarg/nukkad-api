@@ -3,7 +3,9 @@ package com.code.monks.nukkad.client;
 //import com.code.monks.nukkad.dto.Customer;
 import com.code.monks.nukkad.dto.Customer;
 import com.code.monks.nukkad.dto.request.SendOtpRequestDTO;
+import com.code.monks.nukkad.dto.request.VerifyRequestDTO;
 import com.code.monks.nukkad.dto.response.SendOtpResponseDTO;
+import com.code.monks.nukkad.dto.response.VerifyResponseDTO;
 import com.code.monks.nukkad.exception.ExternalServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,4 +44,8 @@ public class AuthRestClient {
 
 	}
 
+	public VerifyResponseDTO callVerifyOtpResponse(VerifyRequestDTO verifyRequestDTO)
+	{
+		return genericRestClient.postForEntity(otpUrl, verifyRequestDTO, VerifyResponseDTO.class, "OTP verify API failed");
+	}
 }

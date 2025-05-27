@@ -1,6 +1,6 @@
 package com.code.monks.nukkad.entities;
 
-import com.code.monks.nukkad.enums.StatusOrderEnum;
+import com.code.monks.nukkad.enums.StatusEnum;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -13,15 +13,13 @@ public class OrderEntity extends BaseEntity
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String trackingNumber;
-    private int quantity;
-    private String status;
-    private Long orderId;
+    private Long userId;
+    private int orderCount;
     private LocalDateTime orderDate;
-    private String dayName;
     private Long shopKeeperId;
 
     @Enumerated(EnumType.STRING)
-    private StatusOrderEnum statusOrderEnum;
+    private StatusEnum statusEnum;
 
 
 

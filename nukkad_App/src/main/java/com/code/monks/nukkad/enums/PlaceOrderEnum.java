@@ -1,6 +1,6 @@
 package com.code.monks.nukkad.enums;
 
-public enum ItemOrderEnum
+public enum PlaceOrderEnum
 {
     PENDING ,IN_PROGRESS ,COMPLETED
 

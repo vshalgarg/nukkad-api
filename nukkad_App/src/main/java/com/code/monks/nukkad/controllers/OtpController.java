@@ -31,20 +31,23 @@ public class  OtpController {
 
 		SendOtpResponseDTO response = otpService.sendOtp(sendOtpRequestDTO);
 
-		if (response.getMessage() == null || response.getMessage().isBlank()) {
-			log.error("OTP sending failed. Empty message returned.");
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SendOtpResponseDTO(""));
-		}
-
-		log.info("OTP sent successfully.");
+			log.info("OTP sent successfully.");
 		return ResponseEntity.ok(response);
 	}
 
 	// to verify otp
-	@PostMapping("/verify")
+	@PostMapping(OTP.VERIFYOTP)
 	public ResponseEntity<VerifyResponseDTO> verifyOTP(@RequestBody VerifyRequestDTO dto)
 	{
+		log.info("Received OTP verification request for mobile :{}", dto.getMobileNumber());
 		VerifyResponseDTO verifyResponseDTO=otpService.verifyDTO(dto);
+		if(verifyResponseDTO == null)
+		{
+			log.warn("OTP verification failed: No response from service for mobile :{}", dto.getMobileNumber());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new VerifyResponseDTO(false,"Verification failed. Please try again"));
+		}
+		log.info("OTP verification result for mobile {}:{}",dto.getMobileNumber(), verifyResponseDTO.getMessage());
 		return ResponseEntity.ok(verifyResponseDTO);
 	}
 

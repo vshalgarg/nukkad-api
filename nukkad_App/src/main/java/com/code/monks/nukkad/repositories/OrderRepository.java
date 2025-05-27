@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface OrderRepository extends JpaRepository<OrderEntity,Long> {
 
-   List<OrderEntity> findByStatusIgnoreCase(String status);
+   List<OrderEntity> findByStatusEnum(String status);
 
    List<OrderEntity> findByTrackingNumberIgnoreCase(String trackingNumber);
 }

@@ -65,5 +65,28 @@ CREATE TABLE IF NOT EXISTS addresses (
     FOREIGN KEY (customer_id) REFERENCES customer(id)
 );
 
+CREATE TABLE IF NOT EXISTS place_order_entity (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id BIGINT NOT NULL UNIQUE,
+    item_id BIGINT,
+    quantity INT,
+    item_order_enum VARCHAR(255),
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS order_entity (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tracking_number VARCHAR(255),
+    order_count INT,
+    order_id BIGINT,
+    order_date DATETIME,
+    shop_keeper_id BIGINT,
+    status_order_enum VARCHAR(100),
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+
 
 
