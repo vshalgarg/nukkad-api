@@ -30,12 +30,6 @@ public class  OtpController {
 		log.info("Received request to send OTP: {}", sendOtpRequestDTO);
 
 		SendOtpResponseDTO response = otpService.sendOtp(sendOtpRequestDTO);
-
-		if (response.getMessage() == null || response.getMessage().isBlank()) {
-			log.error("OTP sending failed. Empty message returned.");
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SendOtpResponseDTO(""));
-		}
-
 		log.info("OTP sent successfully.");
 		return ResponseEntity.ok(response);
 	}
