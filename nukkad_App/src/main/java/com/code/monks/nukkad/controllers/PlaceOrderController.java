@@ -11,7 +11,7 @@ import static com.code.monks.nukkad.constants.UrlConstants.*;
 import java.util.List;
 @Slf4j
 @RestController
-@RequestMapping(ITEMORDER.BASE)
+@RequestMapping(PLACEORDER.BASE)
 
 public class PlaceOrderController
 {
@@ -21,7 +21,7 @@ public class PlaceOrderController
         this.placeOrderService = placeOrderService;
     }
 
-    @PostMapping(ITEMORDER.CREATE)
+    @PostMapping(PLACEORDER.CREATE)
     public PlaceOrderResponseDTO createOrder(@RequestBody PlaceOrderRequestDTO placeOrderRequestDTO)
    {
        log.info("Creating item order");
@@ -29,7 +29,7 @@ public class PlaceOrderController
 
    }
 
-   @GetMapping(ITEMORDER.GET_ALL)
+   @GetMapping(PLACEORDER.GET_ALL)
    public List<PlaceOrderEntity> getAllOrders()
    {
        log.info("Fetching al item orders");
@@ -38,7 +38,7 @@ public class PlaceOrderController
        return placeOrderService.getAllOrders();
    }
 
-   @DeleteMapping(ITEMORDER.DELETE_ORDER)
+   @DeleteMapping(PLACEORDER.DELETE_ORDER)
     public PlaceOrderEntity deleteOrder(@PathVariable Long id)
    {
        log.info("Deleting item order with ID:{}" , id);
@@ -47,7 +47,7 @@ public class PlaceOrderController
        return deleteOrder(id);
    }
 
-    @GetMapping (ITEMORDER.GET_ORDER_BY_ID)
+    @GetMapping (PLACEORDER.GET_ORDER_BY_ID)
     public PlaceOrderEntity getOrderById(@PathVariable Long id) {
         log.info("Fetching item order with IDv :{}" , id);
         PlaceOrderEntity orderEntity = placeOrderService.getOrderById(id);

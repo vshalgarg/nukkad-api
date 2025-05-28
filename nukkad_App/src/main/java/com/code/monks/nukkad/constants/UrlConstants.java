@@ -49,9 +49,9 @@ public static class SHOPKEEPER{
 		public static  final String UPDATE = "/v1/profile/update/{id}";
 }
 
-public static class ITEMORDER
+public static class PLACEORDER
 {
-	public static final String BASE = CONTEXT + "/api/itemOrder";
+	public static final String BASE = CONTEXT + "/api/placeOrder";
 	public static final String CREATE = "/v1/createOrder";
 	public static final String GET_ALL= "/v1/getAllOrder";
 	public static final String GET_ORDER_BY_ID = "/v1/getOrderById";
