@@ -16,4 +16,7 @@ public class VerifyResponseDTO {
         this.message=message;
     }
 
+    public VerifyResponseDTO(boolean b, String message)
+    {
+    }
 }

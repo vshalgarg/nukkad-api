@@ -3,9 +3,7 @@ package com.code.monks.nukkad.services;
 import com.code.monks.nukkad.dto.request.OrderRequestDTO;
 import com.code.monks.nukkad.dto.response.OrderResponseDTO;
 import com.code.monks.nukkad.entities.OrderEntity;
-import com.code.monks.nukkad.enums.StatusOrderEnum;
 import com.code.monks.nukkad.exception.OrderNotFoundException;
-import com.code.monks.nukkad.mapper.OrderMapper;
 import com.code.monks.nukkad.repositories.OrderRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -29,22 +27,26 @@ public class OrderService {
     public OrderResponseDTO createDTO(OrderRequestDTO requestDTO) {
         log.info("Creating new order with tracking number:{}", requestDTO.getTrackingNumber());
         try {
-            OrderEntity orderEntity = OrderMapper.toEntity(requestDTO);
-            if(requestDTO.getStatus().equalsIgnoreCase("dispatch"))
-            {
-                orderEntity.setStatusOrderEnum(StatusOrderEnum.DISPATCH);
-            } else if (requestDTO.getStatus().equalsIgnoreCase("cancelled")) {
-                orderEntity.setStatusOrderEnum(StatusOrderEnum.CANCELLED);
-            } else if (requestDTO.getStatus().equalsIgnoreCase("delivered")) {
-                orderEntity.setStatusOrderEnum(StatusOrderEnum.DELIVERED);
+            OrderEntity orderEntity = OrderRequestDTO.toEntity(requestDTO);
+            if (orderEntity.getUserId() == null) {
+                orderEntity.setUserId(0L);
             }
-            else
-            orderEntity.setStatusOrderEnum(StatusOrderEnum.PENDING);
+//            if(requestDTO.getStatus().equalsIgnoreCase("dispatch"))
+//            {
+//                orderEntity.setStatusEnum(StatusEnum.DISPATCH);
+//            } else if (requestDTO.getStatus().equalsIgnoreCase("cancelled")) {
+//                orderEntity.setStatusEnum(StatusEnum.CANCELLED);
+//            } else if (requestDTO.getStatus().equalsIgnoreCase("delivered")) {
+//                orderEntity.setStatusEnum(StatusEnum.DELIVERED);
+//            }
+//            else
+//            orderEntity.setStatusEnum(StatusEnum.PENDING);
+
             OrderEntity orderSaved = orderRepository.save(orderEntity);
 
             log.info("Order saved successfully with ID:{}", orderSaved.getId());
 
-            return OrderMapper.toResponseDTO(orderSaved);
+            return OrderResponseDTO.toResponseDTO(orderSaved);
         } catch (Exception e) {
             log.error("Failed to create order", e);
 
@@ -55,7 +57,7 @@ public class OrderService {
     public List<OrderResponseDTO> getOrderByStatus(String status) {
         log.info("Fetching orders with status:{}", status);
         try {
-            List<OrderEntity> orderEntities = orderRepository.findByStatusIgnoreCase(status);
+            List<OrderEntity> orderEntities = orderRepository.findByStatusEnum(status);
             if (orderEntities.isEmpty()) {
                 log.warn("No orders found with status:{}", status);
 
@@ -64,10 +66,10 @@ public class OrderService {
             List<OrderResponseDTO> responseDTOList = new ArrayList<>();
 
             for (OrderEntity orderEntity : orderEntities) {
-                responseDTOList.add(OrderMapper.toResponseDTO(orderEntity));
+                responseDTOList.add(OrderResponseDTO.toResponseDTO(orderEntity));
 
 //            OrderEntity orderEntity = null;
-                responseDTOList.add(OrderMapper.toResponseDTO(orderEntity));
+                responseDTOList.add(OrderResponseDTO.toResponseDTO(orderEntity));
             }
             log.info("Found orders with status:{}", responseDTOList.size(), status);
 
@@ -89,7 +91,7 @@ public class OrderService {
         }
         List<OrderResponseDTO> responseDTOS = new ArrayList<>();
         for (OrderEntity orderEntity : orderEntities) {
-            responseDTOS.add(OrderMapper.toResponseDTO(orderEntity));
+            responseDTOS.add(OrderResponseDTO.toResponseDTO(orderEntity));
         }
         return responseDTOS;
     }

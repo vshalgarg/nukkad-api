@@ -38,8 +38,8 @@ public class UrlConstants {
 
  public static class OTP{
 	 public static final String BASE = CONTEXT +  "/api/otp";
-
 	 public static final String SENDOTP = "/v1/send";
+	 public static final String VERIFYOTP ="/v1/verify";
  }
 
 
@@ -47,6 +47,15 @@ public static class SHOPKEEPER{
 		public static final String BASE = CONTEXT + "/api/shopkeeper";
 		public static final String CREATE = "/v1/profile/save";
 		public static  final String UPDATE = "/v1/profile/update/{id}";
+}
+
+public static class PLACEORDER
+{
+	public static final String BASE = CONTEXT + "/api/placeOrder";
+	public static final String CREATE = "/v1/createOrder";
+	public static final String GET_ALL= "/v1/getAllOrder";
+	public static final String GET_ORDER_BY_ID = "/v1/getOrderById";
+	public static final String DELETE_ORDER = "/v1/deleteOrder";
 }
 
 public static class ADDRESS{
@@ -63,7 +72,6 @@ public static class ADDRESS{
 		public static final String BASE =CONTEXT +"/api/order";
 		public static final String CREATE = "/v1/create";
 		public static final String GET_ALL = "/v1/orders/status";
-//		public static final String GET_ALL_TRACKING_NUMBER= "/v1/fetch/order/fetch?trackingNumber";
 		public static final String GET_BY_TRACKING = "/v1/fetch/order/fetch";
 	}
 
