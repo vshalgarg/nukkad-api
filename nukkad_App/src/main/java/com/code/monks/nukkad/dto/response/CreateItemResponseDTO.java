@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 @Data
 @AllArgsConstructor
 public class CreateItemResponseDTO {
-
     private int id;
     private String name;
     private String unit;
