@@ -4,6 +4,7 @@ import com.code.monks.nukkad.dto.request.CreateCategoryRequestDTO;
 import com.code.monks.nukkad.dto.response.CreateCategoryResponseDTO;
 import com.code.monks.nukkad.dto.response.GetAllCategoryResponseDTO;
 import com.code.monks.nukkad.entities.CategoryEntity;
+import com.code.monks.nukkad.entities.ImageEntity;
 import com.code.monks.nukkad.exception.DuplicateResourceException;
 import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.CategoryRepository;
@@ -29,6 +30,11 @@ public class  CategoryService {
 		try {
 			CategoryEntity category = new CategoryEntity();
 			category.setName(categoryDto.getName());
+			if (categoryDto.getImageUrl() != null && !categoryDto.getImageUrl().isEmpty()) {
+				ImageEntity image = new ImageEntity();
+				image.setImageUrl(categoryDto.getImageUrl());
+				category.setImage(image);
+			}
 			CategoryEntity savedEntity = categoryRepository.save(category);
 			log.info("category successfully saved to db: {}", savedEntity);
 			return CreateCategoryResponseDTO.fromDbDto(savedEntity);

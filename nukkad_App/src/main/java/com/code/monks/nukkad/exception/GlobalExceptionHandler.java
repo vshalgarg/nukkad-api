@@ -78,24 +78,4 @@ public class GlobalExceptionHandler {
 
     }
 
-//    @ExceptionHandler(MethodArgumentNotValidException.class)
-//    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException exception) {
-//
-//        Map<String, String> fieldErrors = new HashMap<>();
-//
-//        for (FieldError error : exception.getBindingResult().getFieldErrors()) {
-//            fieldErrors.put(error.getField(), error.getDefaultMessage());
-//        }
-//
-//        // Combine field errors into a single message (optional)
-//        StringBuilder messageBuilder = new StringBuilder("Invalid fields: ");
-//        fieldErrors.forEach((field, msg) -> messageBuilder.append(field).append(" - ").append(msg).append("; "));
-//
-//		ErrorResponse errorResponse = new ErrorResponse(
-//                messageBuilder.toString(),
-//                LocalDateTime.now(),
-//                HttpStatus.BAD_REQUEST.value()
-//                );
-//		return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-//    }
 }

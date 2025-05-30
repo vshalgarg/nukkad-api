@@ -1,7 +1,7 @@
 package com.code.monks.nukkad.dto.response;
 
 import com.code.monks.nukkad.entities.AddressEntity;
-import com.code.monks.nukkad.enums.AddressLabel;
+import com.code.monks.nukkad.enums.AddressLabelEnum;
 import lombok.Data;
 
 @Data
@@ -13,7 +13,7 @@ public class AddressResponseDTO {
     private String city;
     private String state;
     private String pincode;
-    private AddressLabel label;
+    private AddressLabelEnum label;
 
     public static AddressResponseDTO fromEntity(AddressEntity address) {
         AddressResponseDTO addressResponseDTO = new AddressResponseDTO();

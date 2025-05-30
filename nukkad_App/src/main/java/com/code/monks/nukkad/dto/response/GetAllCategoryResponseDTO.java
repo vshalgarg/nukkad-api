@@ -9,11 +9,14 @@ import lombok.Data;
 public class GetAllCategoryResponseDTO {
 
 	private int id;
-
 	private String name;
+	private String imageUrl;
 
 	public static GetAllCategoryResponseDTO fromDbDto(CategoryEntity entity) {
-		return new GetAllCategoryResponseDTO(entity.getId(), entity.getName());
+		return new GetAllCategoryResponseDTO(
+				entity.getId(),
+				entity.getName(),
+				entity.getImage() != null ? entity.getImage().getImageUrl() : null );
 	}
 
 }

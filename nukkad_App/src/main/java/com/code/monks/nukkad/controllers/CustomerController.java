@@ -23,18 +23,22 @@ public class CustomerController {
 
 
 	@PostMapping(CUSTOMER.CREATE)
-	public ResponseEntity<CreateCustomerResponseDTO> createCustomer(@Valid @RequestBody CreateCustomerRequestDTO customerRequestDTO) {
+	public ResponseEntity<CreateCustomerResponseDTO> createCustomer(
+			@Valid @RequestBody CreateCustomerRequestDTO customerRequestDTO) {
+
 		log.info("Received request to createCustomer: {}", customerRequestDTO);
 		CreateCustomerResponseDTO response = customerService.saveCustomerData(customerRequestDTO);
 		return new ResponseEntity<>(response, HttpStatus.CREATED);
 	}
 
 	@PutMapping(CUSTOMER.UPDATE)
-	public ResponseEntity<CreateCustomerResponseDTO> updateCustomer(@PathVariable Long id,
-																	@Valid @RequestBody CreateCustomerRequestDTO customerRequestDTO) {
-		log.info("Received request to updateCustomer with id {}: {}", id, customerRequestDTO);
-		CreateCustomerResponseDTO response = customerService.updateCustomer(id, customerRequestDTO);
+	public ResponseEntity<CreateCustomerResponseDTO> updateCustomer(
+			@Valid @RequestBody CreateCustomerRequestDTO customerRequestDTO) {
+
+		log.info("Received request to updateCustomer: {}", customerRequestDTO);
+		CreateCustomerResponseDTO response = customerService.updateCustomer(customerRequestDTO);
 		return ResponseEntity.ok(response);
 	}
+
 
 }
