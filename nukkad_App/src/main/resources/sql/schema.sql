@@ -72,6 +72,18 @@ CREATE TABLE IF NOT EXISTS shopkeeper_pictures (
     picture_url VARCHAR(1024),
     FOREIGN KEY (shopkeeper_id) REFERENCES shopkeeper(id)
 );
+CREATE TABLE IF NOT EXISTS cart_item (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    customer_id BIGINT NOT NULL,
+    item_id INT,
+    quantity INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_cart_item_item FOREIGN KEY (item_id) REFERENCES item (id)
+);
+
+
 
 
 
