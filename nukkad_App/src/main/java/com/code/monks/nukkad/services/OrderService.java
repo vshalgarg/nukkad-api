@@ -31,19 +31,7 @@ public class OrderService {
             if (orderEntity.getUserId() == null) {
                 orderEntity.setUserId(0L);
             }
-//            if(requestDTO.getStatus().equalsIgnoreCase("dispatch"))
-//            {
-//                orderEntity.setStatusEnum(StatusEnum.DISPATCH);
-//            } else if (requestDTO.getStatus().equalsIgnoreCase("cancelled")) {
-//                orderEntity.setStatusEnum(StatusEnum.CANCELLED);
-//            } else if (requestDTO.getStatus().equalsIgnoreCase("delivered")) {
-//                orderEntity.setStatusEnum(StatusEnum.DELIVERED);
-//            }
-//            else
-//            orderEntity.setStatusEnum(StatusEnum.PENDING);
-
             OrderEntity orderSaved = orderRepository.save(orderEntity);
-
             log.info("Order saved successfully with ID:{}", orderSaved.getId());
 
             return OrderResponseDTO.toResponseDTO(orderSaved);

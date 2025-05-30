@@ -70,7 +70,7 @@ public class ItemService {
 		}
 	}
 
-	public CreateItemResponseDTO getItemById(Long id) {
+	public CreateItemResponseDTO getItemById(int id) {
 		log.info("Fetching item by ID: {}", id);
 		try {
 			ItemEntity item = itemRepository.findById(id).orElseThrow(() -> {
@@ -87,7 +87,7 @@ public class ItemService {
 		}
 	}
 
-	public CreateItemResponseDTO updateItem(Long id, CreateItemRequestDTO dto) {
+	public CreateItemResponseDTO updateItem(int id, CreateItemRequestDTO dto) {
 		log.info("Attempting to update item with ID: {}", id);
 		try {
 			ItemEntity item = itemRepository.findById(id).orElseThrow(() -> {

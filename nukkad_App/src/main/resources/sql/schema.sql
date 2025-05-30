@@ -65,14 +65,14 @@ CREATE TABLE IF NOT EXISTS addresses (
     FOREIGN KEY (customer_id) REFERENCES customer(id)
 );
 
-CREATE TABLE IF NOT EXISTS place_order_entity (
+CREATE TABLE IF NOT EXISTS place_orders_entity (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     order_id BIGINT NOT NULL UNIQUE,
     item_id BIGINT,
     quantity INT,
-    item_order_enum VARCHAR(255),
-    created_at DATETIME,
-    updated_at DATETIME
+    status VARCHAR(255)
+--    created_at DATETIME,
+--    updated_at DATETIME
 );
 
 CREATE TABLE IF NOT EXISTS order_entity (

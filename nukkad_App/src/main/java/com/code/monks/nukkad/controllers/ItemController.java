@@ -30,12 +30,12 @@ public class ItemController {
 	}
 
 	@GetMapping(ITEM.GET_BY_ID)
-	public ResponseEntity<CreateItemResponseDTO> getItemById(@PathVariable Long id) {
+	public ResponseEntity<CreateItemResponseDTO> getItemById(@PathVariable int id) {
 		return ResponseEntity.ok(itemService.getItemById(id));
 	}
 
 	@PutMapping(ITEM.UPDATE)
-	public ResponseEntity<CreateItemResponseDTO> updateItem(@PathVariable Long id, @RequestBody CreateItemRequestDTO dto) {
+	public ResponseEntity<CreateItemResponseDTO> updateItem(@PathVariable int id, @RequestBody CreateItemRequestDTO dto) {
 		return ResponseEntity.ok(itemService.updateItem(id, dto));
 	}
 }

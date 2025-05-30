@@ -11,7 +11,7 @@ public class OrderEntity extends BaseEntity
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
     private String trackingNumber;
     private Long userId;
     private int orderCount;

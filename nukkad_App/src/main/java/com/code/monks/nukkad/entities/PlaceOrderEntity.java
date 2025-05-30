@@ -2,23 +2,32 @@ package com.code.monks.nukkad.entities;
 
 import com.code.monks.nukkad.enums.PlaceOrderEnum;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class PlaceOrderEntity extends BaseEntity
-{
+@Table(name = "place_orders_entity")
+@Getter
+@Setter
+public class PlaceOrderEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
-    @Column(unique = true,nullable = false)
-    private Long orderId;
-    private Long itemId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_id", nullable = false)
+    private ItemEntity item;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    private OrderEntity order;
+
+    @Column(nullable = false)
     private int quantity;
 
     @Enumerated(EnumType.STRING)
-    private PlaceOrderEnum placeOrderEnum;
+    @Column(nullable = false)
+    private PlaceOrderEnum status;
+
 }

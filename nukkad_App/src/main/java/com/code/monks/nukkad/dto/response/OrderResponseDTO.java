@@ -20,7 +20,7 @@ public class OrderResponseDTO {
     public static OrderResponseDTO toResponseDTO(OrderEntity entity) {
         OrderResponseDTO responseDTO = new OrderResponseDTO();
         responseDTO.setOrderCount(entity.getOrderCount());
-        responseDTO.setId(entity.getId());
+        responseDTO.setId((long)entity.getId());
         responseDTO.setUserId(entity.getUserId());
         responseDTO.setTrackingNumber(entity.getTrackingNumber());
         responseDTO.setOrderDate(entity.getOrderDate());

@@ -1,6 +1,5 @@
 package com.code.monks.nukkad.controllers;
 
-import com.code.monks.nukkad.constants.UrlConstants;
 import com.code.monks.nukkad.dto.request.OrderRequestDTO;
 import com.code.monks.nukkad.dto.response.OrderResponseDTO;
 import com.code.monks.nukkad.services.OrderService;
@@ -16,8 +15,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping(ORDER.BASE)
-public class OrderController
-{
+public class OrderController {
     @Autowired
     private OrderService orderService;
 
@@ -29,20 +27,26 @@ public class OrderController
     }
 
     @GetMapping(ORDER.GET_ALL)
-    public ResponseEntity<List<OrderResponseDTO>> getOrderByStatus( @RequestParam String status)
-    {
-        log.info("Fetching orders with status :{}",status);
+    public ResponseEntity<List<OrderResponseDTO>> getOrderByStatus(@RequestParam String status) {
+        log.info("Fetching orders with status :{}", status);
         List<OrderResponseDTO> order = orderService.getOrderByStatus(status);
-        log.info("Found {} order(s) with status : {}" , order.size(),status);
+        log.info("Found {} order(s) with status : {}", order.size(), status);
         return ResponseEntity.ok(order);
     }
 
     @GetMapping(ORDER.GET_BY_TRACKING)
-    public ResponseEntity<List<OrderResponseDTO>> getOrderByTrackingNumber(@RequestParam String trackingNumber)
-    {
+    public ResponseEntity<List<OrderResponseDTO>> getOrderByTrackingNumber(@RequestParam String trackingNumber) {
         log.info("Fetching orders with tracking number : {}", trackingNumber);
-        List<OrderResponseDTO> order= orderService.getOrderByTrackingNumber(trackingNumber);
-        log.info("Found {} order(s) for tracking number :{}",order.size(),trackingNumber);
+        List<OrderResponseDTO> order = orderService.getOrderByTrackingNumber(trackingNumber);
+        log.info("Found {} order(s) for tracking number :{}", order.size(), trackingNumber);
         return ResponseEntity.ok(order);
     }
+
+//    @PostMapping
+//    public ResponseEntity<OrderResponseDTO> RepeatOrder(@RequestParam Integer orderNumber)
+//    {
+//
+//    }
+
+
 }

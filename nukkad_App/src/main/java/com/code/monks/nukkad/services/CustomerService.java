@@ -35,14 +35,17 @@ public class CustomerService {
 			log.info("Customer saved with ID: {}", saved.getId());
 			return CreateCustomerResponseDTO.fromDbDto(saved);
 		}
-		catch (Exception e){
+
+		catch (Exception e)
+		{
 			log.error("Unhandled exception while saving customer: {}", requestDTO, e);
 			throw new UnhandledException(UNHANDLED_EXCEPTION,e);
 		}
 	}
 
 
-	public CreateCustomerResponseDTO updateCustomer(Long id, CreateCustomerRequestDTO requestDTO) {
+	public CreateCustomerResponseDTO updateCustomer(Long id, CreateCustomerRequestDTO requestDTO)
+	{
 		log.info("Updating customer with ID: {}", id);
 		try {
 			CustomerEntity customer = customerRepository.findById(id).orElseThrow(() ->
