@@ -6,5 +6,6 @@ import lombok.Data;
 public class CreateCategoryRequestDTO {
 
 	private String name;
+	private String imageUrl;
 
 }

@@ -21,7 +21,7 @@ public class ItemController {
 
 	@PostMapping(ITEM.CREATE)
 	public ResponseEntity<CreateItemResponseDTO> createItem(@RequestBody CreateItemRequestDTO dto) {
-		return ResponseEntity.ok(itemService.createItem(dto));
+ 		return ResponseEntity.ok(itemService.createItem(dto));
 	}
 
 	@GetMapping(ITEM.GET_ALL)

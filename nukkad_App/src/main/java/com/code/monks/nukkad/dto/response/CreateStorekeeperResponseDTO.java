@@ -1,6 +1,6 @@
 package com.code.monks.nukkad.dto.response;
 
-import com.code.monks.nukkad.entities.ShopkeeperEntity;
+import com.code.monks.nukkad.entities.StorekeeperEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateShopkeeperResponseDTO {
+public class CreateStorekeeperResponseDTO {
 
 	private int id;
 
@@ -26,8 +26,8 @@ public class CreateShopkeeperResponseDTO {
 
 	private List<String> pictures;
 
-	public static CreateShopkeeperResponseDTO fromDbDto(ShopkeeperEntity entity) {
-		return new CreateShopkeeperResponseDTO(
+	public static CreateStorekeeperResponseDTO fromDbDto(StorekeeperEntity entity) {
+		return new CreateStorekeeperResponseDTO(
 				entity.getId(),
 				entity.getName(),
 				entity.getStoreNumber(),

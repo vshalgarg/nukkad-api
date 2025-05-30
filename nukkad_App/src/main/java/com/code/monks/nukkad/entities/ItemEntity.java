@@ -20,11 +20,11 @@ public class ItemEntity extends BaseEntity {
 	@Column(name = "name")
 	private String name;
 
-	@Column(name = "image")
-	private String image;
-
 	@Column(name = "unit")
 	private String unit;
+
+	@OneToMany( mappedBy = "item", cascade = CascadeType.ALL)
+	private List<ImageEntity> images = new ArrayList<>();
 
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "item_category", joinColumns = @JoinColumn(name = "item_id"),

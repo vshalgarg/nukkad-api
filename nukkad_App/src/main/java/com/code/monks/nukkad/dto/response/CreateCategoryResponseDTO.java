@@ -9,11 +9,14 @@ import lombok.Data;
 public class CreateCategoryResponseDTO {
 
 	private int id;
-
 	private String name;
+	private String imageUrl;
 
 	public static CreateCategoryResponseDTO fromDbDto(CategoryEntity entity) {
-		return new CreateCategoryResponseDTO(entity.getId(), entity.getName());
+		return new CreateCategoryResponseDTO(
+				entity.getId(),
+				entity.getName(),
+				entity.getImage() != null ? entity.getImage().getImageUrl(): null);
 	}
 
 }

@@ -1,5 +1,5 @@
 package com.code.monks.nukkad.enums;
 
-public enum AddressLabel {
+public enum AddressLabelEnum {
     HOME , OFFICE
 }

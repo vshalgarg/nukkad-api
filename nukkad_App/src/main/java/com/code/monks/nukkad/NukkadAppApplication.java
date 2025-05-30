@@ -1,11 +1,11 @@
 package com.code.monks.nukkad;
 
-//zxedxz
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class NukkadAppApplication {
+public class  NukkadAppApplication {
 
 
 

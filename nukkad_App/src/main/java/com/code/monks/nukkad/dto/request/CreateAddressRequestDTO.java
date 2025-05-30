@@ -1,7 +1,7 @@
 package com.code.monks.nukkad.dto.request;
 
 import com.code.monks.nukkad.entities.AddressEntity;
-import com.code.monks.nukkad.enums.AddressLabel;
+import com.code.monks.nukkad.enums.AddressLabelEnum;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -26,7 +26,7 @@ public class CreateAddressRequestDTO {
     private String pincode;
 
     @NotNull(message = "Label is required")
-    private AddressLabel label;
+    private AddressLabelEnum label;
 
     public static AddressEntity toEntity(CreateAddressRequestDTO dto) {
         AddressEntity address = new AddressEntity();

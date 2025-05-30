@@ -1,7 +1,7 @@
 package com.code.monks.nukkad.entities;
 
 
-import com.code.monks.nukkad.enums.AddressLabel;
+import com.code.monks.nukkad.enums.AddressLabelEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,22 +17,29 @@ public class AddressEntity extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private  Long id;
 
+    @Column(name = "address_line1")
     private String addressLine1;
 
+    @Column(name = "address_line2")
     private String addressLine2;
 
+    @Column(name = "landmark")
     private String landmark;
 
+    @Column(name = "city")
     private String city;
 
+    @Column(name = "state")
     private String state;
 
+    @Column(name = "pincode")
     private String pincode;
 
     @Enumerated(EnumType.STRING)
-    private AddressLabel label;
+    private AddressLabelEnum label;
 
 //    private boolean isSelected;
 

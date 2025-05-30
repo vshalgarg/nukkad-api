@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateShopkeeperRequestDTO {
+public class CreateStorekeeperRequestDTO {
 
 	@NotBlank(message = "Name is mandatory")
 	private String name;

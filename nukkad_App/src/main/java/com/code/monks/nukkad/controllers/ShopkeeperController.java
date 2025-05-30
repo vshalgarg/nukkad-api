@@ -1,8 +1,8 @@
 package com.code.monks.nukkad.controllers;
 
-import com.code.monks.nukkad.dto.request.CreateShopkeeperRequestDTO;
-import com.code.monks.nukkad.dto.response.CreateShopkeeperResponseDTO;
-import com.code.monks.nukkad.services.ShopkeeperService;
+import com.code.monks.nukkad.dto.request.CreateStorekeeperRequestDTO;
+import com.code.monks.nukkad.dto.response.CreateStorekeeperResponseDTO;
+import com.code.monks.nukkad.services.StorekeeperService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,20 +18,20 @@ import static com.code.monks.nukkad.constants.UrlConstants.*;
 @AllArgsConstructor
 public class ShopkeeperController {
 
-	private  final ShopkeeperService shopkeeperService;
+	private  final StorekeeperService shopkeeperService;
 
 	@PostMapping(SHOPKEEPER.CREATE)
-	public ResponseEntity<CreateShopkeeperResponseDTO> createShopkeeper(@Valid @RequestBody CreateShopkeeperRequestDTO dto) {
+	public ResponseEntity<CreateStorekeeperResponseDTO> createShopkeeper(@Valid @RequestBody CreateStorekeeperRequestDTO dto) {
 		log.info("Received request to createShopkeeper: {}", dto);
-		CreateShopkeeperResponseDTO createdShopkeeper = shopkeeperService.createShopkeeper(dto);
+		CreateStorekeeperResponseDTO createdShopkeeper = shopkeeperService.createShopkeeper(dto);
 		return new ResponseEntity<>(createdShopkeeper, HttpStatus.CREATED);
 	}
 
 	@PutMapping(SHOPKEEPER.UPDATE)
-	public ResponseEntity<CreateShopkeeperResponseDTO> updateShopkeeper(@PathVariable("id") Long id,
-																		@Valid @RequestBody CreateShopkeeperRequestDTO dto) {
+	public ResponseEntity<CreateStorekeeperResponseDTO> updateShopkeeper(@PathVariable("id") Long id,
+																		 @Valid @RequestBody CreateStorekeeperRequestDTO dto) {
 		log.info("Received request to updateShopkeeper with id {}: {}", id, dto);
-		CreateShopkeeperResponseDTO updatedShopkeeper = shopkeeperService.updateShopkeeper(id, dto);
+		CreateStorekeeperResponseDTO updatedShopkeeper = shopkeeperService.updateShopkeeper(id, dto);
 		return ResponseEntity.ok(updatedShopkeeper);
 	}
 
