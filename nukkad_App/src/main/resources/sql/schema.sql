@@ -71,8 +71,6 @@ CREATE TABLE IF NOT EXISTS place_orders_entity (
     item_id BIGINT,
     quantity INT,
     status VARCHAR(255)
---    created_at DATETIME,
---    updated_at DATETIME
 );
 
 CREATE TABLE IF NOT EXISTS order_entity (

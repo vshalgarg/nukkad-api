@@ -31,7 +31,6 @@ public class PlaceOrderController {
     public List<PlaceOrderResponseDTO> getAllOrders() {
         log.info("Fetching al item orders");
         List<PlaceOrderResponseDTO> responseDTO = placeOrderService.getAllOrders();
-        //log.info("Found {} item order (s)", getAllOrders().size());
         return placeOrderService.getAllOrders();
     }
 
@@ -39,7 +38,6 @@ public class PlaceOrderController {
     public String deleteOrder(@RequestParam int id) {
         log.info("Deleting item order with ID:{}", id);
         String deletedOrder = placeOrderService.deleteOrder(id);
-        //log.info("Deleted item order :{}", deletedOrder);
         return deletedOrder;
     }
 
