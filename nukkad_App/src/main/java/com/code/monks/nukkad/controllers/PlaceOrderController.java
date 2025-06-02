@@ -2,13 +2,13 @@ package com.code.monks.nukkad.controllers;
 
 import com.code.monks.nukkad.dto.request.PlaceOrderRequestDTO;
 import com.code.monks.nukkad.dto.response.PlaceOrderResponseDTO;
-import com.code.monks.nukkad.entities.PlaceOrderEntity;
 import com.code.monks.nukkad.services.PlaceOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import static com.code.monks.nukkad.constants.UrlConstants.*;
 
 import java.util.List;
+
+import static com.code.monks.nukkad.constants.UrlConstants.PLACEORDER;
 @Slf4j
 @RestController
 @RequestMapping(PLACEORDER.BASE)

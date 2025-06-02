@@ -42,11 +42,4 @@ public class OrderController {
         return ResponseEntity.ok(order);
     }
 
-//    @PostMapping
-//    public ResponseEntity<OrderResponseDTO> RepeatOrder(@RequestParam Integer orderNumber)
-//    {
-//
-//    }
-
-
 }

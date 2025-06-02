@@ -1,6 +1,7 @@
 package com.code.monks.nukkad.entities;
 
 
+import com.code.monks.nukkad.converter.AddressLabelEnumConverter;
 import com.code.monks.nukkad.enums.AddressLabelEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -38,10 +39,9 @@ public class AddressEntity extends BaseEntity{
     @Column(name = "pincode")
     private String pincode;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = AddressLabelEnumConverter.class)
     private AddressLabelEnum label;
 
-//    private boolean isSelected;
 
     private Long customerId;
 

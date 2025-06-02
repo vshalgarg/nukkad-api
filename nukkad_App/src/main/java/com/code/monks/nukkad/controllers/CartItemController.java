@@ -10,33 +10,35 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.code.monks.nukkad.constants.UrlConstants.CART_ITEM;
+
 @RestController
-@RequestMapping("/api/cartItem")
+@RequestMapping(CART_ITEM.BASE)
 @RequiredArgsConstructor
 public class CartItemController {
 
     private final CartItemService cartItemService;
 
-    @PostMapping("/add")
+    @PostMapping(CART_ITEM.ADD)
     public ResponseEntity<CreateCartItemResponseDTO> addToCart(@RequestBody CreateCartItemRequestDTO dto){
         CreateCartItemResponseDTO saveItemInCart = cartItemService.addToCart(dto);
 
         return new  ResponseEntity<>(saveItemInCart, HttpStatus.CREATED);
     }
 
-    @GetMapping
+    @GetMapping(CART_ITEM.GET_CART_ITEM_FOR_CUSTOMER)
     public ResponseEntity<List<CreateCartItemResponseDTO>> getCartItems() {
         return ResponseEntity.ok(cartItemService.getCartItemsForCustomer());
     }
 
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(CART_ITEM.DELETE_CART_ITEM_BY_ID)
     public ResponseEntity<Void> deleteCartItem(@PathVariable Long id) {
         cartItemService.removeCartItem(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{id}/quantity")
+    @PutMapping(CART_ITEM.UPDATE_QUANTITY)
     public ResponseEntity<CreateCartItemResponseDTO> updateQuantity(@PathVariable Long id, @RequestParam int quantity) {
         return ResponseEntity.ok(cartItemService.updateQuantity(id, quantity));
     }

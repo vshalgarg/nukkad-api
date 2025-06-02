@@ -20,7 +20,7 @@ public class PlaceOrderResponseDTO {
         PlaceOrderResponseDTO dto = new PlaceOrderResponseDTO();
         dto.setId(entity.getId());
         dto.setItemId(entity.getItem().getId());
-        dto.setOrderId(entity.getOrder().getId());
+//        dto.setOrderId(entity.getOrder().getId());
         dto.setStatus(entity.getStatus());
         dto.setQuantity(entity.getQuantity());
         return dto;
