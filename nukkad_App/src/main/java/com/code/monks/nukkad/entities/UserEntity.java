@@ -6,20 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@MappedSuperclass
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public abstract class UserEntity {
-
-    @Id
-    @Column(name = "id")
-    private Long id;
-
-    @Column(name = "name")
-    private String name;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role")
-    private RoleEnum role;
+    public abstract RoleEnum getRole();
 }
