@@ -44,8 +44,8 @@ public class UrlConstants {
  }
 
 
-public static class SHOPKEEPER{
-		public static final String BASE = CONTEXT + "/api/shopkeeper";
+public static class STOREKEEPER{
+		public static final String BASE = CONTEXT + "/api/storekeeper";
 		public static final String CREATE = "/v1/profile/save";
 		public static  final String UPDATE = "/v1/profile/update/{id}";
 }

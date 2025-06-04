@@ -33,6 +33,11 @@ public class AuthRestClient {
 		return genericRestClient.postForEntity(otpUrl, otpRequest, SendOtpResponseDTO.class, "OTP matched API failed");
 	}
 
+	public VerifyResponseDTO callVerifyOtpResponse(VerifyRequestDTO verifyRequestDTO)
+	{
+		return genericRestClient.postForEntity(otpUrl, verifyRequestDTO, VerifyResponseDTO.class, "OTP verify API failed");
+	}
+
 	public CreateCustomerResponseDTO callSaveCustomerApi(Long customerId, CreateCustomerRequestDTO requestDTO){
 		return genericRestClient.postForEntity(saveUrl,requestDTO, CreateCustomerResponseDTO.class,"Customer save API failed");
 	}
@@ -52,10 +57,5 @@ public class AuthRestClient {
 		customer.setCustomerId((Long) map.get("customerId"));
 		return customer;
 
-	}
-
-	public VerifyResponseDTO callVerifyOtpResponse(VerifyRequestDTO verifyRequestDTO)
-	{
-		return genericRestClient.postForEntity(otpUrl, verifyRequestDTO, VerifyResponseDTO.class, "OTP verify API failed");
 	}
 }

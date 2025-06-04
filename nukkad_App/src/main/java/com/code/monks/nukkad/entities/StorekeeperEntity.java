@@ -8,35 +8,39 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 @EqualsAndHashCode(callSuper = true)
-@Entity(name = "shopkeeper")
+@Entity
+@Table(name = "storekeeper")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class StorekeeperEntity extends BaseEntity {
+public class StorekeeperEntity extends UserEntity{
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
-	private int id;
-
-	@Column(name = "name")
-	private String name;
+	@Column(name = "store_name")
+	private String storeName;
 
 	@Column(name = "store_number")
 	private String storeNumber;
 
+	@Column(name = "contact_number")
+	private String contactNumber;
+
 	@Column(name = "gst_in")
 	private String gstIn;
 
-	@Column(name = "address")
-	private String address;
+	@Column(name = "address_line1")
+	private String addressLine1;
+
+	@Column(name = "address_line2")
+	private String addressLine2;
 
 	@Column(name = "city")
 	private String City;
 
-	@ElementCollection
-	@CollectionTable(name = "shopkeeper_pictures", joinColumns = @JoinColumn(name = "shopkeeper_id"))
-	@Column(name = "picture_url")
-	private List<String> pictures;
+	@Column(name = "state")
+	private String state;
+
+	@Column(name = "pincode")
+	private String pincode;
+
 
 }

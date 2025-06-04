@@ -1,44 +1,35 @@
 package com.code.monks.nukkad.controllers;
 
+import com.code.monks.nukkad.constants.UrlConstants;
 import com.code.monks.nukkad.dto.request.CreateCustomerRequestDTO;
 import com.code.monks.nukkad.dto.response.CreateCustomerResponseDTO;
 import com.code.monks.nukkad.services.CustomerService;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static com.code.monks.nukkad.constants.UrlConstants.*;
-
 @RestController
-@RequestMapping(CUSTOMER.BASE)
-@Slf4j
-@AllArgsConstructor
+@RequestMapping(UrlConstants.CUSTOMER.BASE)
+@RequiredArgsConstructor
 public class CustomerController {
 
+	private final CustomerService customerService;
 
-	private  final CustomerService customerService;
-
-
-	@PostMapping(CUSTOMER.CREATE)
-	public ResponseEntity<CreateCustomerResponseDTO> createCustomer(
-			@Valid @RequestBody CreateCustomerRequestDTO customerRequestDTO) {
-
-		log.info("Received request to createCustomer: {}", customerRequestDTO);
-		CreateCustomerResponseDTO response = customerService.saveCustomerData(customerRequestDTO);
-		return new ResponseEntity<>(response, HttpStatus.CREATED);
+	@PostMapping(UrlConstants.CUSTOMER.CREATE)
+	public ResponseEntity<CreateCustomerResponseDTO> createCustomer(@Valid @RequestBody CreateCustomerRequestDTO dto) {
+		CreateCustomerResponseDTO saveCustomerInDb = customerService.createCustomer(dto);
+		return new  ResponseEntity<>(saveCustomerInDb, HttpStatus.CREATED);
 	}
 
-	@PutMapping(CUSTOMER.UPDATE)
+
+	@PutMapping(UrlConstants.CUSTOMER.UPDATE)
 	public ResponseEntity<CreateCustomerResponseDTO> updateCustomer(
-			@Valid @RequestBody CreateCustomerRequestDTO customerRequestDTO) {
-
-		log.info("Received request to updateCustomer: {}", customerRequestDTO);
-		CreateCustomerResponseDTO response = customerService.updateCustomer(customerRequestDTO);
-		return ResponseEntity.ok(response);
+			@PathVariable Long id,
+			@Valid @RequestBody CreateCustomerRequestDTO dto
+	) {
+		CreateCustomerResponseDTO updateCustomer = customerService.updateCustomer(id, dto);
+		return new ResponseEntity<>(updateCustomer,HttpStatus.CREATED);
 	}
-
-
 }
