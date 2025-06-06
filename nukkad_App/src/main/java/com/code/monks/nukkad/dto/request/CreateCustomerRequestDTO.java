@@ -1,8 +1,6 @@
 package com.code.monks.nukkad.dto.request;
 
 import com.code.monks.nukkad.entities.CustomerEntity;
-//import com.code.monks.nukkad.enums.RoleEnum;
-import com.code.monks.nukkad.enums.RoleEnum;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -50,7 +48,6 @@ public class  CreateCustomerRequestDTO {
 		customer.setCity(dto.getCity());
 		customer.setState(dto.getState());
 		customer.setPincode(dto.getPincode());
-		customer.setRole(RoleEnum.CUSTOMER);
 		return customer;
 	}
 }

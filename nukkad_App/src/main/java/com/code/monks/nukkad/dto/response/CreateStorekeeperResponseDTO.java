@@ -1,6 +1,7 @@
 package com.code.monks.nukkad.dto.response;
 
 import com.code.monks.nukkad.entities.StorekeeperEntity;
+import com.code.monks.nukkad.enums.RoleEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,7 +16,6 @@ public class CreateStorekeeperResponseDTO {
     private Long id;
     private String name;
     private String storeName;
-    private String storeNumber;
     private String contactNumber;
     private String gstIn;
     private String addressLine1;
@@ -23,13 +23,13 @@ public class CreateStorekeeperResponseDTO {
     private String city;
     private String state;
     private String pincode;
+    private RoleEnum role;
 
     public static CreateStorekeeperResponseDTO fromEntity(StorekeeperEntity entity){
         CreateStorekeeperResponseDTO dto = new CreateStorekeeperResponseDTO();
         dto.setId(entity.getId());
         dto.setName(entity.getName());
         dto.setStoreName(entity.getStoreName());
-        dto.setStoreNumber(entity.getStoreNumber());
         dto.setContactNumber(entity.getContactNumber());
         dto.setGstIn(entity.getGstIn());
         dto.setAddressLine1(entity.getAddressLine1());
@@ -37,6 +37,7 @@ public class CreateStorekeeperResponseDTO {
         dto.setCity(entity.getCity());
         dto.setState(entity.getState());
         dto.setPincode(entity.getPincode());
+        dto.setRole(entity.getRole());
         return dto;
     }
 }

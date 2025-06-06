@@ -1,7 +1,10 @@
 package com.code.monks.nukkad.entities;
 
+import com.code.monks.nukkad.enums.RoleEnum;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.List;
 
 @Entity
 @Table(name = "customer")
@@ -10,6 +13,13 @@ import lombok.*;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class CustomerEntity extends UserEntity {
+
+    @Id
+    @Column(name = "id")
+    private Long id; // comes from auth service
+
+    @Column(name = "name")
+    private String name;
 
     @Column(name = "email_id")
     private String email;
@@ -32,5 +42,12 @@ public class CustomerEntity extends UserEntity {
     @Column(name = "dob")
     private String dob;
 
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AddressEntity> addresses;
+
+    @Override
+    public RoleEnum getRole(){
+        return RoleEnum.CUSTOMER;
+    }
 
 }

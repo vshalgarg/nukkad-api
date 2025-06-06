@@ -1,5 +1,6 @@
 package com.code.monks.nukkad.services;
 
+import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.request.CreateCustomerRequestDTO;
 import com.code.monks.nukkad.dto.response.CreateCustomerResponseDTO;
 import com.code.monks.nukkad.entities.CustomerEntity;
@@ -16,14 +17,17 @@ public class CustomerService {
 	private final CustomerRepository customerRepository;
 
 	public CreateCustomerResponseDTO createCustomer(CreateCustomerRequestDTO dto){
+		Long userId = UserContextHolder.getUser().getId();
 		CustomerEntity customer = CreateCustomerRequestDTO.toEntity(dto);
+		customer.setId(userId);
 		CustomerEntity saved = customerRepository.save(customer);
 		return CreateCustomerResponseDTO.fromEntity(saved);
 	}
 
-	public CreateCustomerResponseDTO updateCustomer(Long id , CreateCustomerRequestDTO dto){
-		CustomerEntity customer = customerRepository.findById(id)
-				.orElseThrow(()-> new ResourceNotFoundException("Customer not found with id" + id));
+	public CreateCustomerResponseDTO updateCustomer( CreateCustomerRequestDTO dto){
+		Long userId = UserContextHolder.getUser().getId();
+		CustomerEntity customer = customerRepository.findById(userId)
+				.orElseThrow(()-> new ResourceNotFoundException("Customer not found with id" + userId));
 		customer.setName(dto.getName());
 		customer.setEmail(dto.getEmail());
 		customer.setAddressLine1(dto.getAddressLine1());

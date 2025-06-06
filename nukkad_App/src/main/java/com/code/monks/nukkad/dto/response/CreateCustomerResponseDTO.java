@@ -1,6 +1,7 @@
 package com.code.monks.nukkad.dto.response;
 
 import com.code.monks.nukkad.entities.CustomerEntity;
+import com.code.monks.nukkad.enums.RoleEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,6 +20,7 @@ public class CreateCustomerResponseDTO {
 	private String city;
 	private String state;
 	private String pincode;
+	private RoleEnum role;
 
 	public static CreateCustomerResponseDTO fromEntity(CustomerEntity customer) {
 		CreateCustomerResponseDTO customerResponseDTO = new CreateCustomerResponseDTO();
@@ -31,6 +33,7 @@ public class CreateCustomerResponseDTO {
 		customerResponseDTO.setCity(customer.getCity());
 		customerResponseDTO.setState(customer.getState());
 		customerResponseDTO.setPincode(customer.getPincode());
+		customerResponseDTO.setRole(customer.getRole());
 		return customerResponseDTO;
 
 	}

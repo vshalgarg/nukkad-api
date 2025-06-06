@@ -1,5 +1,6 @@
 package com.code.monks.nukkad.entities;
 
+import com.code.monks.nukkad.enums.RoleEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "storekeeper")
@@ -14,12 +16,15 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class StorekeeperEntity extends UserEntity{
+	@Id
+	@Column(name = "id")
+    private Long id;
+
+	@Column(name = "name")
+	private String name;
 
 	@Column(name = "store_name")
 	private String storeName;
-
-	@Column(name = "store_number")
-	private String storeNumber;
 
 	@Column(name = "contact_number")
 	private String contactNumber;
@@ -42,5 +47,12 @@ public class StorekeeperEntity extends UserEntity{
 	@Column(name = "pincode")
 	private String pincode;
 
+	@OneToMany(mappedBy = "storekeeper", cascade = CascadeType.ALL)
+	private List<AddressEntity> addresses;
+
+	@Override
+	public RoleEnum getRole(){
+		return RoleEnum.STOREKEEPER;
+	}
 
 }

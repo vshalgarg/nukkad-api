@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS item (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(60) NOT NULL UNIQUE,
+    name VARCHAR(60) NOT NULL UNIQUE ,
     unit TINYINT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -24,9 +24,7 @@ CREATE TABLE IF NOT EXISTS image (
     CONSTRAINT fk_image_item FOREIGN KEY (item_id) REFERENCES item(id) ON DELETE CASCADE,
 
 
-    INDEX idx_image_item_id (item_id),
-    INDEX idx_image_created_at (created_at),
-    INDEX idx_image_updated_at (updated_at)
+    INDEX idx_image_item_id (item_id)
 );
 
 
@@ -79,20 +77,23 @@ CREATE TABLE IF NOT EXISTS customer (
 );
 
 
-CREATE TABLE IF NOT EXISTS address (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    address_line1 VARCHAR(200) NOT NULL UNIQUE,
-    address_line2 VARCHAR(200) NOT NULL UNIQUE,
+CREATE TABLE IF NOT EXISTS  address (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    label VARCHAR(10),
+    address_line1 VARCHAR(200) NOT NULL,
+    address_line2 VARCHAR(200),
+    landmark VARCHAR(50) NOT NULL,
     city VARCHAR(30) NOT NULL,
     state VARCHAR(30) NOT NULL,
     pincode VARCHAR(6) NOT NULL,
-    landmark VARCHAR(50) NOT NULL,
-    label VARCHAR(50) NOT NULL,
-    customer_id INT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES customer(id)
+    customer_id BIGINT NOT NULL,
+    storekeeper_id BIGINT NOT NULL,
+    created_at TIMESTAMP,         -- Assuming BaseEntity has createdAt, updatedAt fields
+    updated_at TIMESTAMP,
+    CONSTRAINT fk_customer FOREIGN KEY (customer_id) REFERENCES customers(id),
+    CONSTRAINT fk_storekeeper FOREIGN KEY (storekeeper_id) REFERENCES storekeepers(id)
 );
+
 --
 CREATE TABLE IF NOT EXISTS storekeeper (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

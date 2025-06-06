@@ -26,10 +26,9 @@ public class CustomerController {
 
 	@PutMapping(UrlConstants.CUSTOMER.UPDATE)
 	public ResponseEntity<CreateCustomerResponseDTO> updateCustomer(
-			@PathVariable Long id,
-			@Valid @RequestBody CreateCustomerRequestDTO dto
-	) {
-		CreateCustomerResponseDTO updateCustomer = customerService.updateCustomer(id, dto);
-		return new ResponseEntity<>(updateCustomer,HttpStatus.CREATED);
+
+			@Valid @RequestBody CreateCustomerRequestDTO dto) {
+		CreateCustomerResponseDTO updateCustomer = customerService.updateCustomer(dto);
+		return new ResponseEntity<>(updateCustomer,HttpStatus.OK);
 	}
 }
