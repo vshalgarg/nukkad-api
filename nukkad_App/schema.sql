@@ -64,26 +64,36 @@ CREATE TABLE IF NOT EXISTS addresses (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customer(id)
 );
-
-CREATE TABLE IF NOT EXISTS place_orders_entity (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    order_id BIGINT NOT NULL UNIQUE,
-    item_id BIGINT,
-    quantity INT,
-    status VARCHAR(255)
-);
+--
+--CREATE TABLE IF NOT EXISTS orders_status_entity (
+--    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+--    order_id BIGINT NOT NULL UNIQUE,
+--    item_id BIGINT NOT NULL ,
+--    quantity INT NOT NULL,
+--    status VARCHAR(20)
+--
+--      INDEX idx_item_id (item_id),
+--      INDEX idx_status (status)
+--);
 
 CREATE TABLE IF NOT EXISTS order_entity (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tracking_number VARCHAR(255),
-    order_count INT,
-    order_id BIGINT,
-    order_date DATETIME,
-    shop_keeper_id BIGINT,
-    status_order_enum VARCHAR(100),
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
+    cart_id INT NOT NULL,
+    customer_id INT NOT NULL,
+    delivery_address_id INT NOT NULL,
+    store_keeper_id INT NOT NULL ,
+    status_enum VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    INDEX idx_cart_id (cart_id),
+    INDEX idx_customer_id (customer_id),
+    INDEX idx_delivery_address_id(delivery_address_id),
+    INDEX idx_store_keeper_id (store_keeper_id),
+    INDEX idx_status_enum (status_enum)
 );
+
 
 
 

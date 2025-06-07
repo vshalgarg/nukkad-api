@@ -3,6 +3,7 @@ package com.code.monks.nukkad.services;
 import com.code.monks.nukkad.dto.request.OrderRequestDTO;
 import com.code.monks.nukkad.dto.response.OrderResponseDTO;
 import com.code.monks.nukkad.entities.OrderEntity;
+import com.code.monks.nukkad.enums.StatusEnum;
 import com.code.monks.nukkad.exception.OrderNotFoundException;
 import com.code.monks.nukkad.repositories.OrderRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -15,7 +16,7 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class OrderService {
+public class OrderService {  // placeOrderService
 
     @Autowired
     private OrderRepository orderRepository;
@@ -25,12 +26,9 @@ public class OrderService {
     }
 
     public OrderResponseDTO createDTO(OrderRequestDTO requestDTO) {
-        log.info("Creating new order with tracking number:{}", requestDTO.getTrackingNumber());
         try {
             OrderEntity orderEntity = OrderRequestDTO.toEntity(requestDTO);
-            if (orderEntity.getUserId() == null) {
-                orderEntity.setUserId(0L);
-            }
+
             OrderEntity orderSaved = orderRepository.save(orderEntity);
             log.info("Order saved successfully with ID:{}", orderSaved.getId());
 
@@ -45,7 +43,7 @@ public class OrderService {
     public List<OrderResponseDTO> getOrderByStatus(String status) {
         log.info("Fetching orders with status:{}", status);
         try {
-            List<OrderEntity> orderEntities = orderRepository.findByStatusEnum(status);
+            List<OrderEntity> orderEntities = orderRepository.findByStatusEnum(StatusEnum.valueOf(status));
             if (orderEntities.isEmpty()) {
                 log.warn("No orders found with status:{}", status);
 
@@ -70,17 +68,17 @@ public class OrderService {
         }
     }
 
-    public List<OrderResponseDTO> getOrderByTrackingNumber(String trackingNumber) {
-        log.info("Fetching orders with tracking number:{}", trackingNumber);
-        List<OrderEntity> orderEntities = orderRepository.findByTrackingNumberIgnoreCase(trackingNumber);
-        if (orderEntities.isEmpty()) {
-            log.warn("No  orders found with tracking number:{}", trackingNumber);
-            throw new OrderNotFoundException("No orders found with tracking number:" + trackingNumber);
-        }
-        List<OrderResponseDTO> responseDTOS = new ArrayList<>();
-        for (OrderEntity orderEntity : orderEntities) {
-            responseDTOS.add(OrderResponseDTO.toResponseDTO(orderEntity));
-        }
-        return responseDTOS;
-    }
+//    public List<OrderResponseDTO> getOrderByTrackingNumber(String trackingNumber) {
+//        log.info("Fetching orders with tracking number:{}", trackingNumber);
+//        List<OrderEntity> orderEntities = orderRepository.findByTrackingNumberIgnoreCase(trackingNumber);
+//        if (orderEntities.isEmpty()) {
+//            log.warn("No  orders found with tracking number:{}", trackingNumber);
+//            throw new OrderNotFoundException("No orders found with tracking number:" + trackingNumber);
+//        }
+//        List<OrderResponseDTO> responseDTOS = new ArrayList<>();
+//        for (OrderEntity orderEntity : orderEntities) {
+//            responseDTOS.add(OrderResponseDTO.toResponseDTO(orderEntity));
+//        }
+//        return responseDTOS;
+//    }
 }

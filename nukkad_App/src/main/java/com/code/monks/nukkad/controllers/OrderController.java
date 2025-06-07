@@ -21,7 +21,6 @@ public class OrderController {
 
     @PostMapping(ORDER.CREATE)
     public ResponseEntity<OrderResponseDTO> createOrder(@Valid @RequestBody OrderRequestDTO requestDTO) {
-        log.info("Creating new order for customer :{}", requestDTO.getOrderId());
         OrderResponseDTO responseDTO = orderService.createDTO(requestDTO);
         return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }
@@ -33,20 +32,5 @@ public class OrderController {
         log.info("Found {} order(s) with status : {}", order.size(), status);
         return ResponseEntity.ok(order);
     }
-
-    @GetMapping(ORDER.GET_BY_TRACKING)
-    public ResponseEntity<List<OrderResponseDTO>> getOrderByTrackingNumber(@RequestParam String trackingNumber) {
-        log.info("Fetching orders with tracking number : {}", trackingNumber);
-        List<OrderResponseDTO> order = orderService.getOrderByTrackingNumber(trackingNumber);
-        log.info("Found {} order(s) for tracking number :{}", order.size(), trackingNumber);
-        return ResponseEntity.ok(order);
-    }
-
-//    @PostMapping
-//    public ResponseEntity<OrderResponseDTO> RepeatOrder(@RequestParam Integer orderNumber)
-//    {
-//
-//    }
-
 
 }

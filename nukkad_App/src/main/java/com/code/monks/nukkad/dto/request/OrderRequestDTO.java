@@ -14,32 +14,25 @@ import java.util.Locale;
 @Data
 public class OrderRequestDTO {
 
-    @NotBlank(message = "Tracking number is required")
-    private String trackingNumber;
+    private int cartId;
 
-    @NotNull(message = "User Id is required")
-    private Long userId;
+    private int customerId;
 
-    @Min(value = 1, message = "Order Count" +"must be at least 1")
-    private int orderCount;
+    private int deliveryAddressId;
 
-    @NotNull(message = "Order ID is required")
-    private Long orderId;
-
-    @NotNull(message = "Shopkeeper ID is required")
-    private Long shopKeeperId;
+//    @NotNull(message = "StoreKeeper ID is required")
+    private int storeKeeperId;
 
     private StatusEnum statusEnum;
 
     public static OrderEntity toEntity(OrderRequestDTO dto) {
         OrderEntity orderEntity = new OrderEntity();
-        orderEntity.setTrackingNumber(dto.getTrackingNumber());
-        orderEntity.setUserId(dto.getUserId());
-        orderEntity.setOrderCount(dto.getOrderCount());
-        orderEntity.setShopKeeperId(dto.getShopKeeperId());
-        LocalDateTime now = LocalDateTime.now();
-        orderEntity.setOrderDate(now);
+        orderEntity.setCartId(dto.getCartId());
+        orderEntity.setCustomerId(dto.getCustomerId());
+        orderEntity.setDeliveryAddressId(dto.getDeliveryAddressId());
+        orderEntity.setStoreKeeperId(dto.getStoreKeeperId());
         orderEntity.setStatusEnum(dto.getStatusEnum());
+
         return orderEntity;
     }
 }

@@ -6,19 +6,18 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
+@Table(name="myOrder_entity")
 @Data
-public class OrderEntity extends BaseEntity
+public class MyOrderEntity extends BaseEntity
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private int cartId;
+    private int orderId;
     private int customerId;
-    private int deliveryAddressId;
     private int storeKeeperId;
 
-    @Convert(converter = StatusEnumConverter.class)
-    private StatusEnum statusEnum;
-
+//    @Convert(converter = StatusEnumConverter.class)
+    private String statusEnum;
 
 }

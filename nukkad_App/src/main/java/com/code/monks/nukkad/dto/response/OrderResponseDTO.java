@@ -9,24 +9,21 @@ import java.time.LocalDateTime;
 @Data
 public class OrderResponseDTO {
 
-    private Long id;
-    private Long userId;
-    private String trackingNumber;
-    private int orderCount;
-    private LocalDateTime orderDate;
-    private Long shopKeeperId;
-    private StatusEnum statusOrderEnum;
+    private int id;
+    private int cartId;
+    private int customerId;
+    private int deliveryAddressId;
+    private int storeKeeperId;
+    private StatusEnum statusEnum;
 
     public static OrderResponseDTO toResponseDTO(OrderEntity entity) {
         OrderResponseDTO responseDTO = new OrderResponseDTO();
-        responseDTO.setOrderCount(entity.getOrderCount());
-        responseDTO.setId((long)entity.getId());
-        responseDTO.setUserId(entity.getUserId());
-        responseDTO.setTrackingNumber(entity.getTrackingNumber());
-        responseDTO.setOrderDate(entity.getOrderDate());
-        responseDTO.setShopKeeperId(entity.getShopKeeperId());
-        responseDTO.setStatusOrderEnum(entity.getStatusEnum());
-
+        responseDTO.setId(entity.getId());
+        responseDTO.setCartId(entity.getCartId());
+        responseDTO.setCustomerId(entity.getCustomerId());
+        responseDTO.setDeliveryAddressId(entity.getDeliveryAddressId());
+        responseDTO.setStoreKeeperId(entity.getStoreKeeperId());
+        responseDTO.setStatusEnum(entity.getStatusEnum());
         return responseDTO;
     }
 

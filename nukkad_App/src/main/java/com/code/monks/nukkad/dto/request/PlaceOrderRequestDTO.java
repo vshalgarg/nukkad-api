@@ -1,6 +1,6 @@
 package com.code.monks.nukkad.dto.request;
 
-import com.code.monks.nukkad.entities.PlaceOrderEntity;
+
 import com.code.monks.nukkad.enums.PlaceOrderEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
