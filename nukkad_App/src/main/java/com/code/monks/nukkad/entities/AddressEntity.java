@@ -1,7 +1,6 @@
 package com.code.monks.nukkad.entities;
 
 
-import com.code.monks.nukkad.enums.AddressLabelEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @EqualsAndHashCode(callSuper = true)
-@Entity(name = "addresses")
+@Entity(name = "address")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,6 +18,9 @@ public class AddressEntity extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private  Long id;
+
+    @Column(name = "label")
+    private String label;
 
     @Column(name = "address_line1")
     private String addressLine1;
@@ -38,12 +40,11 @@ public class AddressEntity extends BaseEntity{
     @Column(name = "pincode")
     private String pincode;
 
-    @Enumerated(EnumType.STRING)
-    private AddressLabelEnum label;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id")
+    private CustomerEntity customer;
 
-//    private boolean isSelected;
-
-    private Long customerId;
-
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "storekeeper_id")
+    private StorekeeperEntity storekeeper;
 }

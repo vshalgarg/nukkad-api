@@ -16,35 +16,35 @@ import java.util.List;
 import static com.code.monks.nukkad.constants.UrlConstants.ADDRESS;
 
 @RestController
-@RequestMapping(ADDRESS.BASE)
+@RequestMapping("/api/addresses")
 @RequiredArgsConstructor
 @Slf4j
 public class AddressController {
 
     private final AddressService addressService;
 
-    @GetMapping(ADDRESS.GET)
+    @GetMapping
     public ResponseEntity<List<AddressResponseDTO>> getAddressesByCustomerId(){
         List<AddressResponseDTO> addresses = addressService.getAddresses();
-        return ResponseEntity.ok(addresses);
+        return new ResponseEntity<>(addresses, HttpStatus.OK);
     }
 
-    @PostMapping(ADDRESS.CREATE)
+    @PostMapping
     public ResponseEntity<AddressResponseDTO> addAddress( @Valid
-            @RequestBody CreateAddressRequestDTO request) {
+            @RequestBody CreateAddressRequestDTO dto) {
 
-        AddressResponseDTO savedAddress = addressService.addAddress(request);
+        AddressResponseDTO savedAddress = addressService.addAddress(dto);
 
         return new ResponseEntity<>(savedAddress , HttpStatus.CREATED);
     }
 
-    @PutMapping(ADDRESS.UPDATE)
+    @PutMapping("/{addressId}")
     public ResponseEntity<AddressResponseDTO> updateAddress(
             @PathVariable Long addressId,
             @Valid @RequestBody UpdateAddressRequestDTO dto) {
 
         log.info("Updating address with ID {}", addressId);
         AddressResponseDTO updatedAddress = addressService.updateAddress(addressId, dto);
-        return ResponseEntity.ok(updatedAddress);
+        return new ResponseEntity<>(updatedAddress, HttpStatus.OK);
     }
 }

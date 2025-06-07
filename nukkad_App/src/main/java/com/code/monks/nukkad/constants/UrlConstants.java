@@ -4,6 +4,7 @@ public class UrlConstants {
 
 	public static final String CONTEXT = "/nukkad";
 
+
 	public static class CATEGORY {
 
 		public static final String BASE = CONTEXT + "/api/category";
@@ -43,8 +44,8 @@ public class UrlConstants {
  }
 
 
-public static class SHOPKEEPER{
-		public static final String BASE = CONTEXT + "/api/shopkeeper";
+public static class STOREKEEPER{
+		public static final String BASE = CONTEXT + "/api/storekeeper";
 		public static final String CREATE = "/v1/profile/save";
 		public static  final String UPDATE = "/v1/profile/update/{id}";
 }
@@ -73,6 +74,15 @@ public static class ADDRESS{
 		public static final String CREATE = "/v1/create";
 		public static final String GET_ALL = "/v1/orders/status";
 		public static final String GET_BY_TRACKING = "/v1/fetch/order/fetch";
+	}
+
+	public static class CART_ITEM{
+
+		public static final String BASE = CONTEXT + "/api/cartItem";
+		public static final String ADD = "/v1/add";
+		public static final String GET_CART_ITEM_FOR_CUSTOMER = "v1/customer";
+		public static final String DELETE_CART_ITEM_BY_ID = "/v1/{id}";
+		public static final String UPDATE_QUANTITY =  "/v1/{id}/quantity";
 	}
 
 	private UrlConstants() {

@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-//@AllArgsConstructor
 @NoArgsConstructor
 public class VerifyResponseDTO {
     private String status;

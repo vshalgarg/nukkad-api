@@ -1,70 +1,126 @@
+CREATE TABLE IF NOT EXISTS item (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(60) NOT NULL UNIQUE ,
+    unit TINYINT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+
+    INDEX idx_item_name (name),
+    INDEX idx_item_unit (unit),
+    INDEX idx_item_created_at (created_at),
+    INDEX idx_item_updated_at (updated_at)
+);
+
+
+CREATE TABLE IF NOT EXISTS image (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    image_url VARCHAR(200) NOT NULL,
+    item_id INT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+
+    CONSTRAINT fk_image_item FOREIGN KEY (item_id) REFERENCES item(id) ON DELETE CASCADE,
+
+
+    INDEX idx_image_item_id (item_id)
+);
+
+
 CREATE TABLE IF NOT EXISTS category (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    name VARCHAR(50) NOT NULL UNIQUE,
+    image_id BIGINT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+
+    CONSTRAINT fk_category_image FOREIGN KEY (image_id) REFERENCES image(id),
+
+
+    INDEX idx_category_image_id (image_id),
+    INDEX idx_category_created_at (created_at),
+    INDEX idx_category_updated_at (updated_at)
 );
 
-CREATE TABLE IF NOT EXISTS customer(
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255),
-    email VARCHAR(255),
-    address VARCHAR(255),
-    dob VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS item(
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255),
-    image VARCHAR(255),
-    unit VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS item_category(
+CREATE TABLE IF NOT EXISTS item_category (
     item_id INT NOT NULL,
     category_id INT NOT NULL,
+
     PRIMARY KEY (item_id, category_id),
-    FOREIGN KEY (item_id) REFERENCES item(id),
-    FOREIGN KEY (category_id) REFERENCES category(id)
+
+
+    CONSTRAINT fk_ic_item FOREIGN KEY (item_id) REFERENCES item(id) ON DELETE CASCADE,
+    CONSTRAINT fk_ic_category FOREIGN KEY (category_id) REFERENCES category(id) ON DELETE CASCADE,
+
+
+    INDEX idx_ic_category_id (category_id)
 );
 
-CREATE TABLE IF NOT EXISTS shopkeeper (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255),
-    store_number VARCHAR(255),
-    gst_in VARCHAR(255),
-    address VARCHAR(255),
-    city VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS customer (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    email_id VARCHAR(50) NOT NULL UNIQUE,
+    address_Line1 VARCHAR(200) NOT NULL,
+    address_Line2 VARCHAR(200),
+    city VARCHAR(30) NOT NULL,
+    state VARCHAR(30) NOT NULL,
+    pincode VARCHAR(6) NOT NULL,
+    dob VARCHAR(15) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    INDEX idx_customer_email (email_id),
+    INDEX idx_customer_city (city),
+    INDEX idx_customer_state (state)
 );
 
-CREATE TABLE IF NOT EXISTS shopkeeper_pictures (
-    shopkeeper_id INT NOT NULL,
-    picture_url VARCHAR(1024),
-    FOREIGN KEY (shopkeeper_id) REFERENCES shopkeeper(id)
+
+CREATE TABLE IF NOT EXISTS  address (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    label VARCHAR(10),
+    address_line1 VARCHAR(200) NOT NULL,
+    address_line2 VARCHAR(200),
+    landmark VARCHAR(50) NOT NULL,
+    city VARCHAR(30) NOT NULL,
+    state VARCHAR(30) NOT NULL,
+    pincode VARCHAR(6) NOT NULL,
+    customer_id BIGINT NOT NULL,
+    storekeeper_id BIGINT NOT NULL,
+    created_at TIMESTAMP,         -- Assuming BaseEntity has createdAt, updatedAt fields
+    updated_at TIMESTAMP,
+    CONSTRAINT fk_customer FOREIGN KEY (customer_id) REFERENCES customers(id),
+    CONSTRAINT fk_storekeeper FOREIGN KEY (storekeeper_id) REFERENCES storekeepers(id)
 );
 
-CREATE TABLE IF NOT EXISTS addresses (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    address_line1 VARCHAR(255),
-    address_line2 VARCHAR(255),
-    city VARCHAR(100),
-    state VARCHAR(100),
-    pincode VARCHAR(20),
-    landmark VARCHAR(255),
-    label VARCHAR(50),
-    is_selected BOOLEAN DEFAULT FALSE,
-    customer_id INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES customer(id)
-);
 --
+CREATE TABLE IF NOT EXISTS storekeeper (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    store_name VARCHAR(30) NOT NULL,
+    contact_number VARCHAR(20) NOT NULL UNIQUE,
+    gst_in VARCHAR(30) NOT NULL UNIQUE,
+    address_line1 VARCHAR(200) NOT NULL UNIQUE,
+    address_line2 VARCHAR(200) NOT NULL UNIQUE,
+    city VARCHAR(30) NOT NULL,
+    state VARCHAR(30) NOT NULL,
+    pincode VARCHAR(6) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS cart_item (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    customer_id BIGINT NOT NULL,
+    item_id INT NOT NULL,
+    quantity INT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_cart_item_item FOREIGN KEY (item_id) REFERENCES item (id)
+);
+
 --CREATE TABLE IF NOT EXISTS orders_status_entity (
 --    id BIGINT AUTO_INCREMENT PRIMARY KEY,
 --    order_id BIGINT NOT NULL UNIQUE,
@@ -76,25 +132,28 @@ CREATE TABLE IF NOT EXISTS addresses (
 --      INDEX idx_status (status)
 --);
 
-CREATE TABLE IF NOT EXISTS order_entity (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    cart_id INT NOT NULL,
-    customer_id INT NOT NULL,
-    delivery_address_id INT NOT NULL,
-    store_keeper_id INT NOT NULL ,
-    status_enum VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+CREATE TABLE order_entity (
+    id INT AUTO_INCREMENT PRIMARY KEY,
 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    cart_id BIGINT,
+    customer_id BIGINT,
+    deliveryAddress_id BIGINT,
+    storeKeeper_id BIGINT,
+    status_enum VARCHAR(50),
+    created_at DATETIME,
+    updated_at DATETIME,
 
+    -- Foreign Keys
+    CONSTRAINT fk_order_cart FOREIGN KEY (cart_id) REFERENCES cart_item_entity(id),
+    CONSTRAINT fk_order_customer FOREIGN KEY (customer_id) REFERENCES customer_entity(id),
+    CONSTRAINT fk_order_address FOREIGN KEY (deliveryAddress_id) REFERENCES address_entity(id),
+    CONSTRAINT fk_order_storekeeper FOREIGN KEY (storeKeeper_id) REFERENCES storekeeper_entity(id),
+
+    -- Indexes for performance
     INDEX idx_cart_id (cart_id),
     INDEX idx_customer_id (customer_id),
-    INDEX idx_delivery_address_id(delivery_address_id),
-    INDEX idx_store_keeper_id (store_keeper_id),
+    INDEX idx_delivery_address_id (deliveryAddress_id),
+    INDEX idx_store_keeper_id (storeKeeper_id),
     INDEX idx_status_enum (status_enum)
 );
-
-
-
-
 

@@ -1,0 +1,53 @@
+package com.code.monks.nukkad.entities;
+
+import com.code.monks.nukkad.enums.RoleEnum;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.List;
+
+@Entity
+@Table(name = "customer")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class CustomerEntity extends UserEntity {
+
+    @Id
+    @Column(name = "id")
+    private Long id; // comes from auth service
+
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "email_id")
+    private String email;
+
+    @Column(name = "address_Line1")
+    private String addressLine1;
+
+    @Column(name = "address_Line2")
+    private String addressLine2;
+
+    @Column(name = "city")
+    private String city;
+
+    @Column(name = "state")
+    private String state;
+
+    @Column(name = "pincode")
+    private String pincode;
+
+    @Column(name = "dob")
+    private String dob;
+
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AddressEntity> addresses;
+
+    @Override
+    public RoleEnum getRole(){
+        return RoleEnum.CUSTOMER;
+    }
+
+}

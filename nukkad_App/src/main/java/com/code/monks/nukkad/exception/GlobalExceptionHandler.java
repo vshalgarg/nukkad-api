@@ -78,4 +78,10 @@ public class GlobalExceptionHandler {
 
     }
 
+	@ExceptionHandler(UnauthorizedAccessException.class)
+	public ResponseEntity<ErrorResponse> handleUnauthorizedAccessException(UnauthorizedAccessException ex){
+		ErrorResponse error = new ErrorResponse(ex.getMessage(),LocalDateTime.now(),HttpStatus.UNAUTHORIZED.value());
+		return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+	}
+
 }
