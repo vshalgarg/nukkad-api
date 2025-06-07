@@ -14,24 +14,24 @@ import java.util.Locale;
 @Data
 public class OrderRequestDTO {
 
-    private int cartId;
+    private Long cart;
 
-    private int customerId;
+    private Long customer;
 
-    private int deliveryAddressId;
+    private Long deliveryAddress;
 
 //    @NotNull(message = "StoreKeeper ID is required")
-    private int storeKeeperId;
+    private Long storeKeeper;
 
     private StatusEnum statusEnum;
 
-    public static OrderEntity toEntity(OrderRequestDTO dto) {
+    public static OrderEntity toEntity(OrderRequestDTO requestDTO) {
         OrderEntity orderEntity = new OrderEntity();
-        orderEntity.setCartId(dto.getCartId());
-        orderEntity.setCustomerId(dto.getCustomerId());
-        orderEntity.setDeliveryAddressId(dto.getDeliveryAddressId());
-        orderEntity.setStoreKeeperId(dto.getStoreKeeperId());
-        orderEntity.setStatusEnum(dto.getStatusEnum());
+        orderEntity.getCart().setId(requestDTO.getCart());
+        orderEntity.getCustomer().setId(requestDTO.getCustomer());
+        orderEntity.getDeliveryAddress().setId(requestDTO.getDeliveryAddress());
+        orderEntity.getStoreKeeper().setId(requestDTO.getStoreKeeper());
+        orderEntity.getStatusEnum().setId(requestDTO.getStatusEnum());
 
         return orderEntity;
     }

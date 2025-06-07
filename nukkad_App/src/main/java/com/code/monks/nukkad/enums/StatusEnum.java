@@ -33,4 +33,6 @@ public enum StatusEnum
     }
 
 
+    public void setId(StatusEnum statusEnum) {
+    }
 }
