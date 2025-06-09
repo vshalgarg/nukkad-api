@@ -4,6 +4,7 @@ import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.request.CreateCartItemRequestDTO;
 import com.code.monks.nukkad.dto.response.CreateCartItemResponseDTO;
 import com.code.monks.nukkad.entities.CartItemEntity;
+import com.code.monks.nukkad.entities.CustomerEntity;
 import com.code.monks.nukkad.entities.ItemEntity;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
 import com.code.monks.nukkad.exception.UnauthorizedAccessException;
@@ -28,8 +29,7 @@ public class CartItemService {
     private final ItemRepository itemRepository;
 
     public CreateCartItemResponseDTO addToCart(CreateCartItemRequestDTO dto) {
-        try {
-            Long userId = UserContextHolder.getUserContext().getUserId();
+            Long userId = UserContextHolder.getRequiredUser().getId();
             log.info("Adding item to cart. CustomerId: {}, ItemId: {}, Quantity: {}",userId, dto.getItemId(), dto.getQuantity());
 
             ItemEntity item = itemRepository.findById(dto.getItemId())
@@ -38,8 +38,11 @@ public class CartItemService {
                         return new ResourceNotFoundException("Item not found with id " + dto.getItemId());
                     });
 
+            CustomerEntity customer = new CustomerEntity();
+            customer.setId(userId);
+
             CartItemEntity cartItem = new CartItemEntity();
-            cartItem.setCustomerId(userId);
+            cartItem.setCustomer(customer);
             cartItem.setItem(item);
             cartItem.setQuantity(dto.getQuantity());
 
@@ -47,15 +50,12 @@ public class CartItemService {
             log.info("Item saved in cart successfully. CartItemId: {}", saved.getId());
             return CreateCartItemResponseDTO.fromEntity(saved);
 
-        } catch (Exception e) {
-            log.error("Unexpected error while adding item to cart", e);
-            throw new UnhandledException(UNHANDLED_EXCEPTION, e);
-        }
+
     }
 
     public List<CreateCartItemResponseDTO> getCartItemsForCustomer() {
         try {
-            Long userId = UserContextHolder.getUserContext().getUserId();
+            Long userId = UserContextHolder.getRequiredUser().getId();
             log.info("Fetching cart items for customerId: {}", userId);
             List<CartItemEntity> cartItems = cartItemRepository.findByCustomerId(userId);
 
@@ -70,7 +70,7 @@ public class CartItemService {
 
     public void removeCartItem(Long cartItemId) {
         try {
-            Long userId = UserContextHolder.getUserContext().getUserId();
+            Long userId = UserContextHolder.getRequiredUser().getId();
             log.info("Attempting to remove cart item. CustomerId: {}, CartItemId: {}",userId, cartItemId);
 
             CartItemEntity item = cartItemRepository.findById(cartItemId)
@@ -79,8 +79,8 @@ public class CartItemService {
                         return new ResourceNotFoundException("Cart Item not found");
                     });
 
-            if (!item.getCustomerId().equals(userId)) {
-                log.warn("Unauthorized attempt to delete cart item. OwnerId: {}, RequesterId: {}", item.getCustomerId(),userId);
+            if (!item.getCustomer().getId().equals(userId)) {
+                log.warn("Unauthorized attempt to delete cart item. OwnerId: {}, RequesterId: {}", item.getCustomer().getId(),userId);
                 throw new UnauthorizedAccessException("You are not authorized to delete this cart item.");
             }
 
@@ -94,7 +94,7 @@ public class CartItemService {
 
     public CreateCartItemResponseDTO updateQuantity(Long cartItemId, int newQty) {
         try {
-            Long userId = UserContextHolder.getUserContext().getUserId();
+            Long userId = UserContextHolder.getRequiredUser().getId();
             log.info("Request to update quantity. CartItemId: {}, NewQuantity: {}, CustomerId: {}", cartItemId, newQty,userId);
 
             CartItemEntity item = cartItemRepository.findById(cartItemId)
@@ -103,8 +103,8 @@ public class CartItemService {
                         return new ResourceNotFoundException("Cart item not found");
                     });
 
-            if (!item.getCustomerId().equals(userId)) {
-                log.warn("Unauthorized update attempt. OwnerId: {}, RequesterId: {}", item.getCustomerId(),userId);
+            if (!item.getCustomer().getId().equals(userId)) {
+                log.warn("Unauthorized update attempt. OwnerId: {}, RequesterId: {}", item.getCustomer().getId(),userId);
                 throw new UnauthorizedAccessException("You are not authorized to update this cart item.");
             }
 

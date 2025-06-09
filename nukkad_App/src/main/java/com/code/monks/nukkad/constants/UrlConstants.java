@@ -63,7 +63,7 @@ public static class ADDRESS{
 	public static  final String BASE = CONTEXT+ "/api/addresses";
 	public static  final String CREATE = "/v1//customer/{customerId}";
 	public static  final String GET = "/v1//customer/{customerId}";
-	public static  final String UPDATE = "/v1//customer/{customerId}/address/{addressId}";
+	public static final String UPDATE = "/v1/address/{id}";
 
 }
 
@@ -80,9 +80,9 @@ public static class ADDRESS{
 
 		public static final String BASE = CONTEXT + "/api/cartItem";
 		public static final String ADD = "/v1/add";
-		public static final String GET_CART_ITEM_FOR_CUSTOMER = "v1/customer";
-		public static final String DELETE_CART_ITEM_BY_ID = "/v1/{id}";
-		public static final String UPDATE_QUANTITY =  "/v1/{id}/quantity";
+		public static final String GET_CART_ITEM_FOR_CUSTOMER = "v1/customer/{customerId}";
+		public static final String DELETE_CART_ITEM_BY_ID = "/v1/deleteitem/{id}";
+		public static final String UPDATE_QUANTITY = "/v1/{id}/update";
 	}
 
 	private UrlConstants() {

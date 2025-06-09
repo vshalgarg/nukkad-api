@@ -42,9 +42,6 @@ public class CustomerEntity extends UserEntity {
     @Column(name = "dob")
     private String dob;
 
-    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AddressEntity> addresses;
-
     @Override
     public RoleEnum getRole(){
         return RoleEnum.CUSTOMER;

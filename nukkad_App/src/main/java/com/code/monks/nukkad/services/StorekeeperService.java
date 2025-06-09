@@ -27,7 +27,7 @@ public class StorekeeperService {
     public CreateStorekeeperResponseDTO updateStoreKeeper( CreateStorekeeperRequestDTO dto){
         Long userId = UserContextHolder.getUser().getId();
         StorekeeperEntity storekeeper = storekeeperRepository.findById(userId)
-                .orElseThrow(()-> new ResourceNotFoundException("Storekeeper not found" + userId));
+                .orElseThrow(()-> new ResourceNotFoundException("Storekeeper not found with id: " + userId));
 
        storekeeper.setName(dto.getName());
        storekeeper.setStoreName(dto.getStoreName());

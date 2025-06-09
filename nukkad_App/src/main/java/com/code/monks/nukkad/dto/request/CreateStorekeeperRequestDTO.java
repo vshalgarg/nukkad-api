@@ -29,7 +29,7 @@ public class CreateStorekeeperRequestDTO {
 	@NotBlank(message = "Address Line 1 is mandatory")
 	private String addressLine1;
 
-	@NotBlank(message = "Address Line 2 is mandatory")
+
 	private String addressLine2;
 
 	@NotBlank(message = "City is mandatory")

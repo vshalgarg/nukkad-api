@@ -47,9 +47,6 @@ public class StorekeeperEntity extends UserEntity{
 	@Column(name = "pincode")
 	private String pincode;
 
-	@OneToMany(mappedBy = "storekeeper", cascade = CascadeType.ALL)
-	private List<AddressEntity> addresses;
-
 	@Override
 	public RoleEnum getRole(){
 		return RoleEnum.STOREKEEPER;
