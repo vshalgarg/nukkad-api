@@ -32,6 +32,9 @@ public class CreateStorekeeperRequestDTO {
 
 	private String addressLine2;
 
+	@NotBlank(message = "Landmark is mandatory")
+	private String landmark;
+
 	@NotBlank(message = "City is mandatory")
 	private String city;
 
@@ -51,6 +54,7 @@ public class CreateStorekeeperRequestDTO {
 		storekeeper.setGstIn(dto.getGstIn());
 		storekeeper.setAddressLine1(dto.getAddressLine1());
 		storekeeper.setAddressLine2(dto.getAddressLine2());
+		storekeeper.setLandmark(dto.getLandmark());
 		storekeeper.setCity(dto.getCity());
 		storekeeper.setState(dto.getState());
 		storekeeper.setPincode(dto.getPincode());

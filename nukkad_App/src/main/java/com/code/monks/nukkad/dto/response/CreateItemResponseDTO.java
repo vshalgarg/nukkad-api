@@ -3,6 +3,7 @@ package com.code.monks.nukkad.dto.response;
 import com.code.monks.nukkad.entities.CategoryEntity;
 import com.code.monks.nukkad.entities.ImageEntity;
 import com.code.monks.nukkad.entities.ItemEntity;
+import com.code.monks.nukkad.enums.UnitEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -15,6 +16,7 @@ public class CreateItemResponseDTO {
     private int id;
     private String name;
     private String unit;
+    private int quantity;
     private List<String> imageUrls;
     private List<Integer> categoryIds;
 
@@ -33,7 +35,9 @@ public class CreateItemResponseDTO {
         return new CreateItemResponseDTO(
                 itemEntity.getId(),
                 itemEntity.getName(),
-                itemEntity.getUnit(),
+                itemEntity.getName(),
+                itemEntity.getQuantity(),
+
                 imageUrls,
                 categoryIds
         );

@@ -38,6 +38,9 @@ public class StorekeeperEntity extends UserEntity{
 	@Column(name = "address_line2")
 	private String addressLine2;
 
+	@Column(name = "landmark")
+	private String landmark;
+
 	@Column(name = "city")
 	private String City;
 

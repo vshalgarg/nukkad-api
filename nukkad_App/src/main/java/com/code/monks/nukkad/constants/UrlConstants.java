@@ -61,8 +61,8 @@ public static class PLACEORDER
 
 public static class ADDRESS{
 	public static  final String BASE = CONTEXT+ "/api/addresses";
-	public static  final String CREATE = "/v1//customer/{customerId}";
-	public static  final String GET = "/v1//customer/{customerId}";
+	public static  final String CREATE = "/v1/create";
+	public static  final String GET = "/v1/get";
 	public static final String UPDATE = "/v1/address/{id}";
 
 }

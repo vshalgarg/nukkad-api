@@ -26,7 +26,7 @@ public class CreateAddressRequestDTO {
         address.setAddressLine2(dto.getAddressLine2());
         address.setLandmark(dto.getLandmark());
         address.setCity(dto.getCity());
-        address.setState((dto.getState()));
+        address.setState(dto.getState());
         address.setPincode(dto.getPincode());
         return address;
 

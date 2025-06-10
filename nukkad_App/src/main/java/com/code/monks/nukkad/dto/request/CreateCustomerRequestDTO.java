@@ -25,6 +25,9 @@ public class  CreateCustomerRequestDTO {
 
 	private String addressLine2;
 
+	@NotBlank(message = "Landmark is mandatory")
+	private String landmark;
+
 	@NotBlank(message = "City is mandatory")
 	private String city;
 
@@ -44,6 +47,7 @@ public class  CreateCustomerRequestDTO {
 		customer.setEmail(dto.getEmail());
 		customer.setAddressLine1(dto.getAddressLine1());
 		customer.setAddressLine2(dto.getAddressLine2());
+		customer.setLandmark(dto.getLandmark());
 		customer.setDob(dto.getDob());
 		customer.setCity(dto.getCity());
 		customer.setState(dto.getState());
