@@ -30,6 +30,9 @@ public class CustomerEntity extends UserEntity {
     @Column(name = "address_Line2")
     private String addressLine2;
 
+    @Column(name = "landmark")
+    private String landmark;
+
     @Column(name = "city")
     private String city;
 
@@ -41,9 +44,6 @@ public class CustomerEntity extends UserEntity {
 
     @Column(name = "dob")
     private String dob;
-
-    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AddressEntity> addresses;
 
     @Override
     public RoleEnum getRole(){

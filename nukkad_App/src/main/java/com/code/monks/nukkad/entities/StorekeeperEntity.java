@@ -38,6 +38,9 @@ public class StorekeeperEntity extends UserEntity{
 	@Column(name = "address_line2")
 	private String addressLine2;
 
+	@Column(name = "landmark")
+	private String landmark;
+
 	@Column(name = "city")
 	private String City;
 
@@ -46,9 +49,6 @@ public class StorekeeperEntity extends UserEntity{
 
 	@Column(name = "pincode")
 	private String pincode;
-
-	@OneToMany(mappedBy = "storekeeper", cascade = CascadeType.ALL)
-	private List<AddressEntity> addresses;
 
 	@Override
 	public RoleEnum getRole(){

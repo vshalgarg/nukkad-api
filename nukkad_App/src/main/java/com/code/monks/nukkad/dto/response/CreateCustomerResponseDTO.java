@@ -16,6 +16,7 @@ public class CreateCustomerResponseDTO {
 	private String email;
 	private String addressLine1;
 	private String addressLine2;
+	private String landmark;
 	private String dob;
 	private String city;
 	private String state;
@@ -29,6 +30,7 @@ public class CreateCustomerResponseDTO {
 		customerResponseDTO.setEmail(customer.getEmail());
 		customerResponseDTO.setAddressLine1(customer.getAddressLine1());
 		customerResponseDTO.setAddressLine2(customer.getAddressLine2());
+		customerResponseDTO.setLandmark(customer.getLandmark());
 		customerResponseDTO.setDob(customer.getDob());
 		customerResponseDTO.setCity(customer.getCity());
 		customerResponseDTO.setState(customer.getState());

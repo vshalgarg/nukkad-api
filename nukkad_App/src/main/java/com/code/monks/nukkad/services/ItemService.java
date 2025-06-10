@@ -38,6 +38,7 @@ public class ItemService {
 			ItemEntity item = new ItemEntity();
 			item.setName(dto.getName());
 			item.setUnit(dto.getUnit());
+			item.setQuantity(dto.getQuantity());
 
 			List<CategoryEntity> categories = categoryRepository.findAllById(dto.getCategoryIds());
 			item.setCategories(categories);
@@ -110,6 +111,7 @@ public class ItemService {
 
 			item.setName(dto.getName());
 			item.setUnit(dto.getUnit());
+			item.setQuantity(dto.getQuantity());
 			item.getImages().clear();
 
 			if (dto.getImageUrls() != null && !dto.getImageUrls().isEmpty()) {

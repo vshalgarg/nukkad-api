@@ -15,15 +15,17 @@ public class AddressResponseDTO {
     private String pincode;
 
 
-    public static AddressResponseDTO fromEntity(AddressEntity address) {
-        AddressResponseDTO addressResponseDTO = new AddressResponseDTO();
-        addressResponseDTO.setLabel(address.getLabel());
-        addressResponseDTO.setAddressLine1(address.getAddressLine1());
-        addressResponseDTO.setAddressLine2(address.getAddressLine2());
-        addressResponseDTO.setLandmark(address.getLandmark());
-        addressResponseDTO.setCity(address.getCity());
-        addressResponseDTO.setState(address.getState());
-        addressResponseDTO.setPincode(address.getPincode());
-        return  addressResponseDTO;
+    public static AddressResponseDTO fromEntity(AddressEntity entity) {
+        AddressResponseDTO dto = new AddressResponseDTO();
+        dto.setId(entity.getId());
+        dto.setLabel(entity.getLabel());
+        dto.setAddressLine1(entity.getAddressLine1());
+        dto.setAddressLine2(entity.getAddressLine2());
+        dto.setLandmark(entity.getLandmark());
+        dto.setCity(entity.getCity());
+        dto.setState(entity.getState());
+        dto.setPincode(entity.getPincode());
+        return dto;
     }
+
 }

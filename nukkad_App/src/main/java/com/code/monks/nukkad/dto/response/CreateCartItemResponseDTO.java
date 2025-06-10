@@ -16,7 +16,6 @@ public class CreateCartItemResponseDTO {
     private int quantity;
     private int itemId;
     private String itemName;
-    private String unit;
     private List<String> imageUrls;
 
     public static CreateCartItemResponseDTO fromEntity(CartItemEntity entity) {
@@ -27,7 +26,6 @@ public class CreateCartItemResponseDTO {
                 entity.getQuantity(),
                 item.getId(),
                 item.getName(),
-                item.getUnit(),
                 item.getImages().stream().map(ImageEntity::getImageUrl)
                                          .collect(Collectors.toList())
         );

@@ -21,7 +21,7 @@ import static com.code.monks.nukkad.enums.ResponseErrorCodes.UNHANDLED_EXCEPTION
 @Service
 @Slf4j
 @AllArgsConstructor
-public class  CategoryService {
+public class   CategoryService {
 
 	private CategoryRepository categoryRepository;
 

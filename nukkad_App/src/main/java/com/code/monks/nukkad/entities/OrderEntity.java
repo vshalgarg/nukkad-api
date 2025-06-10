@@ -4,7 +4,9 @@ import com.code.monks.nukkad.converter.StatusEnumConverter;
 import com.code.monks.nukkad.enums.StatusEnum;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
 public class OrderEntity extends BaseEntity
@@ -13,18 +15,18 @@ public class OrderEntity extends BaseEntity
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-//    @ManyToOne
-//    @JoinColumn(name ="cart_id")
+    @ManyToOne
+    @JoinColumn(name ="cart_id")
 @Column(name = "cartId")
-    private int cartId;
+    private CartItemEntity cartId;
 
     @ManyToOne
     @JoinColumn(name ="customer_id")
     private CustomerEntity customer;
-//
-//    @ManyToOne
-//    @JoinColumn(name ="deliveryAddress_id")
-    private Long deliveryAddress;
+
+    @ManyToOne
+    @JoinColumn(name ="deliveryAddress_id")
+    private AddressEntity deliveryAddress;
 
     @ManyToOne
     @JoinColumn(name="storeKeeper_id")

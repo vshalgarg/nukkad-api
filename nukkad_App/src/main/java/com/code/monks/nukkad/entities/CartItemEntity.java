@@ -6,7 +6,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-@Entity(name = "cart_item")
+@Entity
+@Table(name = "cart_item")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,10 +17,12 @@ public class CartItemEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long customerId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private CustomerEntity customer;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "item_id")
+    @JoinColumn(name = "item_id", nullable = false)
     private ItemEntity item;
 
     private int quantity;
