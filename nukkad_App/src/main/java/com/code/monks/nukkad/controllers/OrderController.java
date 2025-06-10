@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import static com.code.monks.nukkad.constants.UrlConstants.*;
+import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 import java.util.List;
 @Slf4j
@@ -32,5 +33,15 @@ public class OrderController {
         log.info("Found {} order(s) with status : {}", order.size(), status);
         return ResponseEntity.ok(order);
     }
+    @GetMapping(ORDER.GET_ALL_ORDER_BY_ID)
+    public List<OrderResponseDTO> getAllOrderById(@PathVariable int id) {
+        log.info("Fetching order by ID: {}", id);
+        return orderService.getAllOrderById(id);
+    }
+//    @GetMapping(ORDER.GET_ORDER_BY_CART_ID)
+//    public ResponseEntity<OrderResponseDTO> getOrderByCartId(@PathVariable int cartId) {
+//        return ResponseEntity.ok(orderService.getOrderByCartId(cartId));
+//    }
+
 
 }

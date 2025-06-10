@@ -21,7 +21,8 @@ public class OrderService {  // placeOrderService
     @Autowired
     private OrderRepository orderRepository;
 
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(OrderRepository orderRepository)
+    {
         this.orderRepository = orderRepository;
     }
 
@@ -30,6 +31,8 @@ public class OrderService {  // placeOrderService
             OrderEntity orderEntity = OrderRequestDTO.toEntity(requestDTO);
 
             OrderEntity orderSaved = orderRepository.save(orderEntity);
+            log.info("Order saved at: {}, updated at: {}", orderSaved.getCreatedAt(), orderSaved.getUpdatedAt());
+
             log.info("Order saved successfully with ID:{}", orderSaved.getId());
 
             return OrderResponseDTO.toResponseDTO(orderSaved);
@@ -47,6 +50,7 @@ public class OrderService {  // placeOrderService
             if (orderEntities.isEmpty()) {
                 log.warn("No orders found with status:{}", status);
 
+//                Exception e = null;
                 throw new OrderNotFoundException("No orders found with status: " + status);
             }
             List<OrderResponseDTO> responseDTOList = new ArrayList<>();
@@ -54,31 +58,72 @@ public class OrderService {  // placeOrderService
             for (OrderEntity orderEntity : orderEntities) {
                 responseDTOList.add(OrderResponseDTO.toResponseDTO(orderEntity));
 
-//            OrderEntity orderEntity = null;
-                responseDTOList.add(OrderResponseDTO.toResponseDTO(orderEntity));
             }
             log.info("Found orders with status:{}", responseDTOList.size(), status);
 
             return responseDTOList;
-        } catch (EntityNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e)
+        {
+            log.error("Invalid status value:{}" , status, e);
+            throw new RuntimeException("Invalid status:"+ status,e);
+        }
+        catch (Exception e) {
             log.error("Error while fetching orders by status", e);
             throw new RuntimeException("Failed to fetch orders by status", e);
         }
     }
+    public List<OrderResponseDTO> getAllOrderById(int id)
+    {
+        try
+        {
+             List<OrderEntity> orderEntityList = orderRepository.findByCustomerId(id);
 
-//    public List<OrderResponseDTO> getOrderByTrackingNumber(String trackingNumber) {
-//        log.info("Fetching orders with tracking number:{}", trackingNumber);
-//        List<OrderEntity> orderEntities = orderRepository.findByTrackingNumberIgnoreCase(trackingNumber);
-//        if (orderEntities.isEmpty()) {
-//            log.warn("No  orders found with tracking number:{}", trackingNumber);
-//            throw new OrderNotFoundException("No orders found with tracking number:" + trackingNumber);
+             if(orderEntityList.isEmpty())
+             {
+                 log.warn("No orders found while fetching by id:{}",id);
+                 throw new OrderNotFoundException("No orders found:"+ id);
+             }
+
+             List<OrderResponseDTO> responseDTOList = new ArrayList<>();
+             for (OrderEntity order : orderEntityList)
+             {
+                 responseDTOList.add(OrderResponseDTO.toResponseDTO(order));
+             }
+             log.info("Fetching {} orders with id" , responseDTOList.size(),id);
+            return responseDTOList;
+        }
+        catch (Exception e)
+        {
+            log.error("Error while fetching orders with id : {}", e);
+            throw new RuntimeException("Failed to fetch order by id" , e);
+        }
+    }
+    }
+//
+//    public OrderResponseDTO getOrderById(int id) {
+//        try {
+//            OrderEntity orderEntity = orderRepository.findById(id)
+//                    .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + id));
+//            return OrderResponseDTO.toResponseDTO(orderEntity);
+//        } catch (OrderNotFoundException e) {
+//            throw e; // handled by global handler
+//        } catch (Exception e) {
+//            log.error("Failed to fetch order by ID: {}", id, e);
+//            throw new RuntimeException("Failed to fetch order by ID: " + id, e);
 //        }
-//        List<OrderResponseDTO> responseDTOS = new ArrayList<>();
-//        for (OrderEntity orderEntity : orderEntities) {
-//            responseDTOS.add(OrderResponseDTO.toResponseDTO(orderEntity));
-//        }
-//        return responseDTOS;
 //    }
-}
+
+//    public OrderResponseDTO getOrderByCartId(int cartId) {
+//        log.info("Fetching order with cartId: {}", cartId);
+//        try {
+//            OrderEntity orderEntity = orderRepository.findByCartId(cartId)
+//                    .orElseThrow(() -> new OrderNotFoundException("Order not found with cartId: " + cartId));
+//
+//            return OrderResponseDTO.toResponseDTO(orderEntity);
+//        } catch (OrderNotFoundException e) {
+//            throw e;
+//        } catch (Exception e) {
+//            log.error("Failed to fetch order by cartId", e);
+//            throw new RuntimeException("Failed to fetch order by cartId", e);
+//        }
+//    }

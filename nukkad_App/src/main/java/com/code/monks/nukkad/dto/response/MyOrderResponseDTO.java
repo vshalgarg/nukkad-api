@@ -1,6 +1,7 @@
 package com.code.monks.nukkad.dto.response;
 
 import com.code.monks.nukkad.entities.MyOrderEntity;
+import com.code.monks.nukkad.enums.OrderStatusEnum;
 import lombok.Data;
 
 @Data
@@ -10,7 +11,7 @@ public class MyOrderResponseDTO
     private int orderId;
     private int customerId;
     private int storeKeeperId;
-    private String statusEnum;
+    private OrderStatusEnum orderStatusEnum;
 
     public static MyOrderResponseDTO toResponseDTO(MyOrderEntity myOrderEntity)
     {
@@ -18,8 +19,9 @@ public class MyOrderResponseDTO
         myOrderResponseDTO.setId(myOrderEntity.getId());
         myOrderResponseDTO.setOrderId(myOrderEntity.getOrderId());
         myOrderResponseDTO.setCustomerId(myOrderEntity.getCustomerId());
-        myOrderResponseDTO.setStoreKeeperId(myOrderResponseDTO.getStoreKeeperId());
-        myOrderResponseDTO.setStatusEnum(myOrderResponseDTO.getStatusEnum());
+        myOrderResponseDTO.setStoreKeeperId(myOrderEntity.getStoreKeeperId());
+        myOrderResponseDTO.setOrderStatusEnum(myOrderEntity.getOrderStatusEnum());
         return myOrderResponseDTO;
     }
+
 }

@@ -13,17 +13,18 @@ public class OrderEntity extends BaseEntity
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @ManyToOne
-    @JoinColumn(name ="cart_id")
-    private CartItemEntity cart;
+//    @ManyToOne
+//    @JoinColumn(name ="cart_id")
+@Column(name = "cartId")
+    private int cartId;
 
     @ManyToOne
     @JoinColumn(name ="customer_id")
     private CustomerEntity customer;
-
-    @ManyToOne
-    @JoinColumn(name ="deliveryAddress_id")
-    private AddressEntity deliveryAddress;
+//
+//    @ManyToOne
+//    @JoinColumn(name ="deliveryAddress_id")
+    private Long deliveryAddress;
 
     @ManyToOne
     @JoinColumn(name="storeKeeper_id")

@@ -11,6 +11,8 @@ public interface OrderRepository extends JpaRepository<OrderEntity,Integer> {
 
    List<OrderEntity> findByStatusEnum(StatusEnum statusEnum);
 
-   Optional<OrderEntity> findByCartId(int cartId);
+   List<OrderEntity> findByOrderById();  // Ascending order
 
+
+   List<OrderEntity> findByCustomerId(int id);
 }

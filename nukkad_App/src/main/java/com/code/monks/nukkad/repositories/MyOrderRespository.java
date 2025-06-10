@@ -13,4 +13,6 @@ public interface MyOrderRespository extends JpaRepository<MyOrderEntity,Integer>
     List<MyOrderEntity> findByStoreKeeperId(Integer storeKeeperId);
 
     List<MyOrderEntity> findByCustomerIdAndStoreKeeperId(Integer customerId, Integer storeKeeperId);
+
+//    List<MyOrderEntity>findBy
 }

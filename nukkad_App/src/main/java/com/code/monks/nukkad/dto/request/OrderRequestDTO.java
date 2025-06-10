@@ -1,6 +1,8 @@
 package com.code.monks.nukkad.dto.request;
 
+import com.code.monks.nukkad.entities.CustomerEntity;
 import com.code.monks.nukkad.entities.OrderEntity;
+import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.enums.StatusEnum;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -14,7 +16,7 @@ import java.util.Locale;
 @Data
 public class OrderRequestDTO {
 
-    private Long cart;
+    private int cartId;
 
     private Long customer;
 
@@ -27,11 +29,19 @@ public class OrderRequestDTO {
 
     public static OrderEntity toEntity(OrderRequestDTO requestDTO) {
         OrderEntity orderEntity = new OrderEntity();
-        orderEntity.getCart().setId(requestDTO.getCart());
-        orderEntity.getCustomer().setId(requestDTO.getCustomer());
-        orderEntity.getDeliveryAddress().setId(requestDTO.getDeliveryAddress());
-        orderEntity.getStoreKeeper().setId(requestDTO.getStoreKeeper());
-        orderEntity.getStatusEnum().setId(requestDTO.getStatusEnum());
+        orderEntity.setCartId(requestDTO.getCartId());
+        orderEntity.setDeliveryAddress(requestDTO.getDeliveryAddress());
+        orderEntity.setStatusEnum(requestDTO.getStatusEnum());
+
+        // Set customer entity with only ID
+        CustomerEntity customer = new CustomerEntity();
+        customer.setId(requestDTO.getCustomer());
+        orderEntity.setCustomer(customer);
+
+        // Set storekeeper entity with only ID
+        StorekeeperEntity storekeeper = new StorekeeperEntity();
+        storekeeper.setId(requestDTO.getStoreKeeper());
+        orderEntity.setStoreKeeper(storekeeper);
 
         return orderEntity;
     }

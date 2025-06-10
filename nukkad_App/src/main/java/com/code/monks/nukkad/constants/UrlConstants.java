@@ -60,8 +60,8 @@ public static class PLACEORDER
 }
 
 public static class ADDRESS{
-	public static  final String BASE = CONTEXT+ "/api/addresses";
-	public static  final String CREATE = "/v1//customer/{customerId}";
+	public static  final String BASE = CONTEXT+ "/api/address";
+	public static  final String CREATE = "/v1//customer";
 	public static  final String GET = "/v1//customer/{customerId}";
 	public static  final String UPDATE = "/v1//customer/{customerId}/address/{addressId}";
 
@@ -73,7 +73,8 @@ public static class ADDRESS{
 		public static final String BASE =CONTEXT +"/api/order";
 		public static final String CREATE = "/v1/create";
 		public static final String GET_ALL = "/v1/orders/status";
-		public static final String GET_BY_TRACKING = "/v1/fetch/order/fetch";
+		public static final String GET_ALL_ORDER_BY_ID ="/v1/orders/orderById/{id}";
+//		public static final String GET_ORDER_BY_CART_ID ="/v1/orders/cartId";
 	}
 
 	public static class CART_ITEM{

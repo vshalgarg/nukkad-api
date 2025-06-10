@@ -8,7 +8,7 @@ import lombok.Data;
 public class OrderResponseDTO {
 
     private int id;
-    private Long cart;
+    private int cartId;
     private Long customer;
     private Long deliveryAddress;
     private Long storeKeeper;
@@ -17,9 +17,9 @@ public class OrderResponseDTO {
     public static OrderResponseDTO toResponseDTO(OrderEntity entity) {
         OrderResponseDTO responseDTO = new OrderResponseDTO();
         responseDTO.setId(entity.getId());
-        responseDTO.setCart((long) entity.getCart().getQuantity());
+        responseDTO.setCartId(entity.getCartId());
         responseDTO.setCustomer(entity.getCustomer().getId());
-        responseDTO.setDeliveryAddress(entity.getDeliveryAddress().getId());
+        responseDTO.setDeliveryAddress(entity.getDeliveryAddress());
         responseDTO.setStoreKeeper(entity.getStoreKeeper().getId());
         responseDTO.setStatusEnum(entity.getStatusEnum());
         return responseDTO;
