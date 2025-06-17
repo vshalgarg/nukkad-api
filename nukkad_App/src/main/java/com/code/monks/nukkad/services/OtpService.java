@@ -1,5 +1,7 @@
 package com.code.monks.nukkad.services;
 
+import com.code.monks.nukkad.auth.response.AuthSendOtpResponseDTO;
+import com.code.monks.nukkad.auth.response.AuthVerifyOtpResponseDTO;
 import com.code.monks.nukkad.client.AuthRestClient;
 import com.code.monks.nukkad.dto.request.SendOtpRequestDTO;
 import com.code.monks.nukkad.dto.request.VerifyRequestDTO;
@@ -18,16 +20,22 @@ public class OtpService {
 
 	public SendOtpResponseDTO sendOtp(SendOtpRequestDTO sendOtpRequestDTO) {
 		String mobileNumber = sendOtpRequestDTO.getMobileNumber();
+
 		log.info("Requesting OTP for mobile: {}", mobileNumber);
-		return authRestClient.callOtpResponse(sendOtpRequestDTO);
+		AuthSendOtpResponseDTO authResponse=authRestClient.callOtpResponse(sendOtpRequestDTO);
+		return new SendOtpResponseDTO(authResponse.getMessage());
 	}
 
-	public VerifyResponseDTO verifyDTO(VerifyRequestDTO verifyRequestDTO)
+	public VerifyResponseDTO verifyOtp(VerifyRequestDTO verifyRequestDTO)
 	{
 		String mobileNumber = verifyRequestDTO.getMobileNumber();
 		String otp = verifyRequestDTO.getOtp();
 		log.info("Verifying OTP for mobile :{} , OTP :{}" , mobileNumber,otp);
-		return authRestClient.callVerifyOtpResponse(verifyRequestDTO);
+		AuthVerifyOtpResponseDTO authResponse= authRestClient.callVerifyOtpResponse(verifyRequestDTO);
+		return new VerifyResponseDTO(authResponse.getUserId(),
+				                     authResponse.getUsername(),
+				                     authResponse.getRoles(),
+				                     authResponse.getToken());
 	}
 }
 

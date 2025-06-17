@@ -6,7 +6,6 @@ import lombok.Data;
 @Data
 public class AddressResponseDTO {
     private Long id;
-    private String label;
     private String addressLine1;
     private String addressLine2;
     private String landmark;
@@ -18,7 +17,6 @@ public class AddressResponseDTO {
     public static AddressResponseDTO fromEntity(AddressEntity entity) {
         AddressResponseDTO dto = new AddressResponseDTO();
         dto.setId(entity.getId());
-        dto.setLabel(entity.getLabel());
         dto.setAddressLine1(entity.getAddressLine1());
         dto.setAddressLine2(entity.getAddressLine2());
         dto.setLandmark(entity.getLandmark());

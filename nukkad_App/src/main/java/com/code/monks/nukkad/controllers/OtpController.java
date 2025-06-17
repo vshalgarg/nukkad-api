@@ -7,48 +7,36 @@ import com.code.monks.nukkad.dto.response.VerifyResponseDTO;
 import com.code.monks.nukkad.services.OtpService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static com.code.monks.nukkad.constants.UrlConstants.OTP;
 
-
-
+@Slf4j
 @RestController
 @RequestMapping(OTP.BASE)
 @AllArgsConstructor
-@Slf4j
-public class  OtpController {
+public class OtpController {
 
 	private final OtpService otpService;
 
 	@PostMapping(OTP.SENDOTP)
-	public ResponseEntity<SendOtpResponseDTO> sendOtp(@RequestBody SendOtpRequestDTO sendOtpRequestDTO) {
-		log.info("Received request to send OTP: {}", sendOtpRequestDTO);
+	public ResponseEntity<SendOtpResponseDTO> sendOtp(@RequestBody SendOtpRequestDTO request) {
+		log.info("[SEND OTP] Request received for mobile: {}", request.getMobileNumber());
 
-		SendOtpResponseDTO response = otpService.sendOtp(sendOtpRequestDTO);
+		SendOtpResponseDTO response = otpService.sendOtp(request);
 
-
-		log.info("OTP sent successfully.");
+		log.info("[SEND OTP] OTP sent successfully to mobile: {}", request.getMobileNumber());
 		return ResponseEntity.ok(response);
 	}
 
 	@PostMapping(OTP.VERIFYOTP)
-	public ResponseEntity<VerifyResponseDTO> verifyOTP(@RequestBody VerifyRequestDTO dto)
-	{
-		log.info("Received OTP verification request for mobile :{}", dto.getMobileNumber());
-		VerifyResponseDTO verifyResponseDTO=otpService.verifyDTO(dto);
-		if(verifyResponseDTO == null)
-		{
-			log.warn("OTP verification failed: No response from service for mobile :{}", dto.getMobileNumber());
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new VerifyResponseDTO(false,"Verification failed. Please try again"));
-		}
-		log.info("OTP verification result for mobile {}:{}",dto.getMobileNumber(), verifyResponseDTO.getMessage());
-		return ResponseEntity.ok(verifyResponseDTO);
+	public ResponseEntity<VerifyResponseDTO> verifyOtp(@RequestBody VerifyRequestDTO request) {
+		log.info("[VERIFY OTP] Request received for mobile: {}", request.getMobileNumber());
+
+		VerifyResponseDTO response = otpService.verifyOtp(request);
+
+		log.info("[VERIFY OTP] Verification result for mobile {}:", request.getMobileNumber());
+		return ResponseEntity.ok(response);
 	}
 }

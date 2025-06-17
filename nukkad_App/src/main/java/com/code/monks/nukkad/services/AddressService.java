@@ -24,7 +24,7 @@ public class AddressService {
 
         AddressEntity address = CreateAddressRequestDTO.toEntity(request);
         address.setUserId(context.getId());
-        address.setRole(context.getRole());
+
 
         AddressEntity saved = addressRepository.save(address);
         return AddressResponseDTO.fromEntity(saved);
@@ -34,7 +34,7 @@ public class AddressService {
         var context = UserContextHolder.getRequiredUser();
 
         AddressEntity address = addressRepository.findById(id)
-                .filter(a -> a.getUserId().equals(context.getId()) && a.getRole() == context.getRole())
+                .filter(a -> a.getUserId().equals(context.getId()), )
                 .orElseThrow(() -> new ResourceNotFoundException("Address not found or access denied"));
 
         UpdateAddressRequestDTO.updateEntity(address, request);
@@ -45,7 +45,7 @@ public class AddressService {
     public List<AddressResponseDTO> getAllAddresses() {
         var context = UserContextHolder.getRequiredUser();
 
-        return addressRepository.findByUserIdAndRole(context.getId(), context.getRole())
+        return addressRepository.findByUserIdAndRole(context.getId())
                 .stream()
                 .map(AddressResponseDTO::fromEntity)
                 .collect(Collectors.toList());

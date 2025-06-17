@@ -12,26 +12,37 @@ import org.springframework.web.bind.annotation.*;
 
 import static com.code.monks.nukkad.constants.UrlConstants.STOREKEEPER;
 
+@Slf4j
 @RestController
 @RequestMapping(STOREKEEPER.BASE)
-@Slf4j
 @AllArgsConstructor
 public class StorekeeperController {
 
-	private final StorekeeperService storekeeperService;
+    private final StorekeeperService storekeeperService;
 
     @PostMapping(STOREKEEPER.CREATE)
     public ResponseEntity<CreateStorekeeperResponseDTO> createStorekeeper(
-            @Valid @RequestBody CreateStorekeeperRequestDTO dto
-            ) {
-        CreateStorekeeperResponseDTO saveStorekeeperInDb = storekeeperService.createStoreKeeper(dto);
-        return new ResponseEntity<>(saveStorekeeperInDb, HttpStatus.CREATED);
+            @Valid @RequestBody CreateStorekeeperRequestDTO dto) {
+
+        log.info("Creating storekeeper...");
+
+        CreateStorekeeperResponseDTO response = storekeeperService.createStoreKeeper(dto);
+
+        log.info("Storekeeper created successfully.");
+
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @PutMapping(STOREKEEPER.UPDATE)
-    public ResponseEntity<CreateStorekeeperResponseDTO> updateCustomer(
+    public ResponseEntity<CreateStorekeeperResponseDTO> updateStorekeeper(
             @Valid @RequestBody CreateStorekeeperRequestDTO dto) {
-        CreateStorekeeperResponseDTO updateStorekeeper = storekeeperService.updateStoreKeeper(dto);
-        return new ResponseEntity<>(updateStorekeeper,HttpStatus.CREATED);
+
+        log.info("Updating storekeeper...");
+
+        CreateStorekeeperResponseDTO response = storekeeperService.updateStoreKeeper(dto);
+
+        log.info("Storekeeper updated successfully.");
+
+        return ResponseEntity.ok(response);
     }
 }
