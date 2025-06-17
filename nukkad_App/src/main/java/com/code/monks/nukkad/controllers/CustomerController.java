@@ -1,8 +1,11 @@
 package com.code.monks.nukkad.controllers;
 
+import com.code.monks.nukkad.constants.UrlConstants;
 import com.code.monks.nukkad.dto.request.CreateCustomerRequestDTO;
+import com.code.monks.nukkad.dto.response.AddStoreResponseDto;
 import com.code.monks.nukkad.dto.response.CreateCustomerResponseDTO;
-import com.code.monks.nukkad.entities.CustomerEntity;
+import com.code.monks.nukkad.dto.response.DeleteStoreResponseDto;
+import com.code.monks.nukkad.dto.response.GetMyStoreResponseDto;
 import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.services.CustomerService;
 import jakarta.validation.Valid;
@@ -12,14 +15,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping(CUSTOMER.BASE)
+@RequestMapping(UrlConstants.CUSTOMER.BASE)
 @RequiredArgsConstructor
+@Slf4j
 public class CustomerController {
 
 	private final CustomerService customerService;
 
-	@PostMapping(CUSTOMER.CREATE)
+	@PostMapping(UrlConstants.CUSTOMER.CREATE)
 	public ResponseEntity<CreateCustomerResponseDTO> createCustomer(@Valid @RequestBody CreateCustomerRequestDTO dto) {
 		log.info("[CREATE CUSTOMER] Request received: {}", dto);
 		CreateCustomerResponseDTO response = customerService.createCustomer(dto);
@@ -27,7 +33,7 @@ public class CustomerController {
 		return new ResponseEntity<>(response, HttpStatus.CREATED);
 	}
 
-	@PutMapping(CUSTOMER.UPDATE)
+	@PutMapping(UrlConstants.CUSTOMER.UPDATE)
 	public ResponseEntity<CreateCustomerResponseDTO> updateCustomer(@Valid @RequestBody CreateCustomerRequestDTO dto) {
 		log.info("[UPDATE CUSTOMER] Request received: {}", dto);
 		CreateCustomerResponseDTO response = customerService.updateCustomer(dto);
@@ -36,26 +42,26 @@ public class CustomerController {
 	}
 
 	@PostMapping("/add/store")
-	public ResponseEntity<String> addStoreToCustomer(
+	public ResponseEntity<AddStoreResponseDto> addStoreToCustomer(
 			@RequestParam Long customerId,
 			@RequestParam String storeId
 	) {
-		String result = customerService.addStoreToCustomer(customerId, storeId);
-		return ResponseEntity.ok(result);
+		AddStoreResponseDto responseDto = customerService.addStoreToCustomer(customerId, storeId);
+		return ResponseEntity.ok(responseDto);
 	}
 
-	@GetMapping("/my/stores")
-	public ResponseEntity<List<StorekeeperEntity>> getMyStores(@RequestParam Long customerId) {
-		List<StorekeeperEntity> storekeepers = customerService.getMyStores(customerId);
-		return new ResponseEntity<>(storekeepers, HttpStatus.OK);
+	@GetMapping("/get/myStores/{customerId}")
+	public ResponseEntity<List<GetMyStoreResponseDto>> getStores(@PathVariable Long customerId) {
+		List<GetMyStoreResponseDto> stores = customerService.getMyStores(customerId);
+		return ResponseEntity.ok(stores);
 	}
 
 	@DeleteMapping("/delete/store")
-	public ResponseEntity<String> deleteStore(
+	public ResponseEntity<DeleteStoreResponseDto> deleteStore(
 			@RequestParam Long customerId,
-			@RequestParam String storeId
+			@RequestParam Long storeKeeperId
 	) {
-		String result = customerService.deleteStoreFromCustomer(customerId, storeId);
+		DeleteStoreResponseDto result = customerService.deleteStoreFromCustomer(customerId, storeKeeperId);
 		return new ResponseEntity<>(result, HttpStatus.OK);
 	}
 }

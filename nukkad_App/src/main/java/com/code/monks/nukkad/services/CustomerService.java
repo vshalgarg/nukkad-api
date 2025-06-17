@@ -2,7 +2,10 @@ package com.code.monks.nukkad.services;
 
 import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.request.CreateCustomerRequestDTO;
+import com.code.monks.nukkad.dto.response.AddStoreResponseDto;
 import com.code.monks.nukkad.dto.response.CreateCustomerResponseDTO;
+import com.code.monks.nukkad.dto.response.DeleteStoreResponseDto;
+import com.code.monks.nukkad.dto.response.GetMyStoreResponseDto;
 import com.code.monks.nukkad.entities.CustomerEntity;
 import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.enums.ResponseErrorCodes;
@@ -12,9 +15,12 @@ import com.code.monks.nukkad.repositories.CustomerRepository;
 import com.code.monks.nukkad.repositories.StorekeeperRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.code.monks.nukkad.enums.RoleEnum;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.ACCESS_DENIED_FOR_STOREKEEPER_EXCEPTION;
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.CUSTOMER_NOT_FOUND;
 
@@ -79,7 +85,7 @@ public class CustomerService {
 	}
 
 
-	public String addStoreToCustomer(Long customerId, String storeId) {
+	public AddStoreResponseDto addStoreToCustomer(Long customerId, String storeId) {
 		CustomerEntity customer = customerRepository.findById(customerId)
 				.orElseThrow(() -> new RuntimeException("Customer not found"));
 
@@ -89,41 +95,47 @@ public class CustomerService {
 		if (!customer.getStorekeepers().contains(storekeeper)) {
 			customer.getStorekeepers().add(storekeeper);
 			customerRepository.save(customer);
-			return "Store added to customer.";
+			return new AddStoreResponseDto("Store added to customer.");
 		} else {
-			return "Store already added.";
+			return new AddStoreResponseDto("Store already added.");
 		}
 	}
 
 
-	public List<StorekeeperEntity> getMyStores(Long customerId) {
+	public List<GetMyStoreResponseDto> getMyStores(Long customerId) {
 		CustomerEntity customer = customerRepository.findById(customerId)
 				.orElseThrow(() -> new RuntimeException("Customer not found"));
-		return customer.getStorekeepers();
-	}
+		List<StorekeeperEntity> storekeepers = customer.getStorekeepers();
+		return storekeepers.stream()
+				.map(storekeeper -> GetMyStoreResponseDto.builder()
+						.id(storekeeper.getId())
+						.name(storekeeper.getName())
+						.storeName(storekeeper.getStoreName())
+						.contactNumber(storekeeper.getContactNumber())
+						.gstIn(storekeeper.getGstIn())
+						.addressLine1(storekeeper.getAddressLine1())
+						.addressLine2(storekeeper.getAddressLine2())
+						.landmark(storekeeper.getLandmark())
+						.city(storekeeper.getCity())
+						.state(storekeeper.getState())
+						.pincode(storekeeper.getPincode())
+						.storeId(storekeeper.getStoreId())
+						.build())
+				.collect(Collectors.toList());	}
 
-	public String deleteStoreFromCustomer(Long customerId, String storeId) {
+	public DeleteStoreResponseDto deleteStoreFromCustomer(Long customerId, Long storekeeperId) {
 		CustomerEntity customer = customerRepository.findById(customerId)
-				.orElseThrow(() -> new RuntimeException("Customer not found"));
+				.orElseThrow(() -> new RuntimeException(STR."Customer not found with ID: \{customerId}"));
 
-		StorekeeperEntity storekeeper = storekeeperRepository.findByStoreId(storeId)
-				.orElseThrow(() -> new RuntimeException(STR."Storekeeper not found with storeId: \{storeId}"));
+		StorekeeperEntity storekeeper = storekeeperRepository.findById(storekeeperId)
+				.orElseThrow(() -> new RuntimeException(STR."Storekeeper not found with ID: \{storekeeperId}"));
 
 		if (customer.getStorekeepers().contains(storekeeper)) {
 			customer.getStorekeepers().remove(storekeeper);
 			customerRepository.save(customer);
-			return "Store removed from customer.";
+			return new DeleteStoreResponseDto("Store removed from customer.");
 		} else {
-			return "Store not associated with customer.";
+			return new DeleteStoreResponseDto("Store not associated with customer.");
 		}
-	}
-
-	public String generateUniqueStoreId() {
-		String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-		String storeId;
-		do {
-			storeId = STR."\{chars.charAt((int) (Math.random() * chars.length()))}\{chars.charAt((int) (Math.random() * chars.length()))}\{chars.charAt((int) (Math.random() * chars.length()))}";
-		} while (storekeeperRepository.existsByStoreId(storeId));
-		return storeId;
 	}
 }

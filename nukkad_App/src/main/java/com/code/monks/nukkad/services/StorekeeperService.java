@@ -31,6 +31,7 @@ public class StorekeeperService {
 
         StorekeeperEntity storekeeper = CreateStorekeeperRequestDTO.toEntity(dto);
         storekeeper.setId(userId);
+        storekeeper.setStoreId(generateUniqueStoreId());
 
         StorekeeperEntity saved = storekeeperRepository.save(storekeeper);
         log.info("[CREATE STOREKEEPER] Storekeeper created successfully with ID: {}", saved.getId());
@@ -66,5 +67,20 @@ public class StorekeeperService {
         log.info("[UPDATE STOREKEEPER] Storekeeper updated successfully with ID: {}", updated.getId());
 
         return CreateStorekeeperResponseDTO.fromEntity(updated);
+    }
+
+    private String generateUniqueStoreId() {
+        String letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        String digits = "0123456789";
+        String storeId;
+
+        do {
+            char letter = letters.charAt((int) (Math.random() * letters.length()));
+            char digit1 = digits.charAt((int) (Math.random() * digits.length()));
+            char digit2 = digits.charAt((int) (Math.random() * digits.length()));
+            storeId = STR."\{letter}\{digit1}\{digit2}";
+        } while (storekeeperRepository.existsByStoreId(storeId));
+
+        return storeId;
     }
 }

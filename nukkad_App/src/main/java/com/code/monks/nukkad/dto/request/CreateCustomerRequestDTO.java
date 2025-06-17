@@ -20,22 +20,22 @@ public class  CreateCustomerRequestDTO {
 	@Email(message = "Invalid email format")
 	private String email;
 
-//    @NotBlank(message = "Address Line 1 is mandatory")
-//	private String addressLine1;
-//
-//	private String addressLine2;
-//
-//	@NotBlank(message = "Landmark is mandatory")
-//	private String landmark;
-//
-//	@NotBlank(message = "City is mandatory")
-//	private String city;
-//
-//	@NotBlank(message = "State is mandatory")
-//	private String state;
-//
-//	@NotBlank(message = "Pincode is mandatory")
-//	private String pincode;
+    @NotBlank(message = "Address Line 1 is mandatory")
+	private String addressLine1;
+
+	private String addressLine2;
+
+	@NotBlank(message = "Landmark is mandatory")
+	private String landmark;
+
+	@NotBlank(message = "City is mandatory")
+	private String city;
+
+	@NotBlank(message = "State is mandatory")
+	private String state;
+
+	@NotBlank(message = "Pincode is mandatory")
+	private String pincode;
 
 	@NotBlank(message = "Date of birth is mandatory")
 	@Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "DOB must be in format YYYY-MM-DD")
@@ -45,13 +45,13 @@ public class  CreateCustomerRequestDTO {
 		CustomerEntity customer = new CustomerEntity();
 		customer.setName(dto.getName());
 		customer.setEmail(dto.getEmail());
-//		customer.setAddressLine1(dto.getAddressLine1());
-//		customer.setAddressLine2(dto.getAddressLine2());
-//		customer.setLandmark(dto.getLandmark());
+		customer.setAddressLine1(dto.getAddressLine1());
+		customer.setAddressLine2(dto.getAddressLine2());
+		customer.setLandmark(dto.getLandmark());
 		customer.setDob(dto.getDob());
-//		customer.setCity(dto.getCity());
-//		customer.setState(dto.getState());
-//		customer.setPincode(dto.getPincode());
+		customer.setCity(dto.getCity());
+		customer.setState(dto.getState());
+		customer.setPincode(dto.getPincode());
 		return customer;
 	}
 }

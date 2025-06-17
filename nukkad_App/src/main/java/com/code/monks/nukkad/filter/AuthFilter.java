@@ -41,7 +41,7 @@ public class AuthFilter extends OncePerRequestFilter {
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
 
                 User dummyUser = new User();
-                dummyUser.setId(3L);
+                dummyUser.setId(201L);
                 dummyUser.setRoles(List.of(RoleEnum.CUSTOMER));
 
                 UserContextHolder.setUser(dummyUser);
