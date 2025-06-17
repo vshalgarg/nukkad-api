@@ -1,12 +1,10 @@
  package com.code.monks.nukkad.entities;
 
-import com.code.monks.nukkad.converter.RoleEnumConverter;
-import com.code.monks.nukkad.enums.RoleEnum;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+ import jakarta.persistence.*;
+ import lombok.AllArgsConstructor;
+ import lombok.Data;
+ import lombok.EqualsAndHashCode;
+ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "address")
@@ -41,6 +39,7 @@ public class AddressEntity extends BaseEntity {
     @Column(name = "user_id")
     private Long userId;
 
-    @Convert(converter = RoleEnumConverter.class)
-    private RoleEnum role;
+    @Column(name = "is_default",nullable = false)
+    private Boolean isDefault = false;
+
 }

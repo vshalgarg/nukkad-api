@@ -20,6 +20,11 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+	@ExceptionHandler(DefaultAddressUpdateNotAllowedException.class)
+	public ResponseEntity<ErrorResponse> handleDefaultAddressUpdateNotAllowed(DefaultAddressUpdateNotAllowedException ex){
+		ErrorResponse error = new ErrorResponse(ex.getMessage(), LocalDateTime.now(),ex.getError().getResponseCode());
+		return new ResponseEntity<>(error,HttpStatus.BAD_REQUEST);
+	}
 
 	@ExceptionHandler(ResourceNotFoundException.class)
 	public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
