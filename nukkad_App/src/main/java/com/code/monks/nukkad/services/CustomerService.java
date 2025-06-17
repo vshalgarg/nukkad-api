@@ -4,10 +4,14 @@ import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.request.CreateCustomerRequestDTO;
 import com.code.monks.nukkad.dto.response.CreateCustomerResponseDTO;
 import com.code.monks.nukkad.entities.CustomerEntity;
+import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
 import com.code.monks.nukkad.repositories.CustomerRepository;
+import com.code.monks.nukkad.repositories.StorekeeperRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 
 @Service
@@ -15,6 +19,7 @@ import org.springframework.stereotype.Service;
 public class CustomerService {
 
 	private final CustomerRepository customerRepository;
+	private final StorekeeperRepository storekeeperRepository;
 
 	public CreateCustomerResponseDTO createCustomer(CreateCustomerRequestDTO dto){
 		Long userId = UserContextHolder.getUser().getId();
@@ -41,4 +46,51 @@ public class CustomerService {
 		return CreateCustomerResponseDTO.fromEntity(updated);
 	}
 
+	public String addStoreToCustomer(Long customerId, String storeId) {
+		CustomerEntity customer = customerRepository.findById(customerId)
+				.orElseThrow(() -> new RuntimeException("Customer not found"));
+
+		StorekeeperEntity storekeeper = storekeeperRepository.findByStoreId(storeId)
+				.orElseThrow(() -> new RuntimeException(STR."Storekeeper not found with storeId: \{storeId}"));
+
+		if (!customer.getStorekeepers().contains(storekeeper)) {
+			customer.getStorekeepers().add(storekeeper);
+			customerRepository.save(customer);
+			return "Store added to customer.";
+		} else {
+			return "Store already added.";
+		}
+	}
+
+
+	public List<StorekeeperEntity> getMyStores(Long customerId) {
+		CustomerEntity customer = customerRepository.findById(customerId)
+				.orElseThrow(() -> new RuntimeException("Customer not found"));
+		return customer.getStorekeepers();
+	}
+
+	public String deleteStoreFromCustomer(Long customerId, String storeId) {
+		CustomerEntity customer = customerRepository.findById(customerId)
+				.orElseThrow(() -> new RuntimeException("Customer not found"));
+
+		StorekeeperEntity storekeeper = storekeeperRepository.findByStoreId(storeId)
+				.orElseThrow(() -> new RuntimeException(STR."Storekeeper not found with storeId: \{storeId}"));
+
+		if (customer.getStorekeepers().contains(storekeeper)) {
+			customer.getStorekeepers().remove(storekeeper);
+			customerRepository.save(customer);
+			return "Store removed from customer.";
+		} else {
+			return "Store not associated with customer.";
+		}
+	}
+
+	public String generateUniqueStoreId() {
+		String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+		String storeId;
+		do {
+			storeId = STR."\{chars.charAt((int) (Math.random() * chars.length()))}\{chars.charAt((int) (Math.random() * chars.length()))}\{chars.charAt((int) (Math.random() * chars.length()))}";
+		} while (storekeeperRepository.existsByStoreId(storeId));
+		return storeId;
+	}
 }

@@ -4,6 +4,7 @@ import com.code.monks.nukkad.enums.RoleEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -50,4 +51,11 @@ public class CustomerEntity extends UserEntity {
         return RoleEnum.CUSTOMER;
     }
 
+    @ManyToMany
+    @JoinTable(
+            name = "customer_storekeeper",
+            joinColumns = @JoinColumn(name = "customer_id"),
+            inverseJoinColumns = @JoinColumn(name = "storekeeper_id")
+    )
+    private List<StorekeeperEntity> storekeepers = new ArrayList<>();
 }
