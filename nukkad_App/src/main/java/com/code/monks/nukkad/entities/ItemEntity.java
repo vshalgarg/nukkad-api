@@ -22,11 +22,9 @@ public class ItemEntity extends BaseEntity {
 	@Column(name = "name")
 	private String name;
 
+	@Convert(converter = UnitEnumConverter.class)
 	@Column(name  = "unit")
-	private String Unit;
-
-	@Column(name = "quantity")
-	private int quantity;
+	private UnitEnum unit;
 
 	@OneToMany( mappedBy = "item", cascade = CascadeType.ALL)
 	private List<ImageEntity> images = new ArrayList<>();

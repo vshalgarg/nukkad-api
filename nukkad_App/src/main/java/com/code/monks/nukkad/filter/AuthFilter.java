@@ -1,5 +1,6 @@
 package com.code.monks.nukkad.filter;
 
+import com.code.monks.nukkad.auth.request.AuthTokenRequestDto;
 import com.code.monks.nukkad.client.AuthRestClient;
 import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.User;
@@ -9,20 +10,23 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
+@AllArgsConstructor
 public class AuthFilter extends OncePerRequestFilter {
 
     private final AuthRestClient authRestClient;
 
-    @Autowired
-    public AuthFilter(AuthRestClient authRestClient) {
-        this.authRestClient = authRestClient;
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        return path.equals("/send") || path.equals("/verify"); // add other paths as needed
     }
 
     @Override
@@ -34,25 +38,21 @@ public class AuthFilter extends OncePerRequestFilter {
         try {
             String authHeader = request.getHeader("Authorization");
 
-            // ✅ TEST MODE: If no Authorization header is present, use a dummy user
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                // Dummy mode using custom header
-                String dummyRole = request.getHeader("X-Dummy-Role");
 
                 User dummyUser = new User();
-                dummyUser.setId(dummyRole != null && dummyRole.equalsIgnoreCase("STOREKEEPER") ? 2L : 2L);
-
-                if ("STOREKEEPER".equalsIgnoreCase(dummyRole)) {
-                    dummyUser.setRole(RoleEnum.STOREKEEPER);
-                } else {
-                    dummyUser.setRole(RoleEnum.CUSTOMER);
-                }
+                dummyUser.setId(3L);
+                dummyUser.setRoles(List.of(RoleEnum.CUSTOMER));
 
                 UserContextHolder.setUser(dummyUser);
-            } else {
+            }
+            else {
                 String token = authHeader.substring(7);
                 try {
-                    User user = authRestClient.validateToken(token);
+                    AuthTokenRequestDto authDto = new AuthTokenRequestDto();
+                    authDto.setJwtToken(token);
+
+                    User user = authRestClient.validateToken(authDto);
                     if (user != null) {
                         UserContextHolder.setUser(user);
                     } else {

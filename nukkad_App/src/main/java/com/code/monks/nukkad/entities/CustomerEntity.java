@@ -16,7 +16,7 @@ public class CustomerEntity extends UserEntity {
 
     @Id
     @Column(name = "id")
-    private Long id; // comes from auth service
+    private Long id;
 
     @Column(name = "name")
     private String name;
@@ -24,23 +24,23 @@ public class CustomerEntity extends UserEntity {
     @Column(name = "email_id")
     private String email;
 
-    @Column(name = "address_Line1")
-    private String addressLine1;
-
-    @Column(name = "address_Line2")
-    private String addressLine2;
-
-    @Column(name = "landmark")
-    private String landmark;
-
-    @Column(name = "city")
-    private String city;
-
-    @Column(name = "state")
-    private String state;
-
-    @Column(name = "pincode")
-    private String pincode;
+//    @Column(name = "address_Line1")
+//    private String addressLine1;
+//
+//    @Column(name = "address_Line2")
+//    private String addressLine2;
+//
+//    @Column(name = "landmark")
+//    private String landmark;
+//
+//    @Column(name = "city")
+//    private String city;
+//
+//    @Column(name = "state")
+//    private String state;
+//
+//    @Column(name = "pincode")
+//    private String pincode;
 
     @Column(name = "dob")
     private String dob;

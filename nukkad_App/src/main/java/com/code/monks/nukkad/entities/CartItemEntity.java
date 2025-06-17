@@ -25,6 +25,11 @@ public class CartItemEntity extends BaseEntity {
     @JoinColumn(name = "item_id", nullable = false)
     private ItemEntity item;
 
+    @Column(name = "quantity")
     private int quantity;
 
+    @Column(name = "unit")
+    private String unit;
+
 }
+ 

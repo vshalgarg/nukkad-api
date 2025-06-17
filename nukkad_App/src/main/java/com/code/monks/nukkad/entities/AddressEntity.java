@@ -1,4 +1,4 @@
-package com.code.monks.nukkad.entities;
+ package com.code.monks.nukkad.entities;
 
 import com.code.monks.nukkad.converter.RoleEnumConverter;
 import com.code.monks.nukkad.enums.RoleEnum;
@@ -19,9 +19,6 @@ public class AddressEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
-
-    @Column(name = "label")
-    private String label;
 
     @Column(name = "address_line1")
     private String addressLine1;

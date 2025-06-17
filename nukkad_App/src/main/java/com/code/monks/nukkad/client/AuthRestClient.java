@@ -1,50 +1,114 @@
 package com.code.monks.nukkad.client;
 
+import com.code.monks.nukkad.auth.request.AuthSendOtpRequestDTO;
+import com.code.monks.nukkad.auth.request.AuthTokenRequestDto;
+import com.code.monks.nukkad.auth.request.AuthVerifyOtpRequestDTO;
+import com.code.monks.nukkad.auth.response.AuthSendOtpResponseDTO;
+import com.code.monks.nukkad.auth.response.AuthTokenResponseDto;
+import com.code.monks.nukkad.auth.response.AuthVerifyOtpResponseDTO;
 import com.code.monks.nukkad.dto.User;
 import com.code.monks.nukkad.dto.request.SendOtpRequestDTO;
 import com.code.monks.nukkad.dto.request.VerifyRequestDTO;
-import com.code.monks.nukkad.dto.response.SendOtpResponseDTO;
-import com.code.monks.nukkad.dto.response.VerifyResponseDTO;
-import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.exception.ExternalServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
+
 @Slf4j
 @Component
 public class AuthRestClient {
 
 	private final GenericRestClient genericRestClient;
 
+	@Value("${auth.host}")
+	private String authHost;
+
+	@Value("${auth.otp.url}")
+	private String sendOtpUrl;
+
+	@Value("${auth.client.name}")
+	private String authClientName;
+
+	@Value("${auth.client.secret}")
+	private String authClientSecret;
+
+	@Value("${auth.validateToken.url}")
+	private String validateUrl;
+
+	@Value("${auth.otpVerify.url}")
+	private String verifyOtpUrl;
+
 	@Autowired
 	public AuthRestClient(GenericRestClient genericRestClient) {
 		this.genericRestClient = genericRestClient;
 	}
 
-	private final String baseUrl = "http://localhost:8080/";
-	private final String otpUrl = baseUrl+ "/api/auth/otp";
+	public AuthSendOtpResponseDTO callOtpResponse(SendOtpRequestDTO otpRequest) {
+		String url = authHost + sendOtpUrl;
+		AuthSendOtpRequestDTO authDto = new AuthSendOtpRequestDTO(otpRequest.getMobileNumber(), otpRequest.getRoles());
+		Map<String, String> headers = new HashMap<>();
+		updateHeadersForClientNameAndSecret(headers);
 
-	public SendOtpResponseDTO callOtpResponse(SendOtpRequestDTO otpRequest) {
-		return genericRestClient.postForEntity(otpUrl, otpRequest, SendOtpResponseDTO.class, "OTP matched API failed");
-	}
+		log.info("[OTP SEND] Initiating OTP send request to: {} for mobile: {}", url, otpRequest.getMobileNumber());
 
-	public VerifyResponseDTO callVerifyOtpResponse(VerifyRequestDTO verifyRequestDTO)
-	{
-		return genericRestClient.postForEntity(otpUrl, verifyRequestDTO, VerifyResponseDTO.class, "OTP verify API failed");
-	}
-
-	public User validateToken(String token){
-
-		Map<String, Object> map = genericRestClient.callApi(baseUrl+"validation",token);
-
-		if (map == null || map.isEmpty()){
-			throw new ExternalServiceException("Token validation failed or empty response. ");
+		try {
+			AuthSendOtpResponseDTO response = genericRestClient.postForEntity(url, authDto, headers, AuthSendOtpResponseDTO.class);
+			log.info("[OTP SEND] Successfully sent OTP to mobile: {}", otpRequest.getMobileNumber());
+			return response;
+		} catch (Exception ex) {
+			log.error("[OTP SEND] Failed to send OTP to mobile: {}. Error: {}", otpRequest.getMobileNumber(), ex.getMessage());
+			throw ex;
 		}
-		User user = new User();
-		user.setId((Long) map.get("userId"));
-		user.setRole((RoleEnum) map.get("role"));
-		return user;
+	}
+
+	public AuthVerifyOtpResponseDTO callVerifyOtpResponse(VerifyRequestDTO requestDTO) {
+		String url = authHost + verifyOtpUrl;
+		AuthVerifyOtpRequestDTO authDto = new AuthVerifyOtpRequestDTO(requestDTO.getMobileNumber(), requestDTO.getOtp());
+		Map<String, String> headers = new HashMap<>();
+		updateHeadersForClientNameAndSecret(headers);
+
+		log.info("[OTP VERIFY] Verifying OTP for mobile: {}", requestDTO.getMobileNumber());
+
+		try {
+			AuthVerifyOtpResponseDTO response = genericRestClient.postForEntity(url, authDto, headers, AuthVerifyOtpResponseDTO.class);
+			log.info("[OTP VERIFY] OTP verified successfully for mobile: {}", requestDTO.getMobileNumber());
+			return response;
+		} catch (Exception ex) {
+			log.error("[OTP VERIFY] Failed to verify OTP for mobile: {}. Error: {}", requestDTO.getMobileNumber(), ex.getMessage());
+			throw ex;
+		}
+	}
+
+	public User validateToken(AuthTokenRequestDto authDto) {
+		String url = authHost + validateUrl;
+		Map<String, String> headers = new HashMap<>();
+		updateHeadersForClientNameAndSecret(headers);
+
+		try {
+			AuthTokenResponseDto authResponse = genericRestClient.postForEntity(url, authDto, headers, AuthTokenResponseDto.class);
+
+			if (authResponse == null || authResponse.getUserId() == null) {
+				throw new ExternalServiceException("Token validation failed or empty response.");
+			}
+
+			User user = new User();
+			user.setId(authResponse.getUserId());
+			user.setMobileNumber(authResponse.getUsername());
+
+			log.info("[TOKEN VALIDATION] Token validated. User ID: {}, Mobile: {}", user.getId(), user.getMobileNumber());
+			return user;
+
+		} catch (Exception ex) {
+			throw ex;
+		}
+	}
+
+	private void updateHeadersForClientNameAndSecret(Map<String, String> headers) {
+		headers.put("clientName", authClientName);
+		headers.put("clientSecret", authClientSecret);
 	}
 }

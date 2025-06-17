@@ -13,9 +13,10 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class CreateCartItemResponseDTO {
     private Long id;
-    private int quantity;
     private int itemId;
     private String itemName;
+    private int quantity;
+    private String unit;
     private List<String> imageUrls;
 
     public static CreateCartItemResponseDTO fromEntity(CartItemEntity entity) {
@@ -23,9 +24,12 @@ public class CreateCartItemResponseDTO {
 
         return new CreateCartItemResponseDTO(
                 entity.getId(),
-                entity.getQuantity(),
+
                 item.getId(),
                 item.getName(),
+                entity.getQuantity(),
+                entity.getUnit(),
+
                 item.getImages().stream().map(ImageEntity::getImageUrl)
                                          .collect(Collectors.toList())
         );

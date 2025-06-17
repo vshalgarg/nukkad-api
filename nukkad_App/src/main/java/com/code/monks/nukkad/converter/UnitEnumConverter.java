@@ -5,14 +5,24 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 @Converter(autoApply = true)
-public class UnitEnumConverter implements AttributeConverter<UnitEnum,Integer> {
+public class UnitEnumConverter implements AttributeConverter<UnitEnum, String> {
+
     @Override
-    public Integer convertToDatabaseColumn(UnitEnum attribute) {
-        return attribute == null ? null : attribute.getCode();
+    public String convertToDatabaseColumn(UnitEnum attribute) {
+
+        return attribute == null ? null : attribute.name();
     }
 
     @Override
-    public UnitEnum convertToEntityAttribute(Integer dbData) {
-        return dbData == null ? null : UnitEnum.fromCode(dbData);
+    public UnitEnum convertToEntityAttribute(String dbData) {
+        if (dbData == null)  {
+            return null;
+        }
+
+        try {
+            return UnitEnum.valueOf(dbData);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid UnitEnum name: " + dbData);
+        }
     }
 }

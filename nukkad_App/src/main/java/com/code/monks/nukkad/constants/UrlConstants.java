@@ -85,6 +85,11 @@ public static class ADDRESS{
 		public static final String UPDATE_QUANTITY = "/v1/{id}/update";
 	}
 
+	public static class SEARCH{
+		public static final String BASE = CONTEXT + "/api/search";
+		public static final String GET = "v1/get";
+	}
+
 	private UrlConstants() {
 	}
 
