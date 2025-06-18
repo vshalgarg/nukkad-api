@@ -40,7 +40,7 @@ public class AuthFilter extends OncePerRequestFilter {
                 String dummyRole = request.getHeader("X-Dummy-Role");
 
                 User dummyUser = new User();
-                dummyUser.setId(dummyRole != null && dummyRole.equalsIgnoreCase("STOREKEEPER") ? 1L : 1L);
+                dummyUser.setId(dummyRole != null && dummyRole.equalsIgnoreCase("CUSTOMER") ? 1L : 1L);
 
                 if ("STOREKEEPER".equalsIgnoreCase(dummyRole)) {
                     dummyUser.setRole(RoleEnum.STOREKEEPER);

@@ -10,38 +10,37 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import static com.code.monks.nukkad.constants.UrlConstants.*;
-import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
+import static com.code.monks.nukkad.constants.UrlConstants.ORDER.*;
 
-import java.util.List;
 @Slf4j
 @RestController
-@RequestMapping(ORDER.BASE)
+@RequestMapping(BASE)
 public class OrderController {
+
     @Autowired
     private OrderService orderService;
 
     @PostMapping(ORDER.CREATE)
     public ResponseEntity<OrderResponseDTO> createOrder(@Valid @RequestBody OrderRequestDTO requestDTO) {
-        OrderResponseDTO responseDTO = orderService.createDTO(requestDTO);
+        OrderResponseDTO responseDTO = orderService.createOrders(requestDTO);
         return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }
 
-    @GetMapping(ORDER.GET_ALL)
-    public ResponseEntity<List<OrderResponseDTO>> getOrderByStatus(@RequestParam String status) {
-        log.info("Fetching orders with status :{}", status);
-        List<OrderResponseDTO> order = orderService.getOrderByStatus(status);
-        log.info("Found {} order(s) with status : {}", order.size(), status);
-        return ResponseEntity.ok(order);
+    @PostMapping(ORDER.CANCELLED_ORDER_BY_STOREKEEPER)
+    public ResponseEntity<OrderResponseDTO> cancelOrderByStoreKeeper(
+            @PathVariable Long id,
+            @RequestParam String storeKeeperId) {
+        OrderResponseDTO responseDTO = orderService.cancelOrderByStoreKeeper(id, storeKeeperId);
+        return ResponseEntity.ok(responseDTO);
     }
-    @GetMapping(ORDER.GET_ALL_ORDER_BY_ID)
-    public List<OrderResponseDTO> getAllOrderById(@PathVariable int id) {
-        log.info("Fetching order by ID: {}", id);
-        return orderService.getAllOrderById(id);
-    }
-//    @GetMapping(ORDER.GET_ORDER_BY_CART_ID)
-//    public ResponseEntity<OrderResponseDTO> getOrderByCartId(@PathVariable int cartId) {
-//        return ResponseEntity.ok(orderService.getOrderByCartId(cartId));
-//    }
 
+    @PutMapping(UPDATE_STATUS)
+    public ResponseEntity<OrderResponseDTO> updateOrderStatus(
+            @PathVariable Long id,
+            @RequestBody OrderRequestDTO requestDTO
+    ) {
+        OrderResponseDTO responseDTO = orderService.updateOrderStatus(id, requestDTO);
+        return ResponseEntity.ok(responseDTO);
+    }
 
 }

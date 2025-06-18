@@ -1,14 +1,17 @@
 package com.code.monks.nukkad.entities;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Data
+@MappedSuperclass
 public abstract class BaseEntity {
 
 	@Column(name = "created_at", nullable = false)
@@ -16,6 +19,9 @@ public abstract class BaseEntity {
 
 	@Column(name = "updated_at", nullable = false)
 	private LocalDateTime updatedAt;
+//
+//	@Column(name = "created_date" , nullable = false)
+//	private LocalDate date;
 
 	@PrePersist
 	@PreUpdate

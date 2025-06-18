@@ -1,22 +1,13 @@
 package com.code.monks.nukkad.dto.request;
 
-import com.code.monks.nukkad.entities.CustomerEntity;
-import com.code.monks.nukkad.entities.OrderEntity;
-import com.code.monks.nukkad.entities.StorekeeperEntity;
-import com.code.monks.nukkad.enums.StatusEnum;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import com.code.monks.nukkad.entities.*;
+import com.code.monks.nukkad.enums.Status;
 import lombok.Data;
-
-import java.time.LocalDateTime;
-import java.time.format.TextStyle;
-import java.util.Locale;
 
 @Data
 public class OrderRequestDTO {
 
-    private int cartId;
+    private Long cart;
 
     private Long customer;
 
@@ -25,13 +16,20 @@ public class OrderRequestDTO {
 //    @NotNull(message = "StoreKeeper ID is required")
     private Long storeKeeper;
 
-    private StatusEnum statusEnum;
+    private Status status;
 
     public static OrderEntity toEntity(OrderRequestDTO requestDTO) {
         OrderEntity orderEntity = new OrderEntity();
-        orderEntity.setCartId(requestDTO.getCartId());
-        orderEntity.setDeliveryAddress(requestDTO.getDeliveryAddress());
-        orderEntity.setStatusEnum(requestDTO.getStatusEnum());
+        // set cart entity with only id
+        CartItemEntity cart = new CartItemEntity();
+        cart.setId(requestDTO.getCart());
+        orderEntity.setCart(cart);
+        // address entity with only id
+        AddressEntity address = new AddressEntity();
+        address.setId(requestDTO.getDeliveryAddress());
+        orderEntity.setDeliveryAddress(address);
+
+        orderEntity.setStatus(requestDTO.getStatus());
 
         // Set customer entity with only ID
         CustomerEntity customer = new CustomerEntity();
@@ -45,4 +43,5 @@ public class OrderRequestDTO {
 
         return orderEntity;
     }
+
 }

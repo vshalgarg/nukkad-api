@@ -121,44 +121,47 @@ CREATE TABLE IF NOT EXISTS cart_item (
     CONSTRAINT fk_cart_item_item FOREIGN KEY (item_id) REFERENCES item (id)
 );
 
-CREATE TABLE order_entity (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS order_entity (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
 
-    cart_id INT NOT NULL,
-    customer_id BIGINT NOT NULL ,
-    delivery_address BIGINT NOT NULL ,
-    store_keeper_id BIGINT NOT NULL ,
-    status_enum VARCHAR(50) NOT NULL ,
+    cart_id BIGINT NOT NULL,
+    customer_id BIGINT NOT NULL,
+    deliveryAddress_id BIGINT NOT NULL,
+    storeKeeper_id BIGINT NOT NULL,
+    status_enum VARCHAR(50) NOT NULL,
+
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-    -- Foreign keys (update table names as needed)
+    -- Foreign Key Constraints
+    CONSTRAINT fk_order_cart FOREIGN KEY (cart_id) REFERENCES cart_item(id),
     CONSTRAINT fk_order_customer FOREIGN KEY (customer_id) REFERENCES customer(id),
-    CONSTRAINT fk_order_storekeeper FOREIGN KEY (store_keeper_id) REFERENCES storekeeper(id),
+    CONSTRAINT fk_order_delivery FOREIGN KEY (deliveryAddress_id) REFERENCES address(id),
+    CONSTRAINT fk_order_store_keeper FOREIGN KEY (storeKeeper_id) REFERENCES storekeeper(id),
 
-    -- Indexes
-    INDEX idx_cart_id (cart_id),
-    INDEX idx_customer_id (customer_id),
-    INDEX idx_delivery_address (delivery_address),
-    INDEX idx_store_keeper_id (store_keeper_id),
-    INDEX idx_status_enum (status_enum)
+    -- Indexes for Faster Lookups
+    INDEX idx_order_cart (cart_id),
+    INDEX idx_order_customer (customer_id),
+    INDEX idx_order_delivery (deliveryAddress_id),
+    INDEX idx_order_store_keeper (storeKeeper_id),
+    INDEX idx_order_status (status_enum)
 );
-CREATE TABLE my_order_entity (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-
-    customer_id BIGINT NOT NULL,
-    order_id INT NOT NULL,
-    status_enum VARCHAR(50) NOT NULL,
-    store_keeper_id BIGINT NOT NULL,
-
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-    -- Foreign key constraints
-    CONSTRAINT fk_myorder_customer FOREIGN KEY (customer_id) REFERENCES customer(id),
-    CONSTRAINT fk_myorder_order FOREIGN KEY (order_id) REFERENCES order_entity(id),
-    CONSTRAINT fk_myorder_storekeeper FOREIGN KEY (store_keeper_id) REFERENCES storekeeper(id)
-);
+--CREATE TABLE my_order_entity (
+--    id INT PRIMARY KEY AUTO_INCREMENT,
+--
+--    customer_id BIGINT NOT NULL,
+--    order_id INT NOT NULL,
+--    status_enum VARCHAR(50) NOT NULL,
+--    store_keeper_id BIGINT NOT NULL,
+--
+--    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--
+--    -- Foreign key constraints
+--    CONSTRAINT fk_myorder_customer FOREIGN KEY (customer_id) REFERENCES customer(id),
+--    CONSTRAINT fk_myorder_order FOREIGN KEY (order_id) REFERENCES order_entity(id),
+--    CONSTRAINT fk_myorder_storekeeper FOREIGN KEY (store_keeper_id) REFERENCES storekeeper(id)
+--);
 
 
 

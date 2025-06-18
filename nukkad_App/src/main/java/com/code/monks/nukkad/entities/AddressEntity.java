@@ -20,9 +20,6 @@ public class AddressEntity extends BaseEntity {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "label")
-    private String label;
-
     @Column(name = "address_line1")
     private String addressLine1;
 
@@ -46,4 +43,5 @@ public class AddressEntity extends BaseEntity {
 
     @Convert(converter = RoleEnumConverter.class)
     private RoleEnum role;
+
 }
