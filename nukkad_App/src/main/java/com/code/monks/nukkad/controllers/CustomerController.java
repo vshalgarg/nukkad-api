@@ -2,19 +2,23 @@ package com.code.monks.nukkad.controllers;
 
 import com.code.monks.nukkad.dto.request.CreateCustomerRequestDTO;
 import com.code.monks.nukkad.dto.response.CreateCustomerResponseDTO;
-import com.code.monks.nukkad.entities.CustomerEntity;
 import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.services.CustomerService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import lombok.RequiredArgsConstructor; 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
+import static com.code.monks.nukkad.constants.UrlConstants.CUSTOMER;
+
 @RestController
 @RequestMapping(CUSTOMER.BASE)
 @RequiredArgsConstructor
+@Slf4j
 public class CustomerController {
 
 	private final CustomerService customerService;
@@ -35,7 +39,8 @@ public class CustomerController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
-	@PostMapping("/add/store")
+	@PostMapping(CUSTOMER.ADD_STORE_TO_CUSTOMER)
+
 	public ResponseEntity<String> addStoreToCustomer(
 			@RequestParam Long customerId,
 			@RequestParam String storeId
@@ -44,13 +49,13 @@ public class CustomerController {
 		return ResponseEntity.ok(result);
 	}
 
-	@GetMapping("/my/stores")
+	@GetMapping(CUSTOMER.GET_MY_STORES)
 	public ResponseEntity<List<StorekeeperEntity>> getMyStores(@RequestParam Long customerId) {
 		List<StorekeeperEntity> storekeepers = customerService.getMyStores(customerId);
 		return new ResponseEntity<>(storekeepers, HttpStatus.OK);
 	}
 
-	@DeleteMapping("/delete/store")
+	@DeleteMapping(CUSTOMER.DELETE_STORE)
 	public ResponseEntity<String> deleteStore(
 			@RequestParam Long customerId,
 			@RequestParam String storeId

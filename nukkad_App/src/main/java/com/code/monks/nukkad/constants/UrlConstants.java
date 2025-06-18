@@ -35,6 +35,12 @@ public class UrlConstants {
 
 		public static final String UPDATE = "/v1/update/{id}";
 
+		public static final String ADD_STORE_TO_CUSTOMER = "/v1//add/store";
+
+		public  static final String GET_MY_STORES = "/v1/my/stores";
+
+		public static final String DELETE_STORE = "/v1/delete/store";
+
  }
 
  public static class OTP{
