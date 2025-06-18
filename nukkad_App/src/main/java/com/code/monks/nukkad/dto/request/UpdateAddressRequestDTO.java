@@ -14,7 +14,6 @@ public class UpdateAddressRequestDTO {
     private String pincode;
 
     public static void updateEntity(AddressEntity address, UpdateAddressRequestDTO dto) {
-
         address.setAddressLine1(dto.getAddressLine1());
         address.setAddressLine2(dto.getAddressLine2());
         address.setLandmark(dto.getLandmark());

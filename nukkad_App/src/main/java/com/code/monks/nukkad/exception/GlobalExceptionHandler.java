@@ -1,6 +1,7 @@
 package com.code.monks.nukkad.exception;
 
 //import com.code.monks.nukkad.exceptionHanlder.OrderNotFoundException;
+import com.code.monks.nukkad.enums.ResponseErrorCodes;
 import com.code.monks.nukkad.exception.OrderNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,10 +20,15 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+	@ExceptionHandler(DefaultAddressUpdateNotAllowedException.class)
+	public ResponseEntity<ErrorResponse> handleDefaultAddressUpdateNotAllowed(DefaultAddressUpdateNotAllowedException ex){
+		ErrorResponse error = new ErrorResponse(ex.getMessage(), LocalDateTime.now(),ex.getError().getResponseCode());
+		return new ResponseEntity<>(error,HttpStatus.BAD_REQUEST);
+	}
 
 	@ExceptionHandler(ResourceNotFoundException.class)
 	public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
-		ErrorResponse error = new ErrorResponse(ex.getMessage(),LocalDateTime.now(),HttpStatus.NOT_FOUND.value());
+		ErrorResponse error = new ErrorResponse(ex.getMessage(),LocalDateTime.now(),ex.getError().getResponseCode());
 		return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
 	}
 
@@ -52,7 +58,7 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(DuplicateResourceException.class)
 	public ResponseEntity<ErrorResponse> handleDuplicateResourceErrors(DuplicateResourceException ex) {
-		ErrorResponse error = new ErrorResponse(ex.getMessage(), LocalDateTime.now(), HttpStatus.CONFLICT.value());
+		ErrorResponse error = new ErrorResponse(ex.getMessage(), LocalDateTime.now(), ex.getError().getResponseCode());
 		return new ResponseEntity<>(error, HttpStatus.CONFLICT);
 	}
 

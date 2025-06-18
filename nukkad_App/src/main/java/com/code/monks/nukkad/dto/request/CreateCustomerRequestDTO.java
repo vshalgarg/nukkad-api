@@ -45,13 +45,14 @@ public class  CreateCustomerRequestDTO {
 		CustomerEntity customer = new CustomerEntity();
 		customer.setName(dto.getName());
 		customer.setEmail(dto.getEmail());
-		customer.setAddressLine1(dto.getAddressLine1());
+		customer.setDob(dto.getDob());
+		customer.setAddressLine1(dto.getAddressLine1()); // This is critical!
 		customer.setAddressLine2(dto.getAddressLine2());
 		customer.setLandmark(dto.getLandmark());
-		customer.setDob(dto.getDob());
 		customer.setCity(dto.getCity());
 		customer.setState(dto.getState());
 		customer.setPincode(dto.getPincode());
+
 		return customer;
 	}
 }

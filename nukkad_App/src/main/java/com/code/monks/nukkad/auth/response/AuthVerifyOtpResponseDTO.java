@@ -1,4 +1,4 @@
-package com.code.monks.nukkad.dto.response;
+package com.code.monks.nukkad.auth.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,9 +7,9 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class VerifyResponseDTO {
+public class AuthVerifyOtpResponseDTO {
     private Long userId;
-    private String phoneNumber;
+    private String username;
     private List<String> roles;
     private String token;
 }

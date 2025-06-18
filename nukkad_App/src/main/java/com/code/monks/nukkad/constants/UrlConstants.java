@@ -35,6 +35,12 @@ public class UrlConstants {
 
 		public static final String UPDATE = "/v1/update/{id}";
 
+		public static final String ADD_STORE_TO_CUSTOMER = "/v1//add/store";
+
+		public  static final String GET_MY_STORES = "/v1/my/stores";
+
+		public static final String DELETE_STORE = "/v1/delete/store";
+
  }
 
  public static class OTP{
@@ -87,6 +93,11 @@ public static class ADDRESS{
 		public static final String GET_CART_ITEM_FOR_CUSTOMER = "v1/customer/{customerId}";
 		public static final String DELETE_CART_ITEM_BY_ID = "/v1/deleteitem/{id}";
 		public static final String UPDATE_QUANTITY = "/v1/{id}/update";
+	}
+
+	public static class SEARCH{
+		public static final String BASE = CONTEXT + "/api/search";
+		public static final String GET = "v1/get";
 	}
 
 	private UrlConstants() {

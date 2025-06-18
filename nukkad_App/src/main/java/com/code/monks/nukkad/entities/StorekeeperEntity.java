@@ -6,8 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.NaturalId;
 
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -49,6 +49,10 @@ public class StorekeeperEntity extends UserEntity{
 
 	@Column(name = "pincode")
 	private String pincode;
+
+	@NaturalId
+	@Column(name = "store_id", unique = true, nullable = false, updatable = false)
+	private String storeId;
 
 	@Override
 	public RoleEnum getRole(){

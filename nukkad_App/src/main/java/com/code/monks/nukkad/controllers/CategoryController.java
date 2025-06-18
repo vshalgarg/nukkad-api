@@ -12,29 +12,29 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.code.monks.nukkad.constants.UrlConstants.*;
-import static com.code.monks.nukkad.constants.UrlConstants.CATEGORY.GET_ALL;
+import static com.code.monks.nukkad.constants.UrlConstants.CATEGORY;
 
+@Slf4j
 @RestController
 @RequestMapping(CATEGORY.BASE)
-@Slf4j
 @AllArgsConstructor
 public class CategoryController {
 
-	private CategoryService categoryService;
+	private final CategoryService categoryService;
 
 	@PostMapping(CATEGORY.CREATE)
-	public ResponseEntity<CreateCategoryResponseDTO> createCategory(@RequestBody CreateCategoryRequestDTO category) {
-		log.info("Received request for createCategory: {}", category);
-		CreateCategoryResponseDTO categoryInDB = categoryService.createCategory(category);
-		return new ResponseEntity<>(categoryInDB, HttpStatus.CREATED);
+	public ResponseEntity<CreateCategoryResponseDTO> createCategory(@RequestBody CreateCategoryRequestDTO request) {
+		log.info("[CREATE CATEGORY] Request received: {}", request);
+		CreateCategoryResponseDTO response = categoryService.createCategory(request);
+		log.info("[CREATE CATEGORY] Successfully created category with ID: {}", response.getId());
+		return new ResponseEntity<>(response, HttpStatus.CREATED);
 	}
 
-	@GetMapping(GET_ALL)
+	@GetMapping(CATEGORY.GET_ALL)
 	public ResponseEntity<List<GetAllCategoryResponseDTO>> getAllCategories() {
+		log.info("[GET ALL CATEGORIES] Fetching all categories.");
 		List<GetAllCategoryResponseDTO> categories = categoryService.getAllCategories();
+		log.info("[GET ALL CATEGORIES] Total categories found: {}", categories.size());
 		return ResponseEntity.ok(categories);
 	}
-
 }
-

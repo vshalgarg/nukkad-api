@@ -2,9 +2,16 @@ package com.code.monks.nukkad.dto.request;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class CreateCartItemRequestDTO {
-    private int itemId;
+    private List<CartItemRequest> items;
 
-    private int quantity;
+    @Data
+    public static class CartItemRequest {
+        private int itemId;
+        private int quantity;
+        private String unit;
+    }
 }

@@ -9,9 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateAddressRequestDTO {
-
-
-
     private String addressLine1;
     private String addressLine2;
     private String landmark;
