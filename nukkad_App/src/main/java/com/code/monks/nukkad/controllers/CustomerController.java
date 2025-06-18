@@ -1,7 +1,10 @@
 package com.code.monks.nukkad.controllers;
 
 import com.code.monks.nukkad.dto.request.CreateCustomerRequestDTO;
+import com.code.monks.nukkad.dto.response.AddStoreResponseDto;
 import com.code.monks.nukkad.dto.response.CreateCustomerResponseDTO;
+import com.code.monks.nukkad.dto.response.DeleteStoreResponseDto;
+import com.code.monks.nukkad.dto.response.GetMyStoreResponseDto;
 import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.services.CustomerService;
 import jakarta.validation.Valid;
@@ -41,26 +44,26 @@ public class CustomerController {
 
 	@PostMapping(CUSTOMER.ADD_STORE_TO_CUSTOMER)
 
-	public ResponseEntity<String> addStoreToCustomer(
+	public ResponseEntity<AddStoreResponseDto> addStoreToCustomer(
 			@RequestParam Long customerId,
 			@RequestParam String storeId
 	) {
-		String result = customerService.addStoreToCustomer(customerId, storeId);
-		return ResponseEntity.ok(result);
+		AddStoreResponseDto responseDto = customerService.addStoreToCustomer(customerId, storeId);
+		return ResponseEntity.ok(responseDto);
 	}
 
 	@GetMapping(CUSTOMER.GET_MY_STORES)
-	public ResponseEntity<List<StorekeeperEntity>> getMyStores(@RequestParam Long customerId) {
-		List<StorekeeperEntity> storekeepers = customerService.getMyStores(customerId);
-		return new ResponseEntity<>(storekeepers, HttpStatus.OK);
+	public ResponseEntity<List<GetMyStoreResponseDto>> getStores(@RequestParam Long customerId) {
+		List<GetMyStoreResponseDto> stores= customerService.getMyStores(customerId);
+		return new ResponseEntity<>(stores, HttpStatus.OK);
 	}
 
 	@DeleteMapping(CUSTOMER.DELETE_STORE)
-	public ResponseEntity<String> deleteStore(
+	public ResponseEntity<DeleteStoreResponseDto> deleteStore(
 			@RequestParam Long customerId,
-			@RequestParam String storeId
+			@RequestParam Long storekeeperId
 	) {
-		String result = customerService.deleteStoreFromCustomer(customerId, storeId);
+		DeleteStoreResponseDto result = customerService.deleteStoreFromCustomer(customerId, storekeeperId);
 		return new ResponseEntity<>(result, HttpStatus.OK);
 	}
 }

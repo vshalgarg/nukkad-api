@@ -2,6 +2,9 @@ package com.code.monks.nukkad.controllers;
 
 import com.code.monks.nukkad.dto.request.CreateCartItemRequestDTO;
 import com.code.monks.nukkad.dto.response.CreateCartItemResponseDTO;
+import com.code.monks.nukkad.dto.response.GetCartItemResponseDto;
+import com.code.monks.nukkad.dto.response.UpdateItemQuantityResponseDto;
+import com.code.monks.nukkad.dto.response.removeCartItemResponseDto;
 import com.code.monks.nukkad.services.CartItemService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,26 +33,26 @@ public class CartItemController {
     }
 
     @GetMapping(CART_ITEM.GET_CART_ITEM_FOR_CUSTOMER)
-    public ResponseEntity<List<CreateCartItemResponseDTO>> getCartItems() {
+    public ResponseEntity<List<GetCartItemResponseDto>> getCartItems() {
         log.info("[GET CART ITEMS] Fetching cart items for customer");
-        List<CreateCartItemResponseDTO> items = cartItemService.getCartItemsForCustomer();
+        List<GetCartItemResponseDto> items = cartItemService.getCartItemsForCustomer();
         log.info("[GET CART ITEMS] Found {} items in cart", items.size());
         return ResponseEntity.ok(items);
     }
 
     @DeleteMapping(CART_ITEM.DELETE_CART_ITEM_BY_ID)
-    public ResponseEntity<String> deleteCartItem(@PathVariable Long id) {
+    public ResponseEntity<removeCartItemResponseDto> deleteCartItem(@PathVariable Long id) {
         log.info("[DELETE CART ITEM] Deleting cart item with ID: {}", id);
-        String resultMessage = cartItemService.removeCartItem(id);
+        removeCartItemResponseDto resultMessage = cartItemService.removeCartItem(id);
         log.info("[DELETE CART ITEM] {}", resultMessage);
         return ResponseEntity.ok(resultMessage);
     }
 
 
     @PutMapping(CART_ITEM.UPDATE_QUANTITY)
-    public ResponseEntity<CreateCartItemResponseDTO> updateQuantity(@PathVariable Long id, @RequestParam int quantity) {
+    public ResponseEntity<UpdateItemQuantityResponseDto> updateQuantity(@PathVariable Long id, @RequestParam int quantity) {
         log.info("[UPDATE QUANTITY] Updating quantity of item ID: {} to {}", id, quantity);
-        CreateCartItemResponseDTO updated = cartItemService.updateQuantity(id, quantity);
+        UpdateItemQuantityResponseDto updated = cartItemService.updateQuantity(id, quantity);
         log.info("[UPDATE QUANTITY] Updated item: {}", updated);
         return ResponseEntity.ok(updated);
     }
