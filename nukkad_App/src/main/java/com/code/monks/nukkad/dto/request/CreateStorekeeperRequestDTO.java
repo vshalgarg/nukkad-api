@@ -58,6 +58,7 @@ public class CreateStorekeeperRequestDTO {
 		storekeeper.setCity(dto.getCity());
 		storekeeper.setState(dto.getState());
 		storekeeper.setPincode(dto.getPincode());
+
 		return storekeeper;
 
 	}

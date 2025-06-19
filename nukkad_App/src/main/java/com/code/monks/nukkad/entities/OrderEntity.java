@@ -1,25 +1,32 @@
 package com.code.monks.nukkad.entities;
 
-import com.code.monks.nukkad.enums.StatusEnum;
+import com.code.monks.nukkad.enums.OrderStatusEnum;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 @Entity
+@Table(name = "Orders")
 @Data
-public class OrderEntity extends BaseEntity
-{
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class OrderEntity extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String trackingNumber;
-    private Long userId;
-    private int orderCount;
-    private LocalDateTime orderDate;
-    private Long shopKeeperId;
+
+    private Long customerId;
+
+    private Long storekeeperId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cart_item_id", nullable = false)
+    private CartItemEntity cartItem;
+
 
     @Enumerated(EnumType.STRING)
-    private StatusEnum statusEnum;
-
-
+    private OrderStatusEnum status;
 }

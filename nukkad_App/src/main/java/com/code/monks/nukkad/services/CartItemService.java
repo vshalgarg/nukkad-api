@@ -6,6 +6,7 @@ import com.code.monks.nukkad.dto.response.CreateCartItemResponseDTO;
 import com.code.monks.nukkad.dto.response.GetCartItemResponseDto;
 import com.code.monks.nukkad.dto.response.UpdateItemQuantityResponseDto;
 import com.code.monks.nukkad.dto.response.removeCartItemResponseDto;
+import com.code.monks.nukkad.entities.CartEntity;
 import com.code.monks.nukkad.entities.CartItemEntity;
 import com.code.monks.nukkad.entities.CustomerEntity;
 import com.code.monks.nukkad.entities.ItemEntity;
@@ -13,6 +14,7 @@ import com.code.monks.nukkad.exception.ResourceNotFoundException;
 import com.code.monks.nukkad.exception.UnauthorizedAccessException;
 import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.CartItemRepository;
+import com.code.monks.nukkad.repositories.CartRepository;
 import com.code.monks.nukkad.repositories.CustomerRepository;
 import com.code.monks.nukkad.repositories.ItemRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
@@ -29,55 +32,63 @@ import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
 @RequiredArgsConstructor
 @Slf4j
 public class CartItemService {
-
     private final CartItemRepository cartItemRepository;
     private final ItemRepository itemRepository;
     private final CustomerRepository customerRepository;
+    private final CartRepository cartRepository;
 
     public CreateCartItemResponseDTO addToCart(CreateCartItemRequestDTO dto) {
-        Long userId = UserContextHolder.getRequiredUser().getId();
+        Long customerId = UserContextHolder.getRequiredUser().getId();
 
-        CustomerEntity customer = customerRepository.findById(userId)
-                .orElseThrow(() -> {
-                    log.error("Customer not found with id {}", userId);
-                    return new RuntimeException("CUSTOMER_NOT_FOUND");
+        CustomerEntity customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("CUSTOMER_NOT_FOUND"));
+
+        // Find or create cart for customer
+        CartEntity cart = cartRepository.findByCustomer(customer)
+                .orElseGet(() -> {
+                    CartEntity newCart = new CartEntity();
+                    newCart.setCustomer(customer);
+                    return cartRepository.save(newCart);
                 });
 
         for (CreateCartItemRequestDTO.CartItemRequest itemReq : dto.getItems()) {
-            log.info("Adding item to cart. CustomerId: {}, ItemId: {}, Quantity: {}, Unit: {}",
-                    userId, itemReq.getItemId(), itemReq.getQuantity(), itemReq.getUnit());
 
             ItemEntity item = itemRepository.findById(itemReq.getItemId())
-                    .orElseThrow(() -> {
-                        log.error("Item not found with id {}", itemReq.getItemId());
-                        return new RuntimeException("ITEM_NOT_FOUND");
-                    });
+                    .orElseThrow(() -> new RuntimeException("ITEM_NOT_FOUND"));
 
-            // Validate the unit
+            // Validate unit
             String requestedUnit = itemReq.getUnit();
-            String[] allowedUnits = item.getUnit().getUnits(); // from UnitEnum
-
+            String[] allowedUnits = item.getUnit().getUnits();
             boolean isValidUnit = Arrays.stream(allowedUnits)
                     .anyMatch(unit -> unit.equalsIgnoreCase(requestedUnit));
-
             if (!isValidUnit) {
-                log.warn("Invalid unit '{}' for item '{}'. Allowed units: {}",
-                        requestedUnit, item.getName(), Arrays.toString(allowedUnits));
                 throw new IllegalArgumentException("Invalid unit: '" + requestedUnit + "'. Allowed: " + String.join(", ", allowedUnits));
             }
 
-            CartItemEntity cartItem = new CartItemEntity();
-            cartItem.setCustomer(customer); // use fetched, managed customer entity
-            cartItem.setItem(item);
-            cartItem.setQuantity(itemReq.getQuantity());
-            cartItem.setUnit(requestedUnit.toUpperCase()); // store in uppercase for consistency
+            // Check if item already exists in cart
+            Optional<CartItemEntity> existingItem = cart.getItems().stream()
+                    .filter(ci -> ci.getItem().getId() == item.getId() &&
+                            ci.getUnit().equalsIgnoreCase(requestedUnit))
+                    .findFirst();
 
-            CartItemEntity saved = cartItemRepository.save(cartItem);
-            log.info("Item saved in cart successfully. CartItemId: {}", saved.getId());
+            if (existingItem.isPresent()) {
+                CartItemEntity cartItem = existingItem.get();
+                cartItem.setQuantity(cartItem.getQuantity() + itemReq.getQuantity());
+            } else {
+                CartItemEntity cartItem = new CartItemEntity();
+                cartItem.setCart(cart);
+                cartItem.setItem(item);
+                cartItem.setCustomer(customer);
+                cartItem.setQuantity(itemReq.getQuantity());
+                cartItem.setUnit(requestedUnit.toUpperCase());
+                cart.getItems().add(cartItem);
+            }
         }
 
+        cartRepository.save(cart); // Cascade will save items too
         return new CreateCartItemResponseDTO("Items added to cart successfully.");
     }
+
 
 
 
@@ -106,15 +117,15 @@ public class CartItemService {
         }
     }
 
-    public removeCartItemResponseDto removeCartItem(Long cartItemId) {
+    public removeCartItemResponseDto removeCartItem(Long itemId) {
 
-            Long userId = UserContextHolder.getRequiredUser().getId();
-            log.info("Attempting to remove cart item. CustomerId: {}, CartItemId: {}", userId, cartItemId);
+            Long customerId = UserContextHolder.getRequiredUser().getId();
+            log.info("Attempting to remove cart item. CustomerId: {}, ItemId: {}", customerId, itemId);
 
-            CartItemEntity item = cartItemRepository.findById(cartItemId)
+            CartItemEntity item = cartItemRepository.findByCustomerIdAndItemId(customerId, itemId)
                     .orElseThrow(() -> {
-                        log.error("Cart item not found with id: {}", cartItemId);
-                        return new ResourceNotFoundException(CART_ITEM_NOT_FOUND, cartItemId);
+                        log.error("Cart item with itemId {} not found for customerId {}", itemId, customerId);
+                        return new ResourceNotFoundException(ITEM_NOT_FOUND, itemId);
                     });
 
 //            if (!item.getCustomer().getId().equals(userId)) {
@@ -123,7 +134,7 @@ public class CartItemService {
 //            }
 
             cartItemRepository.delete(item);
-            log.info("Cart item with id {} deleted successfully for customerId: {}", cartItemId, userId);
+            log.info("Cart item with id {} deleted successfully for customerId: {}",item, customerId);
 
             return new removeCartItemResponseDto("Cart item deleted successfully");
 

@@ -1,33 +1,41 @@
 package com.code.monks.nukkad.dto.response;
 
+import com.code.monks.nukkad.entities.CartItemEntity;
 import com.code.monks.nukkad.entities.OrderEntity;
-import com.code.monks.nukkad.enums.StatusEnum;
+import com.code.monks.nukkad.enums.OrderStatusEnum;
 import lombok.Data;
-
-import java.time.LocalDateTime;
 
 @Data
 public class OrderResponseDTO {
-
     private Long id;
-    private Long userId;
-    private String trackingNumber;
-    private int orderCount;
-    private LocalDateTime orderDate;
-    private Long shopKeeperId;
-    private StatusEnum statusOrderEnum;
+    private Long customerId;
+    private String customerName;
+    private String customerAddress;
+    private Long storekeeperId;
+    private String storeName;
+    private OrderStatusEnum status;
+    private CartItemSummaryDTO cartItem;
 
-    public static OrderResponseDTO toResponseDTO(OrderEntity entity) {
-        OrderResponseDTO responseDTO = new OrderResponseDTO();
-        responseDTO.setOrderCount(entity.getOrderCount());
-        responseDTO.setId((long)entity.getId());
-        responseDTO.setUserId(entity.getUserId());
-        responseDTO.setTrackingNumber(entity.getTrackingNumber());
-        responseDTO.setOrderDate(entity.getOrderDate());
-        responseDTO.setShopKeeperId(entity.getShopKeeperId());
-        responseDTO.setStatusOrderEnum(entity.getStatusEnum());
 
-        return responseDTO;
+    public static OrderResponseDTO fromEntity(OrderEntity entity) {
+        OrderResponseDTO dto = new OrderResponseDTO();
+        dto.setId(entity.getId());
+        dto.setCustomerId(entity.getCustomerId());
+        dto.setStorekeeperId(entity.getStorekeeperId());
+        dto.setStatus(entity.getStatus());
+
+
+        if(entity.getCartItem() != null){
+            CartItemEntity cartItem = entity.getCartItem();
+            CartItemSummaryDTO cartItemSummaryDTO = new CartItemSummaryDTO();
+            cartItemSummaryDTO.setCartItemId(cartItem.getId());
+            cartItemSummaryDTO.setItemId((long) cartItem.getItem().getId());
+            cartItemSummaryDTO.setItemName(cartItem.getItem().getName());
+            cartItemSummaryDTO.setQuantity(cartItem.getQuantity());
+            cartItemSummaryDTO.setUnit(cartItem.getUnit());
+            dto.setCartItem(cartItemSummaryDTO);
+        }
+        return dto;
     }
 
 }

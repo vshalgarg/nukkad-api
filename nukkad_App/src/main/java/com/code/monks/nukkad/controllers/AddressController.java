@@ -37,4 +37,18 @@ public class AddressController {
         List<AddressResponseDTO> responses = addressService.getAllAddresses();
         return ResponseEntity.ok(responses);
     }
+
+    @PutMapping(UrlConstants.ADDRESS.MARK_AS_DEFAULT)
+    public ResponseEntity<String> markAsDefault(@PathVariable Long id) {
+        addressService.markAsDefault(id);
+        return ResponseEntity.ok("Address marked as default");
+    }
+
+    @DeleteMapping(UrlConstants.ADDRESS.DELETE)
+    public ResponseEntity<String> deleteAddress(@PathVariable Long id) {
+        addressService.deleteAddress(id);
+        return ResponseEntity.ok("Address deleted successfully");
+    }
+
+
 }

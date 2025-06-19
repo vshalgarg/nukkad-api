@@ -6,6 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ResponseErrorCodes {
+	ADDRESS_NOT_FOUND(400,"Address not found with addressId."),
 	DEFAULT_ADDRESS_CAN_NOT_BE_CHANGE(400,"Default address can not be change."),
 	CART_ITEM_NOT_FOUND(400,"Cart item not found with id: "),
 	STOREKEEPER_NOT_FOUND(400,"Storekeeper not found with id: "),

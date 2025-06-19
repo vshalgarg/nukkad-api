@@ -45,25 +45,23 @@ public class CustomerController {
 	@PostMapping(CUSTOMER.ADD_STORE_TO_CUSTOMER)
 
 	public ResponseEntity<AddStoreResponseDto> addStoreToCustomer(
-			@RequestParam Long customerId,
 			@RequestParam String storeId
 	) {
-		AddStoreResponseDto responseDto = customerService.addStoreToCustomer(customerId, storeId);
+		AddStoreResponseDto responseDto = customerService.addStoreToCustomer(storeId);
 		return ResponseEntity.ok(responseDto);
 	}
 
 	@GetMapping(CUSTOMER.GET_MY_STORES)
-	public ResponseEntity<List<GetMyStoreResponseDto>> getStores(@RequestParam Long customerId) {
-		List<GetMyStoreResponseDto> stores= customerService.getMyStores(customerId);
+	public ResponseEntity<List<GetMyStoreResponseDto>> getStores() {
+		List<GetMyStoreResponseDto> stores= customerService.getMyStores();
 		return new ResponseEntity<>(stores, HttpStatus.OK);
 	}
 
 	@DeleteMapping(CUSTOMER.DELETE_STORE)
 	public ResponseEntity<DeleteStoreResponseDto> deleteStore(
-			@RequestParam Long customerId,
 			@RequestParam Long storekeeperId
 	) {
-		DeleteStoreResponseDto result = customerService.deleteStoreFromCustomer(customerId, storekeeperId);
+		DeleteStoreResponseDto result = customerService.deleteStoreFromCustomer(storekeeperId);
 		return new ResponseEntity<>(result, HttpStatus.OK);
 	}
 }

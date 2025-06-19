@@ -27,11 +27,13 @@ public class StorekeeperService {
             throw new AccessDeniedException(ACCESS_DENIED_FOR_CUSTOMER_EXCEPTION);
         }
         Long userId = UserContextHolder.getUser().getId();
+        String mobileNo = UserContextHolder.getUser().getMobileNumber();
         log.info("[CREATE STOREKEEPER] Creating storekeeper with ID: {}", userId);
 
+        String storeId = generateUniqueStoreId(mobileNo);
         StorekeeperEntity storekeeper = CreateStorekeeperRequestDTO.toEntity(dto);
         storekeeper.setId(userId);
-        storekeeper.setStoreId(generateUniqueStoreId());
+        storekeeper.setStoreId(storeId);
 
         StorekeeperEntity saved = storekeeperRepository.save(storekeeper);
         log.info("[CREATE STOREKEEPER] Storekeeper created successfully with ID: {}", saved.getId());
@@ -69,16 +71,13 @@ public class StorekeeperService {
         return CreateStorekeeperResponseDTO.fromEntity(updated);
     }
 
-    private String generateUniqueStoreId() {
-        String letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        String digits = "0123456789";
+    private String generateUniqueStoreId(String mobileNumber) {
+        int suffix = 1;
         String storeId;
 
         do {
-            char letter = letters.charAt((int) (Math.random() * letters.length()));
-            char digit1 = digits.charAt((int) (Math.random() * digits.length()));
-            char digit2 = digits.charAt((int) (Math.random() * digits.length()));
-            storeId = STR."\{letter}\{digit1}\{digit2}";
+            storeId = "STR" + mobileNumber + suffix;
+            suffix++;
         } while (storekeeperRepository.existsByStoreId(storeId));
 
         return storeId;

@@ -43,12 +43,11 @@ public class CustomerService {
 			throw new AccessDeniedException(ACCESS_DENIED_FOR_STOREKEEPER_EXCEPTION);
 		}
 
-		Long userId = UserContextHolder.getUser().getId();
-		log.info("[CREATE CUSTOMER] Creating customer with ID: {}", userId);
+		Long customerId = UserContextHolder.getUser().getId();
+		log.info("[CREATE CUSTOMER] Creating customer with ID: {}", customerId);
 
 		CustomerEntity customer = CreateCustomerRequestDTO.toEntity(dto);
-		customer.setId(userId);
-
+		customer.setId(customerId);
 		CustomerEntity saved = customerRepository.save(customer);
 
 		AddressEntity address = new AddressEntity();
@@ -58,14 +57,16 @@ public class CustomerService {
 		address.setCity(dto.getCity());
 		address.setState(dto.getState());
 		address.setPincode(dto.getPincode());
-		address.setIsDefault(true); // ✅ This is the key
-		address.setUserId(customer.getId());
-		addressRepository.save(address);
+		address.setUserId(saved.getId());
+		address.setIsDefault(true);
 
+		addressRepository.save(address);
 		log.info("[CREATE CUSTOMER] Customer created successfully with ID: {}", saved.getId());
 
-		return CreateCustomerResponseDTO.fromEntity(saved,address);
+		return CreateCustomerResponseDTO.fromEntity(saved);
 	}
+
+
 
 	public CreateCustomerResponseDTO updateCustomer(CreateCustomerRequestDTO dto) {
 		if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.CUSTOMER)) {
@@ -85,36 +86,18 @@ public class CustomerService {
 		customer.setName(dto.getName());
 		customer.setEmail(dto.getEmail());
 		customer.setDob(dto.getDob());
-		customer.setAddressLine1(dto.getAddressLine1());
-		customer.setAddressLine2(dto.getAddressLine2());
-		customer.setLandmark(dto.getLandmark());
-		customer.setCity(dto.getCity());
-		customer.setState(dto.getState());
-		customer.setPincode(dto.getPincode());
 
 		CustomerEntity updated = customerRepository.save(customer);
 
-		AddressEntity address = addressRepository.findByUserId(userId)
-				.stream().findFirst()
-				.orElse(new AddressEntity());
-
-		address.setUserId(userId);
-		address.setAddressLine1(dto.getAddressLine1());
-		address.setAddressLine2(dto.getAddressLine2());
-		address.setLandmark(dto.getLandmark());
-		address.setCity(dto.getCity());
-		address.setState(dto.getState());
-		address.setPincode(dto.getPincode());
-
-		addressRepository.save(address);
-
 		log.info("[UPDATE CUSTOMER] Customer updated successfully with ID: {}", updated.getId());
-		return CreateCustomerResponseDTO.fromEntity(updated, address);
+
+		return CreateCustomerResponseDTO.fromEntity(updated);
 	}
 
 
 
-	public AddStoreResponseDto addStoreToCustomer(Long customerId, String storeId) {
+	public AddStoreResponseDto addStoreToCustomer(String storeId) {
+		Long customerId = UserContextHolder.getUser().getId();
 		CustomerEntity customer = customerRepository.findById(customerId)
 				.orElseThrow(() -> new RuntimeException("Customer not found"));
 
@@ -131,7 +114,8 @@ public class CustomerService {
 	}
 
 
-	public List<GetMyStoreResponseDto> getMyStores(Long customerId) {
+	public List<GetMyStoreResponseDto> getMyStores() {
+		Long customerId = UserContextHolder.getUser().getId();
 		CustomerEntity customer = customerRepository.findById(customerId)
 				.orElseThrow(() -> new RuntimeException("Customer not found"));
 		List<StorekeeperEntity> storekeepers = customer.getStorekeepers();
@@ -152,7 +136,8 @@ public class CustomerService {
 						.build())
 				.collect(Collectors.toList());	}
 
-	public DeleteStoreResponseDto deleteStoreFromCustomer(Long customerId, Long storekeeperId) {
+	public DeleteStoreResponseDto deleteStoreFromCustomer(Long storekeeperId) {
+		Long customerId = UserContextHolder.getUser().getId();
 		CustomerEntity customer = customerRepository.findById(customerId)
 				.orElseThrow(() -> new RuntimeException(STR."Customer not found with ID: \{customerId}"));
 

@@ -16,6 +16,7 @@ public class AddressResponseDTO {
 
     public static AddressResponseDTO fromEntity(AddressEntity entity) {
         AddressResponseDTO dto = new AddressResponseDTO();
+
         dto.setId(entity.getId());
         dto.setAddressLine1(entity.getAddressLine1());
         dto.setAddressLine2(entity.getAddressLine2());
@@ -23,6 +24,7 @@ public class AddressResponseDTO {
         dto.setCity(entity.getCity());
         dto.setState(entity.getState());
         dto.setPincode(entity.getPincode());
+
         return dto;
     }
 

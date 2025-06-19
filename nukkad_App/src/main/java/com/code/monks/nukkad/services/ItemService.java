@@ -34,6 +34,11 @@ public class ItemService {
 		try {
 			log.info("Attempting to save new item: {}", dto);
 
+
+			if (dto.getCategoryIds() == null || dto.getCategoryIds().isEmpty()) {
+				throw new IllegalArgumentException("Item must be associated with at least one category.");
+			}
+
 			ItemEntity item = new ItemEntity();
 			item.setName(dto.getName());
 			item.setUnit(dto.getUnit());
