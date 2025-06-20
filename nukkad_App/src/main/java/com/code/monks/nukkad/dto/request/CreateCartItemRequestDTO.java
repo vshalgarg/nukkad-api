@@ -10,7 +10,7 @@ public class CreateCartItemRequestDTO {
 
     @Data
     public static class CartItemRequest {
-        private int itemId;
+        private Long itemId;
         private int quantity;
         private String unit;
     }

@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @Data
 @AllArgsConstructor
 public class CreateItemResponseDTO {
-    private int id;
+    private Long id;
     private String name;
     private List<String> unit;
     private List<String> imageUrls;

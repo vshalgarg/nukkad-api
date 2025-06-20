@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 public class GetCartItemResponseDto {
 
     private Long id;
-    private int itemId;
+    private Long itemId;
     private String itemName;
     private int quantity;
     private String unit;

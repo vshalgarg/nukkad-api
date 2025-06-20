@@ -97,7 +97,7 @@ public class ItemService {
 		}
 	}
 
-	public CreateItemResponseDTO getItemById(int id) {
+	public CreateItemResponseDTO getItemById(Long id) {
 		log.info("Fetching item by ID: {}", id);
 		try {
 			ItemEntity item = itemRepository.findById(id)
@@ -112,7 +112,7 @@ public class ItemService {
 		}
 	}
 
-	public CreateItemResponseDTO updateItem(int id, CreateItemRequestDTO dto) {
+	public CreateItemResponseDTO updateItem(Long id, CreateItemRequestDTO dto) {
 		log.info("Attempting to update item with ID: {}", id);
 		try {
 			ItemEntity item = itemRepository.findById(id)
@@ -130,7 +130,7 @@ public class ItemService {
 							image.setItem(item); // set back-reference
 							return image;
 						})
-						.collect(Collectors.toList());
+						.toList();
 				item.getImages().addAll(images);
 			}
 

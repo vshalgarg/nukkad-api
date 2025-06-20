@@ -5,10 +5,9 @@ import com.code.monks.nukkad.dto.response.AddStoreResponseDto;
 import com.code.monks.nukkad.dto.response.CreateCustomerResponseDTO;
 import com.code.monks.nukkad.dto.response.DeleteStoreResponseDto;
 import com.code.monks.nukkad.dto.response.GetMyStoreResponseDto;
-import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.services.CustomerService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor; 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,40 +27,51 @@ public class CustomerController {
 
 	@PostMapping(CUSTOMER.CREATE)
 	public ResponseEntity<CreateCustomerResponseDTO> createCustomer(@Valid @RequestBody CreateCustomerRequestDTO dto) {
-		log.info("[CREATE CUSTOMER] Request received: {}", dto);
+		log.info("[CREATE CUSTOMER] Incoming request to create customer: {}", dto);
+
 		CreateCustomerResponseDTO response = customerService.createCustomer(dto);
-		log.info("[CREATE CUSTOMER] Customer created with ID: {}", response.getId());
+
+		log.info("[CREATE CUSTOMER] Customer successfully created with ID={}", response.getId());
 		return new ResponseEntity<>(response, HttpStatus.CREATED);
 	}
 
 	@PutMapping(CUSTOMER.UPDATE)
 	public ResponseEntity<CreateCustomerResponseDTO> updateCustomer(@Valid @RequestBody CreateCustomerRequestDTO dto) {
-		log.info("[UPDATE CUSTOMER] Request received: {}", dto);
+		log.info("[UPDATE CUSTOMER] Incoming update request: {}", dto);
+
 		CreateCustomerResponseDTO response = customerService.updateCustomer(dto);
-		log.info("[UPDATE CUSTOMER] Customer updated with ID: {}", response.getId());
-		return new ResponseEntity<>(response, HttpStatus.OK);
+
+		log.info("[UPDATE CUSTOMER] Customer successfully updated. ID={}", response.getId());
+		return ResponseEntity.ok(response);
 	}
 
 	@PostMapping(CUSTOMER.ADD_STORE_TO_CUSTOMER)
+	public ResponseEntity<AddStoreResponseDto> addStoreToCustomer(@RequestParam String storeId) {
+		log.info("[ADD STORE] Adding storeId={} to customer", storeId);
 
-	public ResponseEntity<AddStoreResponseDto> addStoreToCustomer(
-			@RequestParam String storeId
-	) {
 		AddStoreResponseDto responseDto = customerService.addStoreToCustomer(storeId);
+
+		log.info("[ADD STORE] {}", responseDto.getMessage());
 		return ResponseEntity.ok(responseDto);
 	}
 
 	@GetMapping(CUSTOMER.GET_MY_STORES)
 	public ResponseEntity<List<GetMyStoreResponseDto>> getStores() {
-		List<GetMyStoreResponseDto> stores= customerService.getMyStores();
-		return new ResponseEntity<>(stores, HttpStatus.OK);
+		log.info("[GET STORES] Request to fetch stores linked to customer");
+
+		List<GetMyStoreResponseDto> stores = customerService.getMyStores();
+
+		log.info("[GET STORES] {} store(s) fetched successfully", stores.size());
+		return ResponseEntity.ok(stores);
 	}
 
 	@DeleteMapping(CUSTOMER.DELETE_STORE)
-	public ResponseEntity<DeleteStoreResponseDto> deleteStore(
-			@RequestParam Long storekeeperId
-	) {
+	public ResponseEntity<DeleteStoreResponseDto> deleteStore(@RequestParam Long storekeeperId) {
+		log.info("[DELETE STORE] Request to delete storekeeperId={} from customer", storekeeperId);
+
 		DeleteStoreResponseDto result = customerService.deleteStoreFromCustomer(storekeeperId);
-		return new ResponseEntity<>(result, HttpStatus.OK);
+
+		log.info("[DELETE STORE] {}", result.getMessage());
+		return ResponseEntity.ok(result);
 	}
 }

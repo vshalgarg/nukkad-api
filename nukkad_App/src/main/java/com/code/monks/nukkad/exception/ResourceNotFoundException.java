@@ -18,5 +18,12 @@ public class ResourceNotFoundException extends RuntimeException {
 		super(error.getMessage() + id);
 		this.error = error;
 	}
+	public ResourceNotFoundException(ResponseErrorCodes error,String id){
+
+		super(error.getMessage() + id);
+		this.error = error;
+	}
+
+
 
 }

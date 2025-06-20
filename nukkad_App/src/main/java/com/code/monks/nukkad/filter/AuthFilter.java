@@ -26,7 +26,7 @@ public class AuthFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        return path.equals("/send") || path.equals("/verify"); // add other paths as needed
+        return path.equals("/send") || path.equals("/verify");
     }
 
     @Override
@@ -43,7 +43,7 @@ public class AuthFilter extends OncePerRequestFilter {
                 User dummyUser = new User();
                 dummyUser.setId(1L);
                 dummyUser.setMobileNumber("9560121707");
-                dummyUser.setRoles(List.of(RoleEnum.STOREKEEPER));
+                dummyUser.setRoles(List.of(RoleEnum.CUSTOMER));
 
                 UserContextHolder.setUser(dummyUser);
             }

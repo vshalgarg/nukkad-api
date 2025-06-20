@@ -6,10 +6,12 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ResponseErrorCodes {
-	ADDRESS_NOT_FOUND(400,"Address not found with addressId."),
+	ADDRESS_NOT_FOUND(400,"Address not found."),
 	DEFAULT_ADDRESS_CAN_NOT_BE_CHANGE(400,"Default address can not be change."),
+	DEFAULT_ADDRESS_CAN_NOT_BE_DELETE(400,"Default address can not be delete"),
 	CART_ITEM_NOT_FOUND(400,"Cart item not found with id: "),
 	STOREKEEPER_NOT_FOUND(400,"Storekeeper not found with id: "),
+	STOREKEEPER_NOT_FOUND_WITH_STORE_ID(400,"Storekeeper not found with store id: "),
 	CUSTOMER_NOT_FOUND(400,"Customer not found with id: "),
 	ITEM_NOT_FOUND(400,"Item not found with id: "),
 	DUPLICATE_CATEGORY_EXCEPTION(1001, "Category already exists"),
