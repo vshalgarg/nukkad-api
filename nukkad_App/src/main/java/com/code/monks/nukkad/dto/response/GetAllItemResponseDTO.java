@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class GetAllItemResponseDTO {
 
-    private int id;
+    private Long id;
     private String name;
    private List<String> unit;
     private List<String> imageUrls;

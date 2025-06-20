@@ -40,7 +40,7 @@ public class ItemController {
 	}
 
 	@GetMapping(ITEM.GET_BY_ID)
-	public ResponseEntity<CreateItemResponseDTO> getItemById(@PathVariable int id) {
+	public ResponseEntity<CreateItemResponseDTO> getItemById(@PathVariable Long id) {
 		log.info("[GET ITEM BY ID] Fetching item with ID: {}", id);
 		CreateItemResponseDTO item = itemService.getItemById(id);
 		log.info("[GET ITEM BY ID] Found item: {}", item.getName());
@@ -48,7 +48,7 @@ public class ItemController {
 	}
 
 	@PutMapping(ITEM.UPDATE)
-	public ResponseEntity<CreateItemResponseDTO> updateItem(@PathVariable int id, @RequestBody CreateItemRequestDTO dto) {
+	public ResponseEntity<CreateItemResponseDTO> updateItem(@PathVariable Long id, @RequestBody CreateItemRequestDTO dto) {
 		log.info("[UPDATE ITEM] Updating item with ID: {} with data: {}", id, dto);
 		CreateItemResponseDTO updatedItem = itemService.updateItem(id, dto);
 		log.info("[UPDATE ITEM] Updated item with ID: {}", updatedItem.getId());

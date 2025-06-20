@@ -25,9 +25,11 @@ public class CreateStorekeeperResponseDTO {
     private String state;
     private String pincode;
     private RoleEnum role;
+    private String storeId;
 
     public static CreateStorekeeperResponseDTO fromEntity(StorekeeperEntity entity){
         CreateStorekeeperResponseDTO dto = new CreateStorekeeperResponseDTO();
+
         dto.setId(entity.getId());
         dto.setName(entity.getName());
         dto.setStoreName(entity.getStoreName());
@@ -39,7 +41,9 @@ public class CreateStorekeeperResponseDTO {
         dto.setCity(entity.getCity());
         dto.setState(entity.getState());
         dto.setPincode(entity.getPincode());
+        dto.setStoreId(entity.getStoreId());
         dto.setRole(entity.getRole());
+
         return dto;
     }
 }
