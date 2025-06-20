@@ -69,10 +69,15 @@ public static class ADDRESS{
 
 	public static class ORDER
 	{
-		public static final String BASE =CONTEXT +"/api/order";
+		public static final String BASE =CONTEXT +"/api/orders";
 		public static final String CREATE = "/v1/create";
-		public static final String GET_ALL = "/v1/orders/status";
-		public static final String GET_BY_TRACKING = "/v1/fetch/order/fetch";
+		public static final String GET_ALL_STATUS = "/v1/order/status";
+//		public static final String GET_ALL_ORDER_BY_ID ="/v1/order/orderById/{id}";
+		public static final String GET_ORDER_BY_STOREKEEPER ="/v1/order/{storeKeeperId}";
+		public static final String GET_ORDER_BY_CUSTOMER ="/v1/order/by-customer/{customerId}";
+		public static final String CANCELLED_ORDER_BY_STOREKEEPER ="/v1/order/cancel/{id}";
+		public static final String UPDATE_STATUS = "/v1/order/updateByStatus/{id}";
+		public static final String ORDER_HISTORY ="/v1/order/history";
 	}
 
 	public static class CART_ITEM{
