@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name="orders")
@@ -15,8 +18,8 @@ public class OrderEntity extends BaseEntity
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name ="cart_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cart_id", nullable = false)
     private CartItemEntity cart;
 
     @ManyToOne
@@ -33,6 +36,5 @@ public class OrderEntity extends BaseEntity
 
    @Convert(converter = StatusConverter.class)
     private Status status;
-
 
 }

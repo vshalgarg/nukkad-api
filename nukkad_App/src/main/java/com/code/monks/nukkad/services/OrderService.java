@@ -1,27 +1,32 @@
 package com.code.monks.nukkad.services;
 
 import com.code.monks.nukkad.dto.request.OrderRequestDTO;
+import com.code.monks.nukkad.dto.response.CreateCustomerOrderResponseDTO;
 import com.code.monks.nukkad.dto.response.CreateOrderHistoryResponseDTO;
+import com.code.monks.nukkad.dto.response.CreateStoreKeeperOrderResponseDTO;
 import com.code.monks.nukkad.dto.response.OrderResponseDTO;
 import com.code.monks.nukkad.entities.AddressEntity;
-import com.code.monks.nukkad.entities.CustomerEntity;
 import com.code.monks.nukkad.entities.OrderEntity;
+import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.enums.Status;
 import com.code.monks.nukkad.exception.OrderNotFoundException;
 import com.code.monks.nukkad.repositories.AddressRepository;
 import com.code.monks.nukkad.repositories.CustomerRepository;
 import com.code.monks.nukkad.repositories.OrderRepository;
+import com.code.monks.nukkad.repositories.StorekeeperRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.PropertyValues;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 @Slf4j
@@ -30,12 +35,14 @@ public class OrderService {  // placeOrderService
     private final OrderRepository orderRepository;
     private final AddressRepository addressRepository;
     private final CustomerRepository customerRepository;
+    private final StorekeeperRepository storekeeperRepository;
 
 
-    public OrderService(OrderRepository orderRepository, AddressRepository addressRepository, CustomerRepository customerRepository) {
+    public OrderService(OrderRepository orderRepository, AddressRepository addressRepository, CustomerRepository customerRepository, StorekeeperRepository storekeeperRepository) {
         this.orderRepository = orderRepository;
         this.addressRepository = addressRepository;
         this.customerRepository = customerRepository;
+        this.storekeeperRepository = storekeeperRepository;
     }
 
     public OrderResponseDTO createOrders(OrderRequestDTO requestDTO) {
@@ -95,26 +102,26 @@ public class OrderService {  // placeOrderService
         }
     }
 
-    public List<OrderResponseDTO> getAllOrderById(long id) {
-        try {
-            List<OrderEntity> orderEntityList = orderRepository.findByCustomerId((long) id);
-
-            if (orderEntityList.isEmpty()) {
-                log.warn("No orders found while fetching by id:{}", id);
-                throw new OrderNotFoundException("No orders found:" + id);
-            }
-
-            List<OrderResponseDTO> responseDTOList = new ArrayList<>();
-            for (OrderEntity order : orderEntityList) {
-                responseDTOList.add(OrderResponseDTO.toResponseDTO(order));
-            }
-            log.info("Fetching {} orders with id{}", responseDTOList.size(), id);
-            return responseDTOList;
-        } catch (Exception e) {
-            log.error("Error while fetching orders with id{} : {}", id, e.getMessage());
-            throw new RuntimeException("Failed to fetch order by id", e);
-        }
-    }
+//    public List<OrderResponseDTO> getAllOrderById(long id) {
+//        try {
+//            List<OrderEntity> orderEntityList = orderRepository.findByCustomerId((long) id);
+//
+//            if (orderEntityList.isEmpty()) {
+//                log.warn("No orders found while fetching by id:{}", id);
+//                throw new OrderNotFoundException("No orders found:" + id);
+//            }
+//
+//            List<OrderResponseDTO> responseDTOList = new ArrayList<>();
+//            for (OrderEntity order : orderEntityList) {
+//                responseDTOList.add(OrderResponseDTO.toResponseDTO(order));
+//            }
+//            log.info("Fetching {} orders with id{}", responseDTOList.size(), id);
+//            return responseDTOList;
+//        } catch (Exception e) {
+//            log.error("Error while fetching orders with id{} : {}", id, e.getMessage());
+//            throw new RuntimeException("Failed to fetch order by id", e);
+//        }
+//    }
 
     public OrderResponseDTO cancelOrderByStoreKeeper(Long id, String storeKeeperId) {
         log.info("StoreKeeper [{}] requested to cancel order Id:{}", storeKeeperId, id);
@@ -180,12 +187,13 @@ public class OrderService {  // placeOrderService
         }
     }
     public List<CreateOrderHistoryResponseDTO> getOrderHistory(String statuss, LocalDate date) {
-        log.info("Fetching orders with status: {} and date: {}", statuss, date);
+        log.info("Request received: Fetching orders with status='{}' and date='{}'", statuss, date);
 
         Status status;
         try {
             status = Status.valueOf(statuss.toUpperCase());
         } catch (IllegalArgumentException e) {
+            log.warn("Invalid order status received: '{}'", statuss);
             throw new IllegalArgumentException("Invalid status: " + statuss);
         }
 
@@ -195,27 +203,53 @@ public class OrderService {  // placeOrderService
         List<OrderEntity> orderEntities = orderRepository.findByStatusAndCreatedAtBetween(status, start, end);
 
         if (orderEntities.isEmpty()) {
+            log.warn("No orders found with status='{}' on date='{}'", status, date);
             throw new OrderNotFoundException("No orders found with status: " + statuss + " on " + date);
         }
+        log.info("Found {} order(s) with status='{}' on date='{}'", orderEntities.size(), status, date);
 
         return orderEntities.stream()
                 .map(CreateOrderHistoryResponseDTO::fromEntity)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
+
+    public List<CreateCustomerOrderResponseDTO> getOrdersByStorekeeperId(Long storeKeeperId) {
+        log.info("Fetching orders for storeKeeperId={}", storeKeeperId);
+
+        List<OrderEntity> orders = orderRepository.findByStoreKeeperId(storeKeeperId);
+
+        // if toEntity() is static
+        if (orders.isEmpty()) {
+            log.warn("No orders found for storeKeeperId={}", storeKeeperId);
+            throw new OrderNotFoundException("No orders found for storeKeeper ID: " + storeKeeperId);
+        }
+
+        List<CreateCustomerOrderResponseDTO> responseDTOs = orders.stream()
+                .map(CreateCustomerOrderResponseDTO::toEntity) // Assuming static mapper
+                .toList();
+
+        log.info("Returning {} order(s) for storeKeeperId={}", responseDTOs.size(), storeKeeperId);
+        return responseDTOs;
+    }
+    public List<CreateStoreKeeperOrderResponseDTO> getStoreKeeperInfoByCustomerId(Long customerId)
+    {
+        log.info("Fetching storekeeper info for customerId={}", customerId);
+
+        List<OrderEntity> order = orderRepository.findByCustomerId(customerId);
+
+        if (order.isEmpty()) {
+            log.warn("No storekeeper orders found for customerId={}", customerId);
+            throw new OrderNotFoundException("No orders found for customer ID: " + customerId);
+        }
+
+        List<CreateStoreKeeperOrderResponseDTO> responseDTOs = order.stream()
+                .map(CreateStoreKeeperOrderResponseDTO::toEntity)
+                .toList();
+
+        log.info("Returning {} order(s) for customerId={}", responseDTOs.size(), customerId);
+        return responseDTOs;
+    }
+
 }
 
-
-//
-//    public OrderResponseDTO getOrderById(int id) {
-//        try {
-//            OrderEntity orderEntity = orderRepository.findById(id)
-//                    .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + id));
-//            return OrderResponseDTO.toResponseDTO(orderEntity);
-//        } catch (OrderNotFoundException e) {
-//            throw e; // handled by global handler
-//        } catch (Exception e) {
-//            log.error("Failed to fetch order by ID: {}", id, e);
-//            throw new RuntimeException("Failed to fetch order by ID: " + id, e);
-//        }
-//    }
 
