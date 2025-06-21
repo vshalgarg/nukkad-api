@@ -25,92 +25,92 @@ public class AddressService {
     private final AddressRepository addressRepository;
 
     public AddressResponseDTO createAddress(CreateAddressRequestDTO request) {
-        Long userId = UserContextHolder.getUser().getId();
-        log.info("Creating address for userId={}", userId);
+        Long customerId = UserContextHolder.getUser().getId();
+        log.info("Creating address for userId={}", customerId);
 
         AddressEntity address = CreateAddressRequestDTO.toEntity(request);
-        address.setUserId(userId);
+        address.setCustomerId(customerId);
 
         AddressEntity saved = addressRepository.save(address);
-        log.info("Address created successfully. AddressId={}, userId={}", saved.getId(), userId);
+        log.info("Address created successfully. AddressId={}, userId={}", saved.getId(), customerId);
 
         return AddressResponseDTO.fromEntity(saved);
     }
 
     public AddressResponseDTO updateAddress(Long id, UpdateAddressRequestDTO request) {
-        Long userId = UserContextHolder.getUser().getId();
-        log.info("Attempting to update addressId={} for userId={}", id, userId);
+        Long customerId = UserContextHolder.getUser().getId();
+        log.info("Attempting to update addressId={} for userId={}", id, customerId);
 
         AddressEntity address = addressRepository.findById(id)
-                .filter(a -> a.getUserId().equals(userId))
+                .filter(a -> a.getCustomerId().equals(customerId))
                 .orElseThrow(() -> {
-                    log.warn("Address not found or access denied. addressId={}, userId={}", id, userId);
+                    log.warn("Address not found or access denied. addressId={}, userId={}", id, customerId);
                     return new ResourceNotFoundException(ADDRESS_NOT_FOUND);
                 });
 
         if (Boolean.TRUE.equals(address.getIsDefault())) {
-            log.warn("Update not allowed on default address. addressId={}, userId={}", id, userId);
+            log.warn("Update not allowed on default address. addressId={}, userId={}", id, customerId);
             throw new DefaultAddressUpdateNotAllowedException(DEFAULT_ADDRESS_CAN_NOT_BE_CHANGE);
         }
 
         UpdateAddressRequestDTO.updateEntity(address, request);
         AddressEntity updated = addressRepository.save(address);
-        log.info("Address updated successfully. addressId={}, userId={}", updated.getId(), userId);
+        log.info("Address updated successfully. addressId={}, userId={}", updated.getId(), customerId);
 
         return AddressResponseDTO.fromEntity(updated);
     }
 
     public List<AddressResponseDTO> getAllAddresses() {
-        Long userId = UserContextHolder.getUser().getId();
-        log.info("Fetching all addresses for userId={}", userId);
+        Long customerId = UserContextHolder.getUser().getId();
+        log.info("Fetching all addresses for userId={}", customerId);
 
-        List<AddressResponseDTO> addresses = addressRepository.findByUserId(userId).stream()
+        List<AddressResponseDTO> addresses = addressRepository.findByCustomerId(customerId).stream()
                 .map(AddressResponseDTO::fromEntity)
                 .collect(Collectors.toList());
 
-        log.info("Found {} address(es) for userId={}", addresses.size(), userId);
+        log.info("Found {} address(es) for userId={}", addresses.size(), customerId);
         return addresses;
     }
 
     public void markAsDefault(Long addressId) {
-        Long userId = UserContextHolder.getUser().getId();
-        log.info("Marking addressId={} as default for userId={}", addressId, userId);
+        Long customerId = UserContextHolder.getUser().getId();
+        log.info("Marking addressId={} as default for userId={}", addressId, customerId);
 
-        AddressEntity targetAddress = addressRepository.findByIdAndUserId(addressId, userId)
+        AddressEntity targetAddress = addressRepository.findByIdAndCustomerId(addressId, customerId)
                 .orElseThrow(() -> {
-                    log.warn("Address not found or access denied during markAsDefault. addressId={}, userId={}", addressId, userId);
+                    log.warn("Address not found or access denied during markAsDefault. addressId={}, userId={}", addressId, customerId);
                     return new ResourceNotFoundException(ADDRESS_NOT_FOUND);
                 });
 
-        addressRepository.findByUserIdAndIsDefaultTrue(userId).ifPresent(existingDefault -> {
+        addressRepository.findByCustomerIdAndIsDefaultTrue(customerId).ifPresent(existingDefault -> {
             if (!existingDefault.getId().equals(targetAddress.getId())) {
                 existingDefault.setIsDefault(false);
                 addressRepository.save(existingDefault);
-                log.info("Previous default address unset. addressId={}, userId={}", existingDefault.getId(), userId);
+                log.info("Previous default address unset. addressId={}, userId={}", existingDefault.getId(), customerId);
             }
         });
 
         targetAddress.setIsDefault(true);
         addressRepository.save(targetAddress);
-        log.info("Address marked as default successfully. addressId={}, userId={}", addressId, userId);
+        log.info("Address marked as default successfully. addressId={}, userId={}", addressId, customerId);
     }
 
     public void deleteAddress(Long addressId) {
-        Long userId = UserContextHolder.getUser().getId();
-        log.info("Attempting to delete addressId={} for userId={}", addressId, userId);
+        Long customerId = UserContextHolder.getUser().getId();
+        log.info("Attempting to delete addressId={} for userId={}", addressId, customerId);
 
-        AddressEntity address = addressRepository.findByIdAndUserId(addressId, userId)
+        AddressEntity address = addressRepository.findByIdAndCustomerId(addressId, customerId)
                 .orElseThrow(() -> {
-                    log.warn("Address not found or access denied during delete. addressId={}, userId={}", addressId, userId);
+                    log.warn("Address not found or access denied during delete. addressId={}, userId={}", addressId, customerId);
                     return new ResourceNotFoundException(ADDRESS_NOT_FOUND);
                 });
 
         if (Boolean.TRUE.equals(address.getIsDefault())) {
-            log.warn("Cannot delete default address. addressId={}, userId={}", addressId, userId);
+            log.warn("Cannot delete default address. addressId={}, userId={}", addressId, customerId);
             throw new AccessDeniedException(DEFAULT_ADDRESS_CAN_NOT_BE_DELETE);
         }
 
         addressRepository.delete(address);
-        log.info("Address deleted successfully. addressId={}, userId={}", addressId, userId);
+        log.info("Address deleted successfully. addressId={}, userId={}", addressId, customerId);
     }
 }

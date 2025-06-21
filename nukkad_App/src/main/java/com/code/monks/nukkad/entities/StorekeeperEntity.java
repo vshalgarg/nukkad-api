@@ -26,8 +26,8 @@ public class StorekeeperEntity extends UserEntity{
 	@Column(name = "store_name")
 	private String storeName;
 
-	@Column(name = "contact_number")
-	private String contactNumber;
+	@Column(name = "mobile_number")
+	private String mobileNumber;
 
 	@Column(name = "gst_in")
 	private String gstIn;

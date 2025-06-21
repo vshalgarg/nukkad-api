@@ -8,11 +8,15 @@ public class UrlConstants {
 	public static class CATEGORY {
 
 		public static final String BASE = CONTEXT + "/api/category";
-		public static final String CREATE = "/v1/create";
-		public static final String GET_ALL = "/v1/get";
 
+		public static final String CREATE = "/v1/create";
+		public static final String UPDATE = "/v1/update";
+		public static final String GET_ALL = "/v1/get";
+		public static final String GET_BY_ID = "/v1/get/{id}";
 	}
- public static class ITEM{
+
+
+	public static class ITEM{
 
 		public static final String BASE = CONTEXT + "/api/item";
 		public static final String CREATE = "/v1/create";

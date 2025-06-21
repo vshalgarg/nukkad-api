@@ -32,7 +32,7 @@ public class CreateStoreKeeperOrderResponseDTO {
         if (entity.getStoreKeeper() != null) {
             responseDTO.setStoreKeeperId(entity.getStoreKeeper().getId());
             responseDTO.setStoreName(entity.getStoreKeeper().getName());
-            responseDTO.setContactNumber(entity.getStoreKeeper().getContactNumber());
+            responseDTO.setContactNumber(entity.getStoreKeeper().getMobileNumber());
         }
 
         if (entity.getDeliveryAddress() != null) {
@@ -48,7 +48,7 @@ public class CreateStoreKeeperOrderResponseDTO {
 //            for(int i =0;i<order.getCart().getItem().)
             {
                 ItemDetailsDto itemDetailsDto = new ItemDetailsDto();
-                itemDetailsDto.setItemId(entity.getCart().getItem().getId());
+                itemDetailsDto.setItemId(Math.toIntExact(entity.getCart().getItem().getId()));
                 itemDetailsDto.setItemName(entity.getCart().getItem().getName());
                 itemDetailsDto.setUnit(entity.getCart().getItem().getUnit());
                 itemsDetails.add(itemDetailsDto);

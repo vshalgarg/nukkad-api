@@ -11,7 +11,7 @@ public class GetMyStoreResponseDto {
     private Long id;
     private String name;
     private String storeName;
-    private String contactNumber;
+    private String mobileNumber;
     private String gstIn;
     private String addressLine1;
     private String addressLine2;

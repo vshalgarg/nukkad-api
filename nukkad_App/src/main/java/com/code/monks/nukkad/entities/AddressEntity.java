@@ -36,8 +36,8 @@ public class AddressEntity extends BaseEntity {
     @Column(name = "pincode")
     private String pincode;
 
-    @Column(name = "user_id")
-    private Long userId;
+    @Column(name = "customer_id")
+    private Long customerId;
 
     @Column(name = "is_default",nullable = false)
     private Boolean isDefault = false;

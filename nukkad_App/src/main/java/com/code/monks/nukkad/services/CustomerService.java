@@ -40,10 +40,12 @@ public class CustomerService {
 		}
 
 		Long customerId = UserContextHolder.getUser().getId();
-		log.info("[CREATE CUSTOMER] Creating new customer profile for customerId={}", customerId);
+		String mobileNumber = UserContextHolder.getUser().getMobileNumber();
+		log.info("[CREATE CUSTOMER] Creating new customer profile for customerId={} and mobileNumber={}", customerId,mobileNumber);
 
 		CustomerEntity customer = CreateCustomerRequestDTO.toEntity(dto);
 		customer.setId(customerId);
+		customer.setMobileNumber(mobileNumber);
 		CustomerEntity saved = customerRepository.save(customer);
 
 		log.info("[CREATE CUSTOMER] Saving default address for customerId={}", saved.getId());
@@ -55,7 +57,7 @@ public class CustomerService {
 		address.setCity(dto.getCity());
 		address.setState(dto.getState());
 		address.setPincode(dto.getPincode());
-		address.setUserId(saved.getId());
+		address.setCustomerId(saved.getId());
 		address.setIsDefault(true);
 
 		addressRepository.save(address);
@@ -134,7 +136,7 @@ public class CustomerService {
 						.id(storekeeper.getId())
 						.name(storekeeper.getName())
 						.storeName(storekeeper.getStoreName())
-						.contactNumber(storekeeper.getContactNumber())
+						.mobileNumber(storekeeper.getMobileNumber())
 						.gstIn(storekeeper.getGstIn())
 						.addressLine1(storekeeper.getAddressLine1())
 						.addressLine2(storekeeper.getAddressLine2())

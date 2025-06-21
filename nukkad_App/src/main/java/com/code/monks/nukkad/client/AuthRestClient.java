@@ -9,6 +9,7 @@ import com.code.monks.nukkad.auth.response.AuthVerifyOtpResponseDTO;
 import com.code.monks.nukkad.dto.User;
 import com.code.monks.nukkad.dto.request.SendOtpRequestDTO;
 import com.code.monks.nukkad.dto.request.VerifyRequestDTO;
+import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.exception.ExternalServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -98,6 +102,20 @@ public class AuthRestClient {
 			User user = new User();
 			user.setId(authResponse.getUserId());
 			user.setMobileNumber(authResponse.getUsername());
+			List<RoleEnum> roleEnums = authResponse.getRoles().stream()
+					.map(roleStr ->  {
+						try {
+							String cleanRole = roleStr.replaceFirst("^ROLE_", ""); // remove prefix if present
+							return RoleEnum.valueOf(cleanRole.toUpperCase());
+						} catch (IllegalArgumentException e) {
+							log.warn("[TOKEN VALIDATION] Unknown role string received: '{}'", roleStr);
+							return null; // filter it out later
+						}
+					})
+					.filter(Objects::nonNull)
+					.collect(Collectors.toList());
+
+			user.setRoles(roleEnums);
 
 			log.info("[TOKEN VALIDATION] Token validated. User ID: {}, Mobile: {}", user.getId(), user.getMobileNumber());
 			return user;

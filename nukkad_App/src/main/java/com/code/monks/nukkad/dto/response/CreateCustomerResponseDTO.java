@@ -16,7 +16,7 @@ public class CreateCustomerResponseDTO {
 	private String name;
 	private String email;
 	private String dob;
-	private RoleEnum role;
+	private String mobileNumber;
 
 	public static CreateCustomerResponseDTO fromEntity(CustomerEntity customer) {
 		CreateCustomerResponseDTO customerResponseDTO = new CreateCustomerResponseDTO();
@@ -24,7 +24,7 @@ public class CreateCustomerResponseDTO {
 		customerResponseDTO.setName(customer.getName());
 		customerResponseDTO.setEmail(customer.getEmail());
 		customerResponseDTO.setDob(customer.getDob());
-		customerResponseDTO.setRole(customer.getRole());
+		customerResponseDTO.setMobileNumber(customer.getMobileNumber());
 
 		return customerResponseDTO;
 

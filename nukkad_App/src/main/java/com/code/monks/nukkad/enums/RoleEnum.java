@@ -6,7 +6,8 @@ import lombok.Getter;
 public enum RoleEnum {
 
     CUSTOMER(1) ,
-    STOREKEEPER(2);
+    STOREKEEPER(2),
+    ADMIN(3);
 
     private final int code;
 

@@ -57,7 +57,7 @@ public class CreateOrderHistoryResponseDTO {
         if (order.getStoreKeeper() != null) {
             dto.setStoreKeeperId(order.getStoreKeeper().getId());
             dto.setStoreKeeperName(order.getStoreKeeper().getName());
-            dto.setContactNumber(order.getStoreKeeper().getContactNumber());
+            dto.setContactNumber(order.getStoreKeeper().getMobileNumber());
         }
 
         dto.setStatus(order.getStatus());
@@ -68,7 +68,7 @@ public class CreateOrderHistoryResponseDTO {
 //            for(int i =0;i<order.getCart().getItem().)
             {
                 ItemDetailsDto itemDetailsDto = new ItemDetailsDto();
-                itemDetailsDto.setItemId(order.getCart().getItem().getId());
+                itemDetailsDto.setItemId(Math.toIntExact(order.getCart().getItem().getId()));
                 itemDetailsDto.setItemName(order.getCart().getItem().getName());
                 itemDetailsDto.setUnit(order.getCart().getItem().getUnit());
                 itemsDetails.add(itemDetailsDto);

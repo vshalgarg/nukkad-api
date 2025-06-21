@@ -40,7 +40,7 @@ public class SearchService {
             log.debug("Found {} categories and {} items for keyword '{}'", dbCategories.size(), dbItems.size(), keyword);
 
             List<CreateCategoryResponseDTO> categoryDTOs = dbCategories.stream()
-                    .map(CreateCategoryResponseDTO::fromDbDto)
+                    .map(CreateCategoryResponseDTO::fromEntity)
                     .toList();
 
             List<CreateItemResponseDTO> itemDTOs = dbItems.stream()

@@ -5,6 +5,7 @@ import com.code.monks.nukkad.dto.request.VerifyRequestDTO;
 import com.code.monks.nukkad.dto.response.SendOtpResponseDTO;
 import com.code.monks.nukkad.dto.response.VerifyResponseDTO;
 import com.code.monks.nukkad.services.OtpService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ public class OtpController {
 	private final OtpService otpService;
 
 	@PostMapping(OTP.SENDOTP)
-	public ResponseEntity<SendOtpResponseDTO> sendOtp(@RequestBody SendOtpRequestDTO request) {
+	public ResponseEntity<SendOtpResponseDTO> sendOtp(@Valid  @RequestBody SendOtpRequestDTO request) {
 		log.info("[SEND OTP] Request received for mobile: {}", request.getMobileNumber());
 
 		SendOtpResponseDTO response = otpService.sendOtp(request);

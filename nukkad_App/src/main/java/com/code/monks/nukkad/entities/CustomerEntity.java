@@ -28,6 +28,10 @@ public class CustomerEntity extends UserEntity {
     @Column(name = "dob")
     private String dob;
 
+    @Column(name = "mobile_number")
+    private String mobileNumber;
+
+
     @Override
     public RoleEnum getRole(){
         return RoleEnum.CUSTOMER;
@@ -41,7 +45,7 @@ public class CustomerEntity extends UserEntity {
     )
     private List<StorekeeperEntity> storekeepers = new ArrayList<>();
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @JoinColumn(name = "customer_id", referencedColumnName = "id", insertable = false, updatable = false)
     private List<AddressEntity> addresses = new ArrayList<>();
 
 }

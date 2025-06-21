@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,8 +13,7 @@ import java.util.List;
 @Entity
 @Table(name="orders")
 @Data
-public class OrderEntity extends BaseEntity
-{
+public class OrderEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -36,5 +36,9 @@ public class OrderEntity extends BaseEntity
 
    @Convert(converter = StatusConverter.class)
     private Status status;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
 
 }
