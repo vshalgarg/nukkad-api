@@ -1,12 +1,14 @@
 package com.code.monks.nukkad.entities;
 
+import com.code.monks.nukkad.enums.RoleEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.NaturalId;
 
-import java.util.List;
+
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "storekeeper")
@@ -14,15 +16,18 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class StorekeeperEntity extends UserEntity{
+	@Id
+	@Column(name = "id")
+    private Long id;
+
+	@Column(name = "name")
+	private String name;
 
 	@Column(name = "store_name")
 	private String storeName;
 
-	@Column(name = "store_number")
-	private String storeNumber;
-
-	@Column(name = "contact_number")
-	private String contactNumber;
+	@Column(name = "mobile_number")
+	private String mobileNumber;
 
 	@Column(name = "gst_in")
 	private String gstIn;
@@ -33,6 +38,9 @@ public class StorekeeperEntity extends UserEntity{
 	@Column(name = "address_line2")
 	private String addressLine2;
 
+	@Column(name = "landmark")
+	private String landmark;
+
 	@Column(name = "city")
 	private String City;
 
@@ -42,5 +50,13 @@ public class StorekeeperEntity extends UserEntity{
 	@Column(name = "pincode")
 	private String pincode;
 
+	@NaturalId
+	@Column(name = "store_id", unique = true, nullable = false, updatable = false)
+	private String storeId;
+
+	@Override
+	public RoleEnum getRole(){
+		return RoleEnum.STOREKEEPER;
+	}
 
 }

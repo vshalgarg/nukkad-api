@@ -1,21 +1,15 @@
-//package com.code.monks.nukkad.dto.response;
-//
-//import lombok.Data;
-//import lombok.NoArgsConstructor;
-//
-//@Data
-////@AllArgsConstructor
-//@NoArgsConstructor
-//public class VerifyResponseDTO {
-//    private String status;
-//    private String message;
-//
-//    public VerifyResponseDTO(String status,String message)
-//    {
-//        this.status= status;
-//        this.message=message;
-//    }
-//
-//    public VerifyResponseDTO(boolean b, String message) {
-//    }
-//}
+package com.code.monks.nukkad.dto.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+@AllArgsConstructor
+public class VerifyResponseDTO {
+    private Long userId;
+    private String phoneNumber;
+    private List<String> roles;
+    private String token;
+}

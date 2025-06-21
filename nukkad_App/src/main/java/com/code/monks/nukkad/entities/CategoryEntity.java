@@ -19,6 +19,4 @@ public class CategoryEntity extends BaseEntity {
 	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "image_id" , referencedColumnName = "id")
 	private ImageEntity image;
-
-
 }

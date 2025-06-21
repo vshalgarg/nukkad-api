@@ -1,33 +1,31 @@
-//package com.code.monks.nukkad.dto.response;
-//
-//import com.code.monks.nukkad.entities.OrderEntity;
-//import com.code.monks.nukkad.enums.StatusEnum;
-//import lombok.Data;
-//
-//import java.time.LocalDateTime;
-//
-//@Data
-//public class OrderResponseDTO {
-//
-//    private Long id;
-//    private Long userId;
-//    private String trackingNumber;
-//    private int orderCount;
-//    private LocalDateTime orderDate;
-//    private Long shopKeeperId;
-//    private StatusEnum statusOrderEnum;
-//
-//    public static OrderResponseDTO toResponseDTO(OrderEntity entity) {
-//        OrderResponseDTO responseDTO = new OrderResponseDTO();
-//        responseDTO.setOrderCount(entity.getOrderCount());
-//        responseDTO.setId((long)entity.getId());
-//        responseDTO.setUserId(entity.getUserId());
-//        responseDTO.setTrackingNumber(entity.getTrackingNumber());
-//        responseDTO.setOrderDate(entity.getOrderDate());
-//        responseDTO.setShopKeeperId(entity.getShopKeeperId());
-//        responseDTO.setStatusOrderEnum(entity.getStatusEnum());
-//
-//        return responseDTO;
-//    }
-//
-//}
+package com.code.monks.nukkad.dto.response;
+
+import com.code.monks.nukkad.entities.CartItemEntity;
+import com.code.monks.nukkad.entities.OrderEntity;
+import com.code.monks.nukkad.enums.Status;
+import lombok.Data;
+
+@Data
+public class OrderResponseDTO {
+
+    private Long id;
+    private Long cart;
+    private Long customer;
+    private Long deliveryAddress;
+    private Long storeKeeper;
+    private Status status;
+
+    public static OrderResponseDTO toResponseDTO(OrderEntity entity) {
+        CartItemEntity cartItemEntity = entity.getCart();
+
+        OrderResponseDTO responseDTO = new OrderResponseDTO();
+        responseDTO.setId(entity.getId());
+        responseDTO.setCart((entity.getCart().getId()));
+        responseDTO.setCustomer(entity.getCustomer().getId());
+        responseDTO.setDeliveryAddress(entity.getDeliveryAddress().getId());
+        responseDTO.setStoreKeeper(entity.getStoreKeeper().getId());
+//        responseDTO.
+        responseDTO.setStatus(entity.getStatus());
+        return responseDTO;
+    }
+}

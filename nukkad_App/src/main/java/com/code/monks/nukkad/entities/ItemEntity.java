@@ -1,5 +1,7 @@
 package com.code.monks.nukkad.entities;
 
+import com.code.monks.nukkad.converter.UnitEnumConverter;
+import com.code.monks.nukkad.enums.UnitEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,13 +17,14 @@ public class ItemEntity extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
-	private int id;
+	private Long id;
 
 	@Column(name = "name")
 	private String name;
 
-	@Column(name = "unit")
-	private String unit;
+	@Convert(converter = UnitEnumConverter.class)
+	@Column(name  = "unit")
+	private UnitEnum unit;
 
 	@OneToMany( mappedBy = "item", cascade = CascadeType.ALL)
 	private List<ImageEntity> images = new ArrayList<>();

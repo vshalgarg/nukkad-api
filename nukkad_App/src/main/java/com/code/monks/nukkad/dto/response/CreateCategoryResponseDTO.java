@@ -12,11 +12,10 @@ public class CreateCategoryResponseDTO {
 	private String name;
 	private String imageUrl;
 
-	public static CreateCategoryResponseDTO fromDbDto(CategoryEntity entity) {
+	public static CreateCategoryResponseDTO fromEntity(CategoryEntity entity) {
 		return new CreateCategoryResponseDTO(
 				entity.getId(),
 				entity.getName(),
 				entity.getImage() != null ? entity.getImage().getImageUrl(): null);
 	}
-
 }

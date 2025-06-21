@@ -3,9 +3,11 @@ package com.code.monks.nukkad.dto.response;
 import com.code.monks.nukkad.entities.CategoryEntity;
 import com.code.monks.nukkad.entities.ImageEntity;
 import com.code.monks.nukkad.entities.ItemEntity;
+import com.code.monks.nukkad.enums.UnitEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,13 +15,16 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class GetAllItemResponseDTO {
 
-    private int id;
+    private Long id;
     private String name;
-    private String unit;
+   private List<String> unit;
     private List<String> imageUrls;
     private List<Integer> categoryIds;
 
     public static GetAllItemResponseDTO fromEntity(ItemEntity itemEntity) {
+        UnitEnum unitEnum = itemEntity.getUnit();
+
+
         List<Integer> categoryIds = itemEntity.getCategories()
                 .stream()
                 .map(CategoryEntity::getId)
@@ -33,7 +38,7 @@ public class GetAllItemResponseDTO {
         return new GetAllItemResponseDTO(
                 itemEntity.getId(),
                 itemEntity.getName(),
-                itemEntity.getUnit(),
+                Arrays.asList(unitEnum.getUnits()),
                 imageUrls,
                 categoryIds
         );

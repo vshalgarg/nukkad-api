@@ -20,20 +20,17 @@ public class CreateStorekeeperRequestDTO {
 	@NotBlank(message = "Store name is mandatory")
     private String storeName;
 
-	@NotBlank(message = "Store number is mandatory")
-	private String storeNumber;
-
-	@NotBlank(message = " Contact number is mandatory")
-	private String contactNumber;
-
 	@NotBlank(message = "GST_IN is mandatory")
 	private String gstIn;
 
 	@NotBlank(message = "Address Line 1 is mandatory")
 	private String addressLine1;
 
-	@NotBlank(message = "Address Line 2 is mandatory")
+
 	private String addressLine2;
+
+	@NotBlank(message = "Landmark is mandatory")
+	private String landmark;
 
 	@NotBlank(message = "City is mandatory")
 	private String city;
@@ -50,15 +47,14 @@ public class CreateStorekeeperRequestDTO {
 
 		storekeeper.setName(dto.getName());
 		storekeeper.setStoreName(dto.getStoreName());
-		storekeeper.setStoreNumber(dto.getStoreNumber());
-		storekeeper.setContactNumber(dto.getContactNumber());
 		storekeeper.setGstIn(dto.getGstIn());
 		storekeeper.setAddressLine1(dto.getAddressLine1());
 		storekeeper.setAddressLine2(dto.getAddressLine2());
+		storekeeper.setLandmark(dto.getLandmark());
 		storekeeper.setCity(dto.getCity());
 		storekeeper.setState(dto.getState());
 		storekeeper.setPincode(dto.getPincode());
-		storekeeper.setRole(RoleEnum.STOREKEEPER);
+
 		return storekeeper;
 
 	}

@@ -12,11 +12,10 @@ public class GetAllCategoryResponseDTO {
 	private String name;
 	private String imageUrl;
 
-	public static GetAllCategoryResponseDTO fromDbDto(CategoryEntity entity) {
+	public static GetAllCategoryResponseDTO fromEntity(CategoryEntity entity) {
 		return new GetAllCategoryResponseDTO(
 				entity.getId(),
 				entity.getName(),
 				entity.getImage() != null ? entity.getImage().getImageUrl() : null );
 	}
-
 }
