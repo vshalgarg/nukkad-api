@@ -1,0 +1,82 @@
+pipeline {
+	agent any
+
+    environment {
+        IMAGE_NAME = "vshalgargnpl/nukkad-api"
+        TAG = "latest"
+        CONTAINER_NAME = "nukkad-api"
+        PORT_MAPPING = "8084:8084"  // host:container
+        REGISTRY = "index.docker.io/v1/"
+    }
+
+    parameters {
+        string(name: 'BRANCH_NAME', defaultValue: 'dev', description: 'Branch to build')
+    }
+
+    stages {
+     	stage('Checkout') {
+            steps {
+             	echo 'Checking out from git'
+                git branch: "${params.BRANCH_NAME}",
+                    url: 'git@github.com:vshalgarg/nukkad-api.git'
+            }
+        }
+        stage('Build JAR') {
+            steps {
+            	echo 'Building using maven'
+                sh './mvnw clean package -DskipTests'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                	echo 'Building git repo'
+                    docker.build("${IMAGE_NAME}:${TAG}")
+                }
+            }
+        }
+
+        stage('Push to Registry') {
+            steps {
+                script {
+                	echo 'push to registry'
+                    docker.withRegistry("https://${REGISTRY}", 'docker-credentials-id') {
+                        docker.image("${IMAGE_NAME}:${TAG}").push()
+                    }
+                }
+            }
+        }
+
+        stage('Stop Existing Container') {
+            steps {
+                sh """
+                docker stop ${CONTAINER_NAME} || true
+                docker rm ${CONTAINER_NAME} || true
+                """
+            }
+        }
+
+        stage('Run New Container') {
+            steps {
+            	withCredentials([string(credentialsId: 'NUKKAD_MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD')]) {
+		        sh """
+		        docker run -d --name ${CONTAINER_NAME} -p ${PORT_MAPPING} \
+		        --add-host=host.docker.internal:host-gateway \
+		        --restart unless-stopped \
+		        -e SPRING_PROFILES_ACTIVE=dev \
+		        -e spring.datasource.password=${MYSQL_PASSWORD} \
+		        -v /var/log/hrms-api:/logs \
+		        ${IMAGE_NAME}:${TAG}
+		        """
+	        }
+            }
+        }
+
+	stage('Clean Up') {
+	    steps {
+		sh 'docker image prune -f'
+	    }
+	}
+    }
+}

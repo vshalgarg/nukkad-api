@@ -1,0 +1,44 @@
+package com.code.monks.nukkad.entities;
+import com.code.monks.nukkad.converter.StatusConverter;
+import com.code.monks.nukkad.enums.Status;
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@EqualsAndHashCode(callSuper = true)
+@Entity
+@Table(name="orders")
+@Data
+public class OrderEntity extends BaseEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cart_id", nullable = false)
+    private CartItemEntity cart;
+
+    @ManyToOne
+    @JoinColumn(name ="customer_id")
+    private CustomerEntity customer;
+
+    @ManyToOne
+    @JoinColumn(name ="delivery_address_id")
+    private AddressEntity deliveryAddress;
+
+    @ManyToOne
+    @JoinColumn(name="store_keeper_id")
+    private StorekeeperEntity storeKeeper;
+
+   @Convert(converter = StatusConverter.class)
+    private Status status;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+
+}
