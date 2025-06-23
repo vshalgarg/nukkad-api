@@ -50,9 +50,9 @@ public class StorekeeperEntity extends UserEntity{
 	@Column(name = "pincode")
 	private String pincode;
 
-	@NaturalId
-	@Column(name = "store_id", unique = true, nullable = false, updatable = false)
-	private String storeId;
+//	@NaturalId
+//	@Column(name = "store_id", unique = true, nullable = false, updatable = false)
+//	private String storeId;
 
 	@Override
 	public RoleEnum getRole(){

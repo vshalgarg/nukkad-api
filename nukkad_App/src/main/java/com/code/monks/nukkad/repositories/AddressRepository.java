@@ -10,8 +10,8 @@ import java.util.Optional;
 
 @Repository
 public interface AddressRepository extends JpaRepository<AddressEntity, Long> {
-    List<AddressEntity> findByUserId(Long userId);
-    Optional<AddressEntity> findByIdAndUserId(Long id, Long userId);
+    List<AddressEntity> findByCustomerId(Long customerId);
+    Optional<AddressEntity> findByIdAndCustomerId(Long id, Long customerId);
 
-    Optional<AddressEntity> findByUserIdAndIsDefaultTrue(Long userId);
+    Optional<AddressEntity> findByCustomerIdAndIsDefaultTrue(Long customerId);
 }

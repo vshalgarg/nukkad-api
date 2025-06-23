@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,6 +47,7 @@ public class CustomerService {
 		customer.setId(customerId);
 		CustomerEntity saved = customerRepository.save(customer);
 
+
 		log.info("[CREATE CUSTOMER] Saving default address for customerId={}", saved.getId());
 
 		AddressEntity address = new AddressEntity();
@@ -55,7 +57,7 @@ public class CustomerService {
 		address.setCity(dto.getCity());
 		address.setState(dto.getState());
 		address.setPincode(dto.getPincode());
-		address.setUserId(saved.getId());
+		address.setCustomerId(saved.getId());
 		address.setIsDefault(true);
 
 		addressRepository.save(address);
@@ -89,32 +91,32 @@ public class CustomerService {
 		return CreateCustomerResponseDTO.fromEntity(updated);
 	}
 
-	public AddStoreResponseDto addStoreToCustomer(String storeId) {
-		Long customerId = UserContextHolder.getUser().getId();
-		log.info("[ADD STORE] Adding storeId={} to customerId={}", storeId, customerId);
+//	public AddStoreResponseDto addStoreToCustomer(String storeId) {
+//		Long customerId = UserContextHolder.getUser().getId();
+//		log.info("[ADD STORE] Adding storeId={} to customerId={}", storeId, customerId);
+//
+//		CustomerEntity customer = customerRepository.findById(customerId)
+//				.orElseThrow(() -> {
+//					log.error("[ADD STORE] Customer not found. ID={}", customerId);
+//                    return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
+//				});
+//
+//		StorekeeperEntity storekeeper = storekeeperRepository.findByStoreId(storeId)
+//				.orElseThrow(() -> {
+//					log.error("[ADD STORE] Storekeeper not found with storeId={}", storeId);
+//                    return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND_WITH_STORE_ID, storeId);
+//				});
 
-		CustomerEntity customer = customerRepository.findById(customerId)
-				.orElseThrow(() -> {
-					log.error("[ADD STORE] Customer not found. ID={}", customerId);
-                    return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
-				});
-
-		StorekeeperEntity storekeeper = storekeeperRepository.findByStoreId(storeId)
-				.orElseThrow(() -> {
-					log.error("[ADD STORE] Storekeeper not found with storeId={}", storeId);
-                    return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND_WITH_STORE_ID, storeId);
-				});
-
-		if (!customer.getStorekeepers().contains(storekeeper)) {
-			customer.getStorekeepers().add(storekeeper);
-			customerRepository.save(customer);
-			log.info("[ADD STORE] Store successfully linked to customerId={}", customerId);
-			return new AddStoreResponseDto("Store added to customer.");
-		} else {
-			log.info("[ADD STORE] Store already linked to customerId={}", customerId);
-			return new AddStoreResponseDto("Store already added.");
-		}
-	}
+//		if (!customer.getStorekeepers().contains(storekeeper)) {
+//			customer.getStorekeepers().add(storekeeper);
+//			customerRepository.save(customer);
+//			log.info("[ADD STORE] Store successfully linked to customerId={}", customerId);
+//			return new AddStoreResponseDto("Store added to customer.");
+//		} else {
+//			log.info("[ADD STORE] Store already linked to customerId={}", customerId);
+//			return new AddStoreResponseDto("Store already added.");
+//		}
+//	}
 
 	public List<GetMyStoreResponseDto> getMyStores() {
 		Long customerId = UserContextHolder.getUser().getId();
@@ -142,7 +144,7 @@ public class CustomerService {
 						.city(storekeeper.getCity())
 						.state(storekeeper.getState())
 						.pincode(storekeeper.getPincode())
-						.storeId(storekeeper.getStoreId())
+//						.storeId(storekeeper.getStoreId())
 						.build())
 				.collect(Collectors.toList());
 	}

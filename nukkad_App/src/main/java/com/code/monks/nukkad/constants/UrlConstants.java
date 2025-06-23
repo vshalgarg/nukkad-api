@@ -94,6 +94,11 @@ public static class ADDRESS{
 		public static final String BASE = CONTEXT + "/api/search";
 		public static final String GET = "v1/get";
 	}
+	public static class RATING
+	{
+		public static final String BASE= CONTEXT + "/api/rating";
+		public static final String CREATE ="/v1/create";
+	}
 
 	private UrlConstants() {
 	}

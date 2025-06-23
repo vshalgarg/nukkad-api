@@ -36,12 +36,14 @@ public class CustomerEntity extends UserEntity {
     @ManyToMany
     @JoinTable(
             name = "customer_storekeeper",
-            joinColumns = @JoinColumn(name = "customer_id"),
-            inverseJoinColumns = @JoinColumn(name = "store_id", referencedColumnName = "store_id")
+            joinColumns = @JoinColumn(name = "customer_id")
+//            inverseJoinColumns = @JoinColumn(name = "store_id", referencedColumnName = "store_id")
     )
     private List<StorekeeperEntity> storekeepers = new ArrayList<>();
+
+
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @JoinColumn(name = "customer_id", referencedColumnName = "id", insertable = false, updatable = false)
     private List<AddressEntity> addresses = new ArrayList<>();
 
 }

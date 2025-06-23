@@ -9,6 +9,6 @@ import java.util.Optional;
 @Repository
 public interface StorekeeperRepository extends JpaRepository<StorekeeperEntity, Long> {
 
-    boolean existsByStoreId(String storeId);
-    Optional<StorekeeperEntity> findByStoreId(String storeId);
+//    boolean existsByStoreId(String storeId);
+//    Optional<StorekeeperEntity> findByStoreId(String storeId);
 }

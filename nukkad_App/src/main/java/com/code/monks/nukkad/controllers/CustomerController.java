@@ -45,15 +45,15 @@ public class CustomerController {
 		return ResponseEntity.ok(response);
 	}
 
-	@PostMapping(CUSTOMER.ADD_STORE_TO_CUSTOMER)
-	public ResponseEntity<AddStoreResponseDto> addStoreToCustomer(@RequestParam String storeId) {
-		log.info("[ADD STORE] Adding storeId={} to customer", storeId);
-
-		AddStoreResponseDto responseDto = customerService.addStoreToCustomer(storeId);
-
-		log.info("[ADD STORE] {}", responseDto.getMessage());
-		return ResponseEntity.ok(responseDto);
-	}
+//	@PostMapping(CUSTOMER.ADD_STORE_TO_CUSTOMER)
+//	public ResponseEntity<AddStoreResponseDto> addStoreToCustomer(@RequestParam String storeId) {
+//		log.info("[ADD STORE] Adding storeId={} to customer", storeId);
+//
+//		AddStoreResponseDto responseDto = customerService.addStoreToCustomer(storeId);
+//
+//		log.info("[ADD STORE] {}", responseDto.getMessage());
+//		return ResponseEntity.ok(responseDto);
+//	}
 
 	@GetMapping(CUSTOMER.GET_MY_STORES)
 	public ResponseEntity<List<GetMyStoreResponseDto>> getStores() {

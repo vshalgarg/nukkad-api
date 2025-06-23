@@ -48,7 +48,7 @@ public class CreateStoreKeeperOrderResponseDTO {
 //            for(int i =0;i<order.getCart().getItem().)
             {
                 ItemDetailsDto itemDetailsDto = new ItemDetailsDto();
-                itemDetailsDto.setItemId(entity.getCart().getItem().getId());
+                itemDetailsDto.setItemId(Math.toIntExact(entity.getCart().getItem().getId()));
                 itemDetailsDto.setItemName(entity.getCart().getItem().getName());
                 itemDetailsDto.setUnit(entity.getCart().getItem().getUnit());
                 itemsDetails.add(itemDetailsDto);

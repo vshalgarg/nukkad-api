@@ -26,14 +26,14 @@ public class StorekeeperService {
             log.warn("[CREATE STOREKEEPER] Access denied: User is not a STOREKEEPER");
             throw new AccessDeniedException(ACCESS_DENIED_FOR_CUSTOMER_EXCEPTION);
         }
-        Long userId = UserContextHolder.getUser().getId();
+        Long customerId = UserContextHolder.getUser().getId();
         String mobileNo = UserContextHolder.getUser().getMobileNumber();
-        log.info("[CREATE STOREKEEPER] Creating storekeeper with ID: {}", userId);
+        log.info("[CREATE STOREKEEPER] Creating storekeeper with ID: {}", customerId);
 
-        String storeId = generateUniqueStoreId(mobileNo);
+//        String storeId = generateUniqueStoreId(mobileNo);
         StorekeeperEntity storekeeper = CreateStorekeeperRequestDTO.toEntity(dto);
-        storekeeper.setId(userId);
-        storekeeper.setStoreId(storeId);
+        storekeeper.setId(customerId);
+//        storekeeper.setStoreId(storeId);
 
         StorekeeperEntity saved = storekeeperRepository.save(storekeeper);
         log.info("[CREATE STOREKEEPER] Storekeeper created successfully with ID: {}", saved.getId());
@@ -43,16 +43,16 @@ public class StorekeeperService {
 
     public CreateStorekeeperResponseDTO updateStoreKeeper(CreateStorekeeperRequestDTO dto) {
         if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.STOREKEEPER)) {
-            log.warn("[UPDATE STOREKEEPER] Access denied: User is not a STOREKEEPER");
+            log.warn("[UPDATE STOREKEEPER] Access denied: Customer is not a STOREKEEPER");
             throw new AccessDeniedException(ACCESS_DENIED_FOR_CUSTOMER_EXCEPTION);
         }
-        Long userId = UserContextHolder.getUser().getId();
-        log.info("[UPDATE STOREKEEPER] Updating storekeeper with ID: {}", userId);
+        Long customerId = UserContextHolder.getUser().getId();
+        log.info("[UPDATE STOREKEEPER] Updating storekeeper with ID: {}", customerId);
 
-        StorekeeperEntity storekeeper = storekeeperRepository.findById(userId)
+        StorekeeperEntity storekeeper = storekeeperRepository.findById(customerId)
                 .orElseThrow(() -> {
-                    log.error("[UPDATE STOREKEEPER] Storekeeper not found with ID: {}", userId);
-                    return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND,userId);
+                    log.error("[UPDATE STOREKEEPER] Storekeeper not found with ID: {}", customerId);
+                    return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND,customerId);
                 });
 
         storekeeper.setName(dto.getName());
@@ -71,15 +71,15 @@ public class StorekeeperService {
         return CreateStorekeeperResponseDTO.fromEntity(updated);
     }
 
-    private String generateUniqueStoreId(String mobileNumber) {
-        int suffix = 1;
-        String storeId;
-
-        do {
-            storeId = "STR" + mobileNumber + suffix;
-            suffix++;
-        } while (storekeeperRepository.existsByStoreId(storeId));
-
-        return storeId;
-    }
+//    private String generateUniqueStoreId(String mobileNumber) {
+//        int suffix = 1;
+//        String storeId;
+//
+//        do {
+//            storeId = "STR" + mobileNumber + suffix;
+//            suffix++;
+//        } while (storekeeperRepository.existsByStoreId(storeId));
+//
+//        return storeId;
+//    }
 }

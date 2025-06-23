@@ -43,7 +43,7 @@ public class AuthFilter extends OncePerRequestFilter {
                 User dummyUser = new User();
                 dummyUser.setId(1L);
                 dummyUser.setMobileNumber("9560121707");
-                dummyUser.setRoles(List.of(RoleEnum.CUSTOMER));
+                dummyUser.setRoles(List.of(RoleEnum.STOREKEEPER));
 
                 UserContextHolder.setUser(dummyUser);
             }
