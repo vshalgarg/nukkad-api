@@ -166,6 +166,9 @@ CREATE TABLE rating (
     customer_id BIGINT NOT NULL,
     storekeeper_id BIGINT NOT NULL,
 
+     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
     CONSTRAINT fk_rating_customer FOREIGN KEY (customer_id) REFERENCES customer(id),
     CONSTRAINT fk_rating_storekeeper FOREIGN KEY (storekeeper_id) REFERENCES storekeeper(id),
 
