@@ -1,10 +1,8 @@
 package com.code.monks.nukkad.controllers;
 
 import com.code.monks.nukkad.dto.request.CreateCustomerRequestDTO;
-import com.code.monks.nukkad.dto.response.AddStoreResponseDto;
-import com.code.monks.nukkad.dto.response.CreateCustomerResponseDTO;
-import com.code.monks.nukkad.dto.response.DeleteStoreResponseDto;
-import com.code.monks.nukkad.dto.response.GetMyStoreResponseDto;
+import com.code.monks.nukkad.dto.request.UpdateCustomerRequestDTO;
+import com.code.monks.nukkad.dto.response.*;
 import com.code.monks.nukkad.services.CustomerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,10 +34,10 @@ public class CustomerController {
 	}
 
 	@PutMapping(CUSTOMER.UPDATE)
-	public ResponseEntity<CreateCustomerResponseDTO> updateCustomer(@Valid @RequestBody CreateCustomerRequestDTO dto) {
+	public ResponseEntity<UpdateCustomerResponseDTO> updateCustomer(@Valid @RequestBody UpdateCustomerRequestDTO dto) {
 		log.info("[UPDATE CUSTOMER] Incoming update request: {}", dto);
 
-		CreateCustomerResponseDTO response = customerService.updateCustomer(dto);
+		UpdateCustomerResponseDTO response = customerService.updateCustomer(dto);
 
 		log.info("[UPDATE CUSTOMER] Customer successfully updated. ID={}", response.getId());
 		return ResponseEntity.ok(response);

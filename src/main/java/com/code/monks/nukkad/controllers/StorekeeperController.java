@@ -20,6 +20,7 @@ public class StorekeeperController {
 
     private final StorekeeperService storekeeperService;
 
+
     @PostMapping(STOREKEEPER.CREATE)
     public ResponseEntity<CreateStorekeeperResponseDTO> createStorekeeper(
             @Valid @RequestBody CreateStorekeeperRequestDTO dto) {
