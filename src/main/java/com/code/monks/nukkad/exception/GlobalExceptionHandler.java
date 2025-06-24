@@ -1,20 +1,16 @@
 package com.code.monks.nukkad.exception;
 
-//import com.code.monks.nukkad.exceptionHanlder.OrderNotFoundException;
-import com.code.monks.nukkad.enums.ResponseErrorCodes;
-import com.code.monks.nukkad.exception.OrderNotFoundException;
+
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -88,6 +84,12 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ErrorResponse> handleUnauthorizedAccessException(UnauthorizedAccessException ex){
 		ErrorResponse error = new ErrorResponse(ex.getMessage(),LocalDateTime.now(),HttpStatus.UNAUTHORIZED.value());
 		return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+	}
+
+	@ExceptionHandler(AccessDeniedException.class)
+	public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex){
+		ErrorResponse error = new ErrorResponse(ex.getMessage(),LocalDateTime.now(),HttpStatus.FORBIDDEN.value());
+		return new ResponseEntity<>(error,HttpStatus.FORBIDDEN);
 	}
 
 }

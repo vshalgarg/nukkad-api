@@ -1,6 +1,7 @@
 package com.code.monks.nukkad.dto.response;
 
 import com.code.monks.nukkad.entities.StorekeeperEntity;
+import com.code.monks.nukkad.entities.ImageEntity;
 import com.code.monks.nukkad.enums.RoleEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;

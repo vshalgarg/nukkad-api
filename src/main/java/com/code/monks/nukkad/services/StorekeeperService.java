@@ -12,7 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
+import static com.code.monks.nukkad.enums.ResponseErrorCodes.ACCESS_DENIED_FOR_CUSTOMER_EXCEPTION;
+import static com.code.monks.nukkad.enums.ResponseErrorCodes.STOREKEEPER_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -20,6 +21,7 @@ import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
 public class StorekeeperService {
 
     private final StorekeeperRepository storekeeperRepository;
+
 
     public CreateStorekeeperResponseDTO createStoreKeeper(CreateStorekeeperRequestDTO dto) {
         if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.STOREKEEPER)) {
