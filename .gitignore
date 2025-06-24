@@ -1,3 +1,4 @@
+
 # Ignore Maven target folder
 /target/
 
@@ -10,3 +11,4 @@
 # OS-specific files
 .DS_Store
 Thumbs.db
+
