@@ -54,6 +54,7 @@ public class CreateCustomerRequestDTO {
 		customer.setName(dto.getName());
 		customer.setEmail(dto.getEmail());
 		customer.setDob(dto.getDob());
+//		customer.setMobileNumber(customer.getMobileNumber());
 		return customer;
 	}
 }

@@ -37,12 +37,14 @@ public class   CategoryService {
 
 	public BulkCreateCategoryResponseDTO createBulkCategories(List<CreateCategoryRequestDTO> requestList) {
 		User admin = UserContextHolder.getRequiredUser();
+		log.info("hello");
 		if (!admin.getRoles().contains(RoleEnum.ADMIN)) {
 			log.warn("[CATEGORY BULK CREATE] Access denied: User role does not include ADMIN");
 			throw new AccessDeniedException(ACCESS_DENIED_FOR_ADMIN_EXCEPTION);
 		}
 
 		List<CreateCategoryResponseDTO> responseList = new ArrayList<>();
+
 		for (CreateCategoryRequestDTO dto : requestList) {
 			if (categoryRepository.existsByNameIgnoreCase(dto.getName())) {
 				throw new DuplicateResourceException(DUPLICATE_CATEGORY_EXCEPTION);
@@ -61,7 +63,10 @@ public class   CategoryService {
 			responseList.add(CreateCategoryResponseDTO.fromEntity(saved));
 		}
 
+		log.info("responseList: {}",responseList);
+
 		return new BulkCreateCategoryResponseDTO(responseList);
+
 	}
 
 
@@ -102,6 +107,7 @@ public class   CategoryService {
 		CategoryEntity entity = categoryRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException(CATEGORY_NOT_FOUND, id));
 		return CreateCategoryResponseDTO.fromEntity(entity);
+
 
 	}
 }

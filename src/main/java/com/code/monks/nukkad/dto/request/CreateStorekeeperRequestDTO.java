@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Data
-@NoArgsConstructor
+@NoArgsConstructor	
 @AllArgsConstructor
 public class CreateStorekeeperRequestDTO {
 

@@ -44,9 +44,9 @@ public class AuthFilter extends OncePerRequestFilter {
                 log.warn("[AUTH FILTER] No Authorization header or invalid format. Injecting dummy STOREKEEPER user");
 
                 User dummyUser = new User();
-                dummyUser.setId(403L);
+                dummyUser.setId(2L);
                 dummyUser.setMobileNumber("9560121707");
-                dummyUser.setRoles(List.of(RoleEnum.STOREKEEPER));
+                dummyUser.setRoles(List.of(RoleEnum.CUSTOMER));
                 UserContextHolder.setUser(dummyUser);
 
                 log.info("[AUTH FILTER] Dummy user set: ID={}, Mobile={}, Roles={}",

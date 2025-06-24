@@ -5,15 +5,10 @@ import com.code.monks.nukkad.dto.response.CreateCustomerOrderResponseDTO;
 import com.code.monks.nukkad.dto.response.CreateOrderHistoryResponseDTO;
 import com.code.monks.nukkad.dto.response.CreateStoreKeeperOrderResponseDTO;
 import com.code.monks.nukkad.dto.response.OrderResponseDTO;
-import com.code.monks.nukkad.entities.AddressEntity;
-import com.code.monks.nukkad.entities.OrderEntity;
-import com.code.monks.nukkad.entities.StorekeeperEntity;
+import com.code.monks.nukkad.entities.*;
 import com.code.monks.nukkad.enums.Status;
 import com.code.monks.nukkad.exception.OrderNotFoundException;
-import com.code.monks.nukkad.repositories.AddressRepository;
-import com.code.monks.nukkad.repositories.CustomerRepository;
-import com.code.monks.nukkad.repositories.OrderRepository;
-import com.code.monks.nukkad.repositories.StorekeeperRepository;
+import com.code.monks.nukkad.repositories.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.PropertyValues;
@@ -35,31 +30,46 @@ public class OrderService {  // placeOrderService
     private final OrderRepository orderRepository;
     private final AddressRepository addressRepository;
     private final CustomerRepository customerRepository;
+    private final CartRepository cartRepository;
     private final StorekeeperRepository storekeeperRepository;
 
 
-    public OrderService(OrderRepository orderRepository, AddressRepository addressRepository, CustomerRepository customerRepository, StorekeeperRepository storekeeperRepository) {
+    public OrderService(OrderRepository orderRepository, AddressRepository addressRepository, CustomerRepository customerRepository, StorekeeperRepository storekeeperRepository, CartRepository cartRepository, StorekeeperRepository storekeeperRepository1) {
         this.orderRepository = orderRepository;
         this.addressRepository = addressRepository;
         this.customerRepository = customerRepository;
+        this.cartRepository = cartRepository;
         this.storekeeperRepository = storekeeperRepository;
     }
 
     public OrderResponseDTO createOrders(OrderRequestDTO requestDTO) {
         log.info("Creating new order..");
+        log.debug("Incoming OrderRequestDTO :{}", requestDTO);
+
         try {
             // Convert DTO to entity without setting deliveryAddress yet
             OrderEntity orderEntity = OrderRequestDTO.toEntity(requestDTO);
 
             // 🔍 Validate & fetch delivery address
-            Long deliveryAddressId = requestDTO.getDeliveryAddress();
+            Long deliveryAddressId = requestDTO.getDeliveryAddressId();
             AddressEntity deliveryAddress = addressRepository.findById(deliveryAddressId)
                     .orElseThrow(() -> new EntityNotFoundException("Delivery address not found with ID: " + deliveryAddressId));
+
+            CartEntity cart = cartRepository.findById(requestDTO.getCartId())
+                    .orElseThrow(() -> new EntityNotFoundException("Cart not found"));
+            CustomerEntity customer = customerRepository.findById(requestDTO.getCustomerId())
+                    .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
+            StorekeeperEntity storeKeeper = storekeeperRepository.findById(requestDTO.getStoreKeeperId())
+                    .orElseThrow(() -> new EntityNotFoundException("Storekeeper not found"));
+
 
             orderEntity.setDeliveryAddress(deliveryAddress);
 
             // (Repeat this pattern for cart, customer, and storeKeeper if they are also passed as IDs)
             log.debug("Order Entity before save :{}", orderEntity);
+
+            orderEntity.setCreatedAt(LocalDateTime.now());
+
 
             OrderEntity orderSaved = orderRepository.save(orderEntity);
 
