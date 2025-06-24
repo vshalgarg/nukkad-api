@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RatingEntity
+public class RatingEntity extends BaseEntity
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

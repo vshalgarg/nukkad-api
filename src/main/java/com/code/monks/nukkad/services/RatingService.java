@@ -30,7 +30,7 @@ public class RatingService
         CustomerEntity customerEntity = customerRepository.findById(dto.getCustomerId())
                 .orElseThrow(()->
                 {
-                    log.error("[CREATE RATING] Customer not found with Id:{}",+ dto.getCustomerId());
+                    log.error("[CREATE RATING] Customer not found with Id:{}",dto.getCustomerId());
 
                     return new ResourceNotFoundException(ResponseErrorCodes.CUSTOMER_NOT_FOUND, dto.getCustomerId());
                 });
@@ -38,7 +38,7 @@ public class RatingService
         StorekeeperEntity storekeeperEntity =storekeeperRepository.findById(dto.getStoreKeeperId())
                 .orElseThrow(()->
                 {
-                    log.error("[CREATE RATING] StoreKeeper not found with id:{}",+dto.getStoreKeeperId());
+                    log.error("[CREATE RATING] StoreKeeper not found with id:{}",dto.getStoreKeeperId());
 
                     return new ResourceNotFoundException(ResponseErrorCodes.STOREKEEPER_NOT_FOUND, dto.getStoreKeeperId());
                 });
@@ -53,8 +53,6 @@ public class RatingService
 
         log.info("[CREATE RATING] Rating successfully saved with ID: {}", saved.getId());
 
-        CreateRatingResponseDTO response = CreateRatingResponseDTO.toResponseDTO(saved);
-        response.setMessage("Review submitted successfully!");
-        return response;
+        return new CreateRatingResponseDTO("Review submitted successfully!");
     }
 }

@@ -9,21 +9,20 @@ import lombok.Data;
 public class OrderResponseDTO {
 
     private Long id;
-    private Long cart;
-    private Long customer;
-    private Long deliveryAddress;
-    private Long storeKeeper;
+    private Long cartId;
+    private Long customerId;
+    private Long deliveryAddressId;
+    private Long storeKeeperId;
     private Status status;
 
     public static OrderResponseDTO toResponseDTO(OrderEntity entity) {
         CartItemEntity cartItemEntity = entity.getCart();
-
         OrderResponseDTO responseDTO = new OrderResponseDTO();
         responseDTO.setId(entity.getId());
-        responseDTO.setCart((entity.getCart().getId()));
-        responseDTO.setCustomer(entity.getCustomer().getId());
-        responseDTO.setDeliveryAddress(entity.getDeliveryAddress().getId());
-        responseDTO.setStoreKeeper(entity.getStoreKeeper().getId());
+        responseDTO.setCartId((entity.getCart().getId()));
+        responseDTO.setCustomerId(entity.getCustomer().getId());
+        responseDTO.setDeliveryAddressId(entity.getDeliveryAddress().getId());
+        responseDTO.setStoreKeeperId(entity.getStoreKeeper().getId());
 //        responseDTO.
         responseDTO.setStatus(entity.getStatus());
         return responseDTO;
