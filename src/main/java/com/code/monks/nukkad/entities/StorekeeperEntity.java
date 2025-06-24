@@ -8,6 +8,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.NaturalId;
 
+import java.util.List;
+
 
 @EqualsAndHashCode(callSuper = true)
 @Entity

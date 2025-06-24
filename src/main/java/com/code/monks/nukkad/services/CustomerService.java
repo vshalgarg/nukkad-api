@@ -2,10 +2,8 @@ package com.code.monks.nukkad.services;
 
 import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.request.CreateCustomerRequestDTO;
-import com.code.monks.nukkad.dto.response.AddStoreResponseDto;
-import com.code.monks.nukkad.dto.response.CreateCustomerResponseDTO;
-import com.code.monks.nukkad.dto.response.DeleteStoreResponseDto;
-import com.code.monks.nukkad.dto.response.GetMyStoreResponseDto;
+import com.code.monks.nukkad.dto.request.UpdateCustomerRequestDTO;
+import com.code.monks.nukkad.dto.response.*;
 import com.code.monks.nukkad.entities.AddressEntity;
 import com.code.monks.nukkad.entities.CustomerEntity;
 import com.code.monks.nukkad.entities.StorekeeperEntity;
@@ -66,7 +64,7 @@ public class CustomerService {
 		return CreateCustomerResponseDTO.fromEntity(saved);
 	}
 
-	public CreateCustomerResponseDTO updateCustomer(CreateCustomerRequestDTO dto) {
+	public UpdateCustomerResponseDTO updateCustomer(UpdateCustomerRequestDTO dto) {
 		if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.CUSTOMER)) {
 			log.warn("[UPDATE CUSTOMER] Access denied: User role does not include CUSTOMER");
 			throw new AccessDeniedException(ACCESS_DENIED_FOR_STOREKEEPER_EXCEPTION);
@@ -81,14 +79,11 @@ public class CustomerService {
 					return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
 				});
 
-		customer.setName(dto.getName());
-		customer.setEmail(dto.getEmail());
-		customer.setDob(dto.getDob());
-
+		customer = UpdateCustomerRequestDTO.updateEntity(customer, dto);
 		CustomerEntity updated = customerRepository.save(customer);
 		log.info("[UPDATE CUSTOMER] Customer profile updated. customerId={}", updated.getId());
 
-		return CreateCustomerResponseDTO.fromEntity(updated);
+		return UpdateCustomerResponseDTO.fromEntity(updated);
 	}
 
 	public AddStoreResponseDto addStoreToCustomer(String storeId) {

@@ -18,7 +18,8 @@ public class ImageEntity extends BaseEntity{
     @Column(name = "image_url")
     private String imageUrl;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id")
     private ItemEntity item;
+
 }

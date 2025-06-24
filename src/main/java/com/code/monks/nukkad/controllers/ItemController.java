@@ -1,8 +1,12 @@
 package com.code.monks.nukkad.controllers;
 
+import com.code.monks.nukkad.dto.request.BulkCreateItemRequestDTO;
 import com.code.monks.nukkad.dto.request.CreateItemRequestDTO;
+import com.code.monks.nukkad.dto.request.UpdateItemRequestDTO;
+import com.code.monks.nukkad.dto.response.BulkCreateItemResponseDTO;
 import com.code.monks.nukkad.dto.response.CreateItemResponseDTO;
 import com.code.monks.nukkad.dto.response.GetAllItemResponseDTO;
+import com.code.monks.nukkad.dto.response.UpdateItemResponseDTO;
 import com.code.monks.nukkad.services.ItemService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -24,10 +28,9 @@ public class ItemController {
 	private final ItemService itemService;
 
 	@PostMapping(ITEM.CREATE)
-	public ResponseEntity<CreateItemResponseDTO> createItem(@Valid @RequestBody CreateItemRequestDTO dto) {
-		log.info("[CREATE ITEM] Request received: {}", dto);
-		CreateItemResponseDTO response = itemService.createItem(dto);
-		log.info("[CREATE ITEM] Item created with ID: {}", response.getId());
+	public ResponseEntity<BulkCreateItemResponseDTO> createItem(@Valid @RequestBody BulkCreateItemRequestDTO request) {
+		log.info("[CREATE ITEMS] Bulk create request received: {}", request);
+		BulkCreateItemResponseDTO response = itemService.createBulkItems(request.getItems());
 		return new ResponseEntity<>(response, HttpStatus.CREATED);
 	}
 
@@ -48,9 +51,11 @@ public class ItemController {
 	}
 
 	@PutMapping(ITEM.UPDATE)
-	public ResponseEntity<CreateItemResponseDTO> updateItem(@PathVariable Long id, @RequestBody CreateItemRequestDTO dto) {
+	public ResponseEntity<UpdateItemResponseDTO> updateItem(
+			@PathVariable Long id,
+			@Valid @RequestBody UpdateItemRequestDTO dto) {
 		log.info("[UPDATE ITEM] Updating item with ID: {} with data: {}", id, dto);
-		CreateItemResponseDTO updatedItem = itemService.updateItem(id, dto);
+		UpdateItemResponseDTO updatedItem = itemService.updateItem(id, dto);
 		log.info("[UPDATE ITEM] Updated item with ID: {}", updatedItem.getId());
 		return ResponseEntity.ok(updatedItem);
 	}
