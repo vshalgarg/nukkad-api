@@ -50,9 +50,12 @@ public class OrderService {  // placeOrderService
         try {
             // Convert DTO to entity without setting deliveryAddress yet
             OrderEntity orderEntity = OrderRequestDTO.toEntity(requestDTO);
+            LocalDateTime now = LocalDateTime.now();
+            orderEntity.setCreatedAt(now);
+            orderEntity.setUpdatedAt(now);
 
             // 🔍 Validate & fetch delivery address
-            Long deliveryAddressId = requestDTO.getDeliveryAddress();
+            Long deliveryAddressId = requestDTO.getDeliveryAddressId();
             AddressEntity deliveryAddress = addressRepository.findById(deliveryAddressId)
                     .orElseThrow(() -> new EntityNotFoundException("Delivery address not found with ID: " + deliveryAddressId));
 
@@ -101,27 +104,6 @@ public class OrderService {  // placeOrderService
             throw new RuntimeException("Failed to fetch orders by status", e);
         }
     }
-
-//    public List<OrderResponseDTO> getAllOrderById(long id) {
-//        try {
-//            List<OrderEntity> orderEntityList = orderRepository.findByCustomerId((long) id);
-//
-//            if (orderEntityList.isEmpty()) {
-//                log.warn("No orders found while fetching by id:{}", id);
-//                throw new OrderNotFoundException("No orders found:" + id);
-//            }
-//
-//            List<OrderResponseDTO> responseDTOList = new ArrayList<>();
-//            for (OrderEntity order : orderEntityList) {
-//                responseDTOList.add(OrderResponseDTO.toResponseDTO(order));
-//            }
-//            log.info("Fetching {} orders with id{}", responseDTOList.size(), id);
-//            return responseDTOList;
-//        } catch (Exception e) {
-//            log.error("Error while fetching orders with id{} : {}", id, e.getMessage());
-//            throw new RuntimeException("Failed to fetch order by id", e);
-//        }
-//    }
 
     public OrderResponseDTO cancelOrderByStoreKeeper(Long id, String storeKeeperId) {
         log.info("StoreKeeper [{}] requested to cancel order Id:{}", storeKeeperId, id);

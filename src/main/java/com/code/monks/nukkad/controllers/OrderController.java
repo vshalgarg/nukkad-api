@@ -24,7 +24,7 @@ public class OrderController {
     public ResponseEntity<OrderResponseDTO> createOrder(@Valid @RequestBody OrderRequestDTO requestDTO)
     {
         log.info("Creating new order for customerId={}, storeKeeperId={}",
-                requestDTO.getCustomer(), requestDTO.getStoreKeeper());
+                requestDTO.getCustomerId(), requestDTO.getStoreKeeperId());
 
                 OrderResponseDTO responseDTO = orderService.createOrders(requestDTO);
         log.info("Order created with ID={}", responseDTO.getId());
