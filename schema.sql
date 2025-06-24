@@ -120,3 +120,55 @@ CREATE TABLE IF NOT EXISTS cart_item (
 
     CONSTRAINT fk_cart_item_item FOREIGN KEY (item_id) REFERENCES item (id)
 );
+
+CREATE TABLE IF NOT EXISTS orders (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+
+    cart_id BIGINT NOT NULL,
+    customer_id BIGINT NOT NULL,
+    delivery_address_id BIGINT NOT NULL,
+    store_keeper_id BIGINT NOT NULL,
+    status VARCHAR(50) NOT NULL,
+
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    -- Foreign Key Constraints
+    CONSTRAINT fk_order_cart FOREIGN KEY (cart_id) REFERENCES cart_item(id),
+    CONSTRAINT fk_order_customer FOREIGN KEY (customer_id) REFERENCES customer(id),
+    CONSTRAINT fk_order_delivery FOREIGN KEY (delivery_address_id) REFERENCES address(id),
+    CONSTRAINT fk_order_store_keeper FOREIGN KEY (store_keeper_id) REFERENCES storekeeper(id),
+
+    -- Indexes for Faster Lookups
+    INDEX idx_order_cart (cart_id),
+    INDEX idx_order_customer (customer_id),
+    INDEX idx_order_delivery (delivery_address_id),
+    INDEX idx_order_store_keeper (store_keeper_id),
+    INDEX idx_order_status (status)
+);
+CREATE TABLE IF NOT EXISTS cartitem_Order (
+    order_id BIGINT NOT NULL,
+    cart_item_id BIGINT NOT NULL,
+
+    PRIMARY KEY (order_id, cart_item_id),
+
+    CONSTRAINT fk_ic_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    CONSTRAINT fk_ic_cart_item FOREIGN KEY (cart_item_id) REFERENCES cart_item(id) ON DELETE CASCADE,
+
+    INDEX idx_ic_cart_item_id (cart_item_id)
+);
+
+CREATE TABLE rating (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    review VARCHAR(255) NOT NULL,
+    rating INT NOT NULL,
+
+    customer_id BIGINT NOT NULL,
+    storekeeper_id BIGINT NOT NULL,
+
+    CONSTRAINT fk_rating_customer FOREIGN KEY (customer_id) REFERENCES customer(id),
+    CONSTRAINT fk_rating_storekeeper FOREIGN KEY (storekeeper_id) REFERENCES storekeeper(id),
+
+    INDEX idx_rating_customer(customer_id),
+    INDEX idx_rating_storekeeper(storekeeper_id)
+);
