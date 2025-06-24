@@ -1,1 +1,12 @@
-/.idea/vcs.xml
+# Ignore Maven target folder
+/target/
+
+# Ignore IntelliJ IDEA project files
+/.idea/
+
+# Logs
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
