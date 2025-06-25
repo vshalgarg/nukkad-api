@@ -99,6 +99,7 @@ public class CartItemService {
                 cartItem.setCustomer(customer);
                 cartItem.setQuantity(itemReq.getQuantity());
                 cartItem.setUnit(requestedUnit.toUpperCase());
+
                 cart.getItems().add(cartItem);
                 log.info("Added new item to cart. itemId={}, quantity={}, unit={}",
                         itemId, itemReq.getQuantity(), requestedUnit.toUpperCase());

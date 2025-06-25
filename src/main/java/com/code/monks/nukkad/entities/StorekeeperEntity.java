@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.NaturalId;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -55,6 +56,10 @@ public class StorekeeperEntity extends UserEntity{
 	@NaturalId
 	@Column(name = "store_id", unique = true, nullable = false, updatable = false)
 	private String storeId;
+
+//	@OneToMany(mappedBy = "storekeeper", cascade = CascadeType.ALL, orphanRemoval = true)
+//	private List<ImageEntity> storeImages = new ArrayList<>();
+
 
 	@Override
 	public RoleEnum getRole(){

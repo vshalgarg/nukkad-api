@@ -22,4 +22,9 @@ public class ImageEntity extends BaseEntity{
     @JoinColumn(name = "item_id")
     private ItemEntity item;
 
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "storekeeper_id", nullable = true)
+//    private StorekeeperEntity storekeeper;
+
+
 }

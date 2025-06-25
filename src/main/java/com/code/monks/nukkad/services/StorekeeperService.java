@@ -3,6 +3,7 @@ package com.code.monks.nukkad.services;
 import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.request.CreateStorekeeperRequestDTO;
 import com.code.monks.nukkad.dto.response.CreateStorekeeperResponseDTO;
+import com.code.monks.nukkad.entities.ImageEntity;
 import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.exception.AccessDeniedException;
@@ -11,6 +12,7 @@ import com.code.monks.nukkad.repositories.StorekeeperRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.ACCESS_DENIED_FOR_CUSTOMER_EXCEPTION;
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.STOREKEEPER_NOT_FOUND;
@@ -37,6 +39,31 @@ public class StorekeeperService {
         storekeeper.setId(storekeeperId);
         storekeeper.setStoreId(storeId);
         storekeeper.setMobileNumber(mobileNumber);
+//
+//        // Upload and map images
+//        String basePath = System.getProperty("user.home") + "/Desktop/storekeeper-images/";
+//        File dir = new File(basePath);
+//        if (!dir.exists()) dir.mkdirs();
+//
+//        List<ImageEntity> imageEntities = new ArrayList<>();
+//        for (MultipartFile file : images) {
+//            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+//            Path path = Paths.get(basePath + fileName);
+//            try {
+//                Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+//                String imageUrl = "file://" + path.toAbsolutePath();
+//
+//                ImageEntity image = new ImageEntity();
+//                image.setImageUrl(imageUrl);
+//                image.setStorekeeper(storekeeper);
+//                imageEntities.add(image);
+//
+//            } catch (IOException e) {
+//                throw new RuntimeException("Image upload failed: " + file.getOriginalFilename());
+//            }
+//        }
+//
+//        storekeeper.setStoreImages(imageEntities);
 
         StorekeeperEntity saved = storekeeperRepository.save(storekeeper);
         log.info("[CREATE STOREKEEPER] Storekeeper created successfully with ID: {}", saved.getId());

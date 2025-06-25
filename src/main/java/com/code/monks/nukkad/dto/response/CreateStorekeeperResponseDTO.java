@@ -27,6 +27,7 @@ public class CreateStorekeeperResponseDTO {
     private String pincode;
     private RoleEnum role;
     private String storeId;
+//    private List<String> storeImageUrls;
 
     public static CreateStorekeeperResponseDTO fromEntity(StorekeeperEntity entity){
         CreateStorekeeperResponseDTO dto = new CreateStorekeeperResponseDTO();
@@ -44,6 +45,11 @@ public class CreateStorekeeperResponseDTO {
         dto.setPincode(entity.getPincode());
         dto.setStoreId(entity.getStoreId());
         dto.setRole(entity.getRole());
+//        dto.setStoreImageUrls(
+//                entity.getStoreImages().stream()
+//                        .map(ImageEntity::getImageUrl)
+//                        .toList()
+//        );
 
         return dto;
     }
