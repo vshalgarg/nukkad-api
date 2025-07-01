@@ -5,7 +5,7 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 @Converter(autoApply = true)
-public class UnitEnumConverter implements AttributeConverter<UnitEnum, Integer> {
+public class UnitEnumToCodeConverter implements AttributeConverter<UnitEnum, Integer> {
 
     @Override
     public Integer convertToDatabaseColumn(UnitEnum attribute) {

@@ -9,18 +9,16 @@ import com.code.monks.nukkad.dto.response.CreateItemResponseDTO;
 import com.code.monks.nukkad.dto.response.GetAllItemResponseDTO;
 import com.code.monks.nukkad.dto.response.UpdateItemResponseDTO;
 import com.code.monks.nukkad.entities.CategoryEntity;
-import com.code.monks.nukkad.entities.ImageEntity;
+import com.code.monks.nukkad.entities.CategoryItemImageEntity;
 import com.code.monks.nukkad.entities.ItemEntity;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.exception.AccessDeniedException;
-import com.code.monks.nukkad.exception.DuplicateResourceException;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
 import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.CategoryRepository;
 import com.code.monks.nukkad.repositories.ItemRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -63,9 +61,9 @@ public class ItemService {
 			item.setCategories(categories);
 
 			if (dto.getImageUrls() != null && !dto.getImageUrls().isEmpty()) {
-				List<ImageEntity> images = dto.getImageUrls().stream()
+				List<CategoryItemImageEntity> images = dto.getImageUrls().stream()
 						.map(url -> {
-							ImageEntity image = new ImageEntity();
+							CategoryItemImageEntity image = new CategoryItemImageEntity();
 							image.setImageUrl(url);
 							image.setItem(item);
 							return image;
@@ -143,9 +141,9 @@ public class ItemService {
 			item.getImages().clear();
 
 			if (dto.getImageUrls() != null && !dto.getImageUrls().isEmpty()) {
-				List<ImageEntity> images = dto.getImageUrls().stream()
+				List<CategoryItemImageEntity> images = dto.getImageUrls().stream()
 						.map(url -> {
-							ImageEntity image = new ImageEntity();
+							CategoryItemImageEntity image = new CategoryItemImageEntity();
 							image.setImageUrl(url);
 							image.setItem(item);
 							return image;

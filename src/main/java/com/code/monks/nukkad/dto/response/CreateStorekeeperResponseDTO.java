@@ -1,7 +1,6 @@
 package com.code.monks.nukkad.dto.response;
 
 import com.code.monks.nukkad.entities.StorekeeperEntity;
-import com.code.monks.nukkad.entities.ImageEntity;
 import com.code.monks.nukkad.enums.RoleEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,10 +25,10 @@ public class CreateStorekeeperResponseDTO {
     private String state;
     private String pincode;
     private RoleEnum role;
-    private String storeId;
-//    private List<String> storeImageUrls;
+    private String storeQrId;
+    private List<String> imageUrls;
 
-    public static CreateStorekeeperResponseDTO fromEntity(StorekeeperEntity entity){
+    public static CreateStorekeeperResponseDTO fromEntity(StorekeeperEntity entity, List<String> imageUrls){
         CreateStorekeeperResponseDTO dto = new CreateStorekeeperResponseDTO();
 
         dto.setId(entity.getId());
@@ -43,13 +42,9 @@ public class CreateStorekeeperResponseDTO {
         dto.setCity(entity.getCity());
         dto.setState(entity.getState());
         dto.setPincode(entity.getPincode());
-        dto.setStoreId(entity.getStoreId());
+        dto.setStoreQrId(entity.getStoreQrId());
         dto.setRole(entity.getRole());
-//        dto.setStoreImageUrls(
-//                entity.getStoreImages().stream()
-//                        .map(ImageEntity::getImageUrl)
-//                        .toList()
-//        );
+        dto.setImageUrls(imageUrls);
 
         return dto;
     }

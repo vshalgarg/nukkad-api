@@ -1,6 +1,5 @@
 package com.code.monks.nukkad.dto.response;
 
-import com.code.monks.nukkad.entities.CartItemEntity;
 import com.code.monks.nukkad.entities.OrderEntity;
 import com.code.monks.nukkad.enums.Status;
 import lombok.Data;

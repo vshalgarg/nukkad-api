@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class CartItemEntity extends BaseEntity {
+public class CartProductEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -37,8 +37,6 @@ public class CartItemEntity extends BaseEntity {
     @Column(name = "unit")
     private String unit;
 
-    @Column(name = "price")
-    private BigDecimal price;
 
 }
  

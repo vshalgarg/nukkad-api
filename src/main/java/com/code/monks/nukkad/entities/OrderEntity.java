@@ -6,8 +6,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -20,7 +18,7 @@ public class OrderEntity extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id", nullable = false)
-    private CartItemEntity cart;
+    private CartProductEntity cart;
 
     @ManyToOne
     @JoinColumn(name ="customer_id")

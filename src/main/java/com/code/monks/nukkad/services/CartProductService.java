@@ -1,18 +1,18 @@
 package com.code.monks.nukkad.services;
 
 import com.code.monks.nukkad.context.UserContextHolder;
-import com.code.monks.nukkad.dto.request.CreateCartItemRequestDTO;
-import com.code.monks.nukkad.dto.response.CreateCartItemResponseDTO;
-import com.code.monks.nukkad.dto.response.GetCartItemResponseDto;
+import com.code.monks.nukkad.dto.request.CreateCartProductRequestDTO;
+import com.code.monks.nukkad.dto.response.CreateCartProductResponseDTO;
+import com.code.monks.nukkad.dto.response.GetCartProductResponseDTO;
 import com.code.monks.nukkad.dto.response.UpdateItemQuantityResponseDto;
-import com.code.monks.nukkad.dto.response.removeCartItemResponseDto;
+import com.code.monks.nukkad.dto.response.removeCartProductResponseDTO;
 import com.code.monks.nukkad.entities.CartEntity;
-import com.code.monks.nukkad.entities.CartItemEntity;
+import com.code.monks.nukkad.entities.CartProductEntity;
 import com.code.monks.nukkad.entities.CustomerEntity;
 import com.code.monks.nukkad.entities.ItemEntity;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
 import com.code.monks.nukkad.exception.UnhandledException;
-import com.code.monks.nukkad.repositories.CartItemRepository;
+import com.code.monks.nukkad.repositories.CartProductRepository;
 import com.code.monks.nukkad.repositories.CartRepository;
 import com.code.monks.nukkad.repositories.CustomerRepository;
 import com.code.monks.nukkad.repositories.ItemRepository;
@@ -31,13 +31,13 @@ import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CartItemService {
-    private final CartItemRepository cartItemRepository;
+public class CartProductService {
+    private final CartProductRepository cartItemRepository;
     private final ItemRepository itemRepository;
     private final CustomerRepository customerRepository;
     private final CartRepository cartRepository;
 
-    public CreateCartItemResponseDTO addToCart(CreateCartItemRequestDTO dto) {
+    public CreateCartProductResponseDTO addToCart(CreateCartProductRequestDTO dto) {
         Long customerId = UserContextHolder.getRequiredUser().getId();
         log.info("Initiating add-to-cart process for customerId={}", customerId);
 
@@ -60,7 +60,7 @@ public class CartItemService {
             log.info("Cart item list was null. Initialized empty item list for cartId={}", cart.getId());
         }
 
-        for (CreateCartItemRequestDTO.CartItemRequest itemReq : dto.getItems()) {
+        for (CreateCartProductRequestDTO.CartItemRequest itemReq : dto.getItems()) {
             Long itemId =  itemReq.getItemId();
             log.info("Processing cart addition for itemId={} (unit={}, quantity={})",
                     itemId, itemReq.getUnit(), itemReq.getQuantity());
@@ -81,19 +81,19 @@ public class CartItemService {
                 throw new IllegalArgumentException("Invalid unit: '" + requestedUnit + "'. Allowed: " + String.join(", ", allowedUnits));
             }
 
-            Optional<CartItemEntity> existingItem = cart.getItems().stream()
+            Optional<CartProductEntity> existingItem = cart.getItems().stream()
                     .filter(ci -> ci.getItem().getId().equals(itemId) &&
                             ci.getUnit().equalsIgnoreCase(requestedUnit))
                     .findFirst();
 
             if (existingItem.isPresent()) {
-                CartItemEntity cartItem = existingItem.get();
+                CartProductEntity cartItem = existingItem.get();
                 int oldQty = cartItem.getQuantity();
                 cartItem.setQuantity(oldQty + itemReq.getQuantity());
                 log.info("Updated existing cart item. itemId={}, oldQty={}, newQty={}",
                         itemId, oldQty, cartItem.getQuantity());
             } else {
-                CartItemEntity cartItem = new CartItemEntity();
+                CartProductEntity cartItem = new CartProductEntity();
                 cartItem.setCart(cart);
                 cartItem.setItem(item);
                 cartItem.setCustomer(customer);
@@ -108,14 +108,14 @@ public class CartItemService {
 
         cartRepository.save(cart);
         log.info("Cart updated and saved successfully for customerId={}", customerId);
-        return new CreateCartItemResponseDTO("Items added to cart successfully.");
+        return new CreateCartProductResponseDTO("Items added to cart successfully.");
     }
 
 
 
 
 
-    public List<GetCartItemResponseDto> getCartItemsForCustomer() {
+    public List<GetCartProductResponseDTO> getCartItemsForCustomer() {
         try {
             Long customerId = UserContextHolder.getRequiredUser().getId();
             log.info("Fetching cart items for customerId: {}", customerId);
@@ -126,10 +126,10 @@ public class CartItemService {
                 throw new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
             }
 
-            List<CartItemEntity> cartItems = cartItemRepository.findByCustomerId(customerId);
+            List<CartProductEntity> cartItems = cartItemRepository.findByCustomerId(customerId);
 
             return cartItems.stream()
-                    .map(GetCartItemResponseDto::fromEntity)
+                    .map(GetCartProductResponseDTO::fromEntity)
                     .collect(Collectors.toList());
 
         } catch (ResourceNotFoundException e) {
@@ -140,12 +140,12 @@ public class CartItemService {
         }
     }
 
-    public removeCartItemResponseDto removeCartItem(Long itemId) {
+    public removeCartProductResponseDTO removeCartItem(Long itemId) {
 
             Long customerId = UserContextHolder.getRequiredUser().getId();
             log.info("Attempting to remove cart item. CustomerId: {}, ItemId: {}", customerId, itemId);
 
-            CartItemEntity item = cartItemRepository.findByCustomerIdAndItemId(customerId, itemId)
+            CartProductEntity item = cartItemRepository.findByCustomerIdAndItemId(customerId, itemId)
                     .orElseThrow(() -> {
                         log.error("Cart item with itemId {} not found for customerId {}", itemId, customerId);
                         return new ResourceNotFoundException(ITEM_NOT_FOUND, itemId);
@@ -155,7 +155,7 @@ public class CartItemService {
             cartItemRepository.delete(item);
             log.info("Cart item with id {} deleted successfully for customerId: {}",item, customerId);
 
-            return new removeCartItemResponseDto("Cart item deleted successfully");
+            return new removeCartProductResponseDTO("Cart item deleted successfully");
 
     }
 
@@ -165,14 +165,14 @@ public class CartItemService {
             Long userId = UserContextHolder.getRequiredUser().getId();
             log.info("Request to update quantity. CartItemId: {}, NewQuantity: {}, CustomerId: {}", cartItemId, newQty,userId);
 
-            CartItemEntity item = cartItemRepository.findById(cartItemId)
+            CartProductEntity item = cartItemRepository.findById(cartItemId)
                     .orElseThrow(() -> {
                         log.error("Cart item not found with id: {}", cartItemId);
                         return new ResourceNotFoundException(CART_ITEM_NOT_FOUND,cartItemId);
                     });
 
             item.setQuantity(newQty);
-            CartItemEntity updated = cartItemRepository.save(item);
+            CartProductEntity updated = cartItemRepository.save(item);
 
             log.info("Updated quantity for cart item. CartItemId: {}, NewQuantity: {}, CustomerId: {}", cartItemId, newQty,userId);
             return new UpdateItemQuantityResponseDto("success");

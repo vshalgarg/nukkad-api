@@ -1,6 +1,6 @@
 package com.code.monks.nukkad.dto.response;
 
-import com.code.monks.nukkad.entities.CartItemEntity;
+import com.code.monks.nukkad.entities.CartProductEntity;
 import com.code.monks.nukkad.entities.OrderEntity;
 import com.code.monks.nukkad.enums.Status;
 import lombok.Data;
@@ -16,7 +16,7 @@ public class OrderResponseDTO {
     private Status status;
 
     public static OrderResponseDTO toResponseDTO(OrderEntity entity) {
-        CartItemEntity cartItemEntity = entity.getCart();
+        CartProductEntity cartItemEntity = entity.getCart();
         OrderResponseDTO responseDTO = new OrderResponseDTO();
         responseDTO.setId(entity.getId());
         responseDTO.setCartId((entity.getCart().getId()));

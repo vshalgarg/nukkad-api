@@ -1,18 +1,17 @@
 package com.code.monks.nukkad.dto.response;
 
-import com.code.monks.nukkad.entities.CartItemEntity;
-import com.code.monks.nukkad.entities.ImageEntity;
+import com.code.monks.nukkad.entities.CartProductEntity;
+import com.code.monks.nukkad.entities.CategoryItemImageEntity;
 import com.code.monks.nukkad.entities.ItemEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Data
-public class GetCartItemResponseDto {
+public class GetCartProductResponseDTO {
 
     private Long id;
     private Long itemId;
@@ -20,12 +19,12 @@ public class GetCartItemResponseDto {
     private int quantity;
     private String unit;
     private List<String> imageUrls;
-    private BigDecimal price;
 
-    public static GetCartItemResponseDto fromEntity(CartItemEntity entity) {
+
+    public static GetCartProductResponseDTO fromEntity(CartProductEntity entity) {
         ItemEntity item = entity.getItem();
 
-        return new GetCartItemResponseDto(
+        return new GetCartProductResponseDTO(
                 entity.getId(),
                 item.getId(),
                 item.getName(),
@@ -33,9 +32,9 @@ public class GetCartItemResponseDto {
                 entity.getUnit(),
                 item.getImages()
                         .stream()
-                        .map(ImageEntity::getImageUrl)
-                        .collect(Collectors.toList()),
-                entity.getPrice()
+                        .map(CategoryItemImageEntity::getImageUrl)
+                        .collect(Collectors.toList())
+
         );
     }
 }

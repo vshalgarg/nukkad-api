@@ -5,7 +5,6 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class CreateCartItemResponseDTO {
+public class removeCartProductResponseDTO {
     private String message;
-
 }
