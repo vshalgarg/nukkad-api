@@ -4,6 +4,10 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera access is required to scan QR codes</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+    <string>App needs access to your photo library to upload store images.</string>
 	<key>CFBundleDisplayName</key>
 	<string>nukkad</string>
 	<key>CFBundleExecutable</key>
