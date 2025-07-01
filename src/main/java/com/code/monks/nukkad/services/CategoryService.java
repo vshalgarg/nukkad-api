@@ -9,16 +9,14 @@ import com.code.monks.nukkad.dto.response.CreateCategoryResponseDTO;
 import com.code.monks.nukkad.dto.response.GetAllCategoryResponseDTO;
 import com.code.monks.nukkad.dto.response.UpdateCategoryResponseDTO;
 import com.code.monks.nukkad.entities.CategoryEntity;
-import com.code.monks.nukkad.entities.ImageEntity;
+import com.code.monks.nukkad.entities.CategoryItemImageEntity;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.exception.AccessDeniedException;
 import com.code.monks.nukkad.exception.DuplicateResourceException;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
-import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.CategoryRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -52,7 +50,7 @@ public class   CategoryService {
 			category.setName(dto.getName());
 
 			if (dto.getImageUrl() != null && !dto.getImageUrl().isBlank()) {
-				ImageEntity image = new ImageEntity();
+				CategoryItemImageEntity image = new CategoryItemImageEntity();
 				image.setImageUrl(dto.getImageUrl());
 				category.setImage(image);
 			}
@@ -78,7 +76,7 @@ public class   CategoryService {
 		category.setName(dto.getName());
 
 		if (dto.getImageUrl() != null && !dto.getImageUrl().isEmpty()) {
-			ImageEntity image = new ImageEntity();
+			CategoryItemImageEntity image = new CategoryItemImageEntity();
 			image.setImageUrl(dto.getImageUrl());
 			category.setImage(image);
 		}

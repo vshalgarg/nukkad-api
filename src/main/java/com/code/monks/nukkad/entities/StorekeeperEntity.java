@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.NaturalId;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -53,8 +54,14 @@ public class StorekeeperEntity extends UserEntity{
 	private String pincode;
 
 	@NaturalId
-	@Column(name = "store_id", unique = true, nullable = false, updatable = false)
-	private String storeId;
+	@Column(name = "store_qr_id", unique = true, nullable = false, updatable = false)
+	private String storeQrId;
+
+	@OneToMany(mappedBy = "storekeeper", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<StorekeeperImageEntity> images = new ArrayList<>();
+
+	@OneToMany(mappedBy = "storekeeper", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<StorekeeperQrCodeEntity> qrCodes = new ArrayList<>();
 
 	@Override
 	public RoleEnum getRole(){

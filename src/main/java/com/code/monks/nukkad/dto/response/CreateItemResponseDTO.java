@@ -1,7 +1,7 @@
 package com.code.monks.nukkad.dto.response;
 
 import com.code.monks.nukkad.entities.CategoryEntity;
-import com.code.monks.nukkad.entities.ImageEntity;
+import com.code.monks.nukkad.entities.CategoryItemImageEntity;
 import com.code.monks.nukkad.entities.ItemEntity;
 import com.code.monks.nukkad.enums.UnitEnum;
 import lombok.AllArgsConstructor;
@@ -31,7 +31,7 @@ public class CreateItemResponseDTO {
 
         List<String> imageUrls = itemEntity.getImages()
                 .stream()
-                .map(ImageEntity::getImageUrl)
+                .map(CategoryItemImageEntity::getImageUrl)
                 .collect(Collectors.toList());
 
         return new CreateItemResponseDTO(

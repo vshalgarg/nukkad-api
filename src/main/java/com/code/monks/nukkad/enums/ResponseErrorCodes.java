@@ -22,8 +22,8 @@ public enum ResponseErrorCodes {
 	ACCESS_DENIED_FOR_ADMIN_EXCEPTION(403,"Only Admin can perform this action "),
 	UNHANDLED_EXCEPTION(500, "Unhandled exception"),
 	SEARCH_NOT_FOUND(400, "Failed to perform search. Please try again later."),
-	ITEM_NOT_SAVED_EXCEPTION(400,"Categories not found so you can't add item.");
-
+	ITEM_NOT_SAVED_EXCEPTION(400,"Categories not found so you can't add item."),
+    DUPLICATE_RESOURCE_EXCEPTION(400,"");
 	private int responseCode;
 
 	private String message;

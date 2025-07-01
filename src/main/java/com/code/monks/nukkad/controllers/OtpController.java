@@ -21,7 +21,7 @@ public class OtpController {
 
 	private final OtpService otpService;
 
-	@PostMapping(OTP.SENDOTP)
+	@PostMapping(OTP.SEND_OTP)
 	public ResponseEntity<SendOtpResponseDTO> sendOtp(@Valid  @RequestBody SendOtpRequestDTO request) {
 		log.info("[SEND OTP] Request received for mobile: {}", request.getMobileNumber());
 
@@ -31,7 +31,7 @@ public class OtpController {
 		return ResponseEntity.ok(response);
 	}
 
-	@PostMapping(OTP.VERIFYOTP)
+	@PostMapping(OTP.VERIFY_OTP)
 	public ResponseEntity<VerifyResponseDTO> verifyOtp(@RequestBody VerifyRequestDTO request) {
 		log.info("[VERIFY OTP] Request received for mobile: {}", request.getMobileNumber());
 

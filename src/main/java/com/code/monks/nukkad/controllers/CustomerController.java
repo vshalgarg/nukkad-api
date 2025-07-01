@@ -44,10 +44,10 @@ public class CustomerController {
 	}
 
 	@PostMapping(CUSTOMER.ADD_STORE_TO_CUSTOMER)
-	public ResponseEntity<AddStoreResponseDto> addStoreToCustomer(@RequestParam String storeId) {
-		log.info("[ADD STORE] Adding storeId={} to customer", storeId);
+	public ResponseEntity<AddStoreResponseDto> addStoreToCustomer(@RequestParam Long storekeeperId) {
+		log.info("[ADD STORE] Adding storeId={} to customer", storekeeperId);
 
-		AddStoreResponseDto responseDto = customerService.addStoreToCustomer(storeId);
+		AddStoreResponseDto responseDto = customerService.addStoreToCustomer(storekeeperId);
 
 		log.info("[ADD STORE] {}", responseDto.getMessage());
 		return ResponseEntity.ok(responseDto);

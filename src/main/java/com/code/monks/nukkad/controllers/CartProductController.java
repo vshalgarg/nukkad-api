@@ -1,11 +1,11 @@
 package com.code.monks.nukkad.controllers;
 
-import com.code.monks.nukkad.dto.request.CreateCartItemRequestDTO;
-import com.code.monks.nukkad.dto.response.CreateCartItemResponseDTO;
-import com.code.monks.nukkad.dto.response.GetCartItemResponseDto;
+import com.code.monks.nukkad.dto.request.CreateCartProductRequestDTO;
+import com.code.monks.nukkad.dto.response.CreateCartProductResponseDTO;
+import com.code.monks.nukkad.dto.response.GetCartProductResponseDTO;
 import com.code.monks.nukkad.dto.response.UpdateItemQuantityResponseDto;
-import com.code.monks.nukkad.dto.response.removeCartItemResponseDto;
-import com.code.monks.nukkad.services.CartItemService;
+import com.code.monks.nukkad.dto.response.removeCartProductResponseDTO;
+import com.code.monks.nukkad.services.CartProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,30 +20,30 @@ import static com.code.monks.nukkad.constants.UrlConstants.CART_ITEM;
 @RestController
 @RequestMapping(CART_ITEM.BASE)
 @RequiredArgsConstructor
-public class CartItemController {
+public class CartProductController {
 
-    private final CartItemService cartItemService;
+    private final CartProductService cartItemService;
 
     @PostMapping(CART_ITEM.ADD)
-    public ResponseEntity<CreateCartItemResponseDTO> addToCart(@RequestBody CreateCartItemRequestDTO dto) {
+    public ResponseEntity<CreateCartProductResponseDTO> addToCart(@RequestBody CreateCartProductRequestDTO dto) {
         log.info("[ADD TO CART] Received request to add item: {}", dto);
-        CreateCartItemResponseDTO response = cartItemService.addToCart(dto);
+        CreateCartProductResponseDTO response = cartItemService.addToCart(dto);
         log.info("[ADD TO CART] Item added successfully to cart. Response: {}", response);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @GetMapping(CART_ITEM.GET_CART_ITEM_FOR_CUSTOMER)
-    public ResponseEntity<List<GetCartItemResponseDto>> getCartItems() {
+    public ResponseEntity<List<GetCartProductResponseDTO>> getCartItems() {
         log.info("[GET CART ITEMS] Fetching cart items for customer");
-        List<GetCartItemResponseDto> items = cartItemService.getCartItemsForCustomer();
+        List<GetCartProductResponseDTO> items = cartItemService.getCartItemsForCustomer();
         log.info("[GET CART ITEMS] Found {} items in cart", items.size());
         return ResponseEntity.ok(items);
     }
 
     @DeleteMapping(CART_ITEM.DELETE_CART_ITEM_BY_ID)
-    public ResponseEntity<removeCartItemResponseDto> deleteCartItem(@PathVariable Long id) {
+    public ResponseEntity<removeCartProductResponseDTO> deleteCartItem(@PathVariable Long id) {
         log.info("[DELETE CART ITEM] Deleting cart item with ID: {}", id);
-        removeCartItemResponseDto resultMessage = cartItemService.removeCartItem(id);
+        removeCartProductResponseDTO resultMessage = cartItemService.removeCartItem(id);
         log.info("[DELETE CART ITEM] {}", resultMessage);
         return ResponseEntity.ok(resultMessage);
     }

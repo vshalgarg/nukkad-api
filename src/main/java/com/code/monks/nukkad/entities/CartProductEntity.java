@@ -6,13 +6,15 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "cart_item")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class CartItemEntity extends BaseEntity {
+public class CartProductEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,6 +36,7 @@ public class CartItemEntity extends BaseEntity {
 
     @Column(name = "unit")
     private String unit;
+
 
 }
  
