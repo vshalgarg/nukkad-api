@@ -148,13 +148,17 @@ CREATE TABLE IF NOT EXISTS cart_item (
     CONSTRAINT fk_cart_item_customer FOREIGN KEY (customer_id) REFERENCES customer(id),
     CONSTRAINT fk_cart_item_item FOREIGN KEY (item_id) REFERENCES item(id)
 );
-CREATE TABLE IF NOT EXISTS orders (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
 
-    customer_id BIGINT NOT NULL,
-    delivery_address_id BIGINT NOT NULL,
-    store_keeper_id BIGINT NOT NULL,
-    status VARCHAR(50) NOT NULL,
+
+CREATE TABLE orders (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
+    customer_id BIGINT,
+    delivery_address_id BIGINT,
+    store_keeper_id BIGINT,
+    status VARCHAR(20),
+	store_keeper_note TEXT,
+
 
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -164,25 +168,32 @@ CREATE TABLE IF NOT EXISTS orders (
     CONSTRAINT fk_order_delivery FOREIGN KEY (delivery_address_id) REFERENCES address(id),
     CONSTRAINT fk_order_store_keeper FOREIGN KEY (store_keeper_id) REFERENCES storekeeper(id),
 
-    -- Indexes
+    -- Indexes for Faster Lookups
     INDEX idx_order_customer (customer_id),
     INDEX idx_order_delivery (delivery_address_id),
     INDEX idx_order_store_keeper (store_keeper_id),
     INDEX idx_order_status (status)
 );
 
-CREATE TABLE IF NOT EXISTS cart_item_order (
-    order_id BIGINT NOT NULL,
-    cart_item_id BIGINT NOT NULL,
+CREATE TABLE IF NOT EXISTS order_item (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
 
-    PRIMARY KEY (order_id, cart_item_id),
+    order_id bigint NOT NULL,
+    item_id bigint NOT NULL,
+   item_name varchar (50),
+   quantity INT NOT NULL,
+    unit VARCHAR(50),
+    price DOUBLE,
 
-    CONSTRAINT fk_cart_item_order_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    CONSTRAINT fk_cart_item_order_cart_item FOREIGN KEY (cart_item_id) REFERENCES cart_item(id) ON DELETE CASCADE,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-    INDEX idx_cart_item_order_cart_item_id (cart_item_id)
+    CONSTRAINT fk_order_item_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    CONSTRAINT fk_order_item_item FOREIGN KEY (item_id) REFERENCES item(id) ON DELETE CASCADE,
+
+    INDEX idx_order_item_order_id (order_id),
+    INDEX idx_order_item_item_id (item_id)
 );
-
 
 CREATE TABLE rating (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
