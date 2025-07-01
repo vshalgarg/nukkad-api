@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class VerifyResponseDTO {
+public class VerifyOtpResponseDTO {
     private Long userId;
     private String phoneNumber;
     private List<String> roles;

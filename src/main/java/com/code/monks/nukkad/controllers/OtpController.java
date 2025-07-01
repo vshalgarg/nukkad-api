@@ -3,7 +3,7 @@ package com.code.monks.nukkad.controllers;
 import com.code.monks.nukkad.dto.request.SendOtpRequestDTO;
 import com.code.monks.nukkad.dto.request.VerifyRequestDTO;
 import com.code.monks.nukkad.dto.response.SendOtpResponseDTO;
-import com.code.monks.nukkad.dto.response.VerifyResponseDTO;
+import com.code.monks.nukkad.dto.response.VerifyOtpResponseDTO;
 import com.code.monks.nukkad.services.OtpService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -32,10 +32,10 @@ public class OtpController {
 	}
 
 	@PostMapping(OTP.VERIFYOTP)
-	public ResponseEntity<VerifyResponseDTO> verifyOtp(@RequestBody VerifyRequestDTO request) {
+	public ResponseEntity<VerifyOtpResponseDTO> verifyOtp(@RequestBody VerifyRequestDTO request) {
 		log.info("[VERIFY OTP] Request received for mobile: {}", request.getMobileNumber());
 
-		VerifyResponseDTO response = otpService.verifyOtp(request);
+		VerifyOtpResponseDTO response = otpService.verifyOtp(request);
 
 		log.info("[VERIFY OTP] Verification result for mobile {}:", request.getMobileNumber());
 		return ResponseEntity.ok(response);
