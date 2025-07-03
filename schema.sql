@@ -1,3 +1,4 @@
+
 CREATE TABLE IF NOT EXISTS item (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(60) NOT NULL UNIQUE ,
@@ -35,7 +36,7 @@ CREATE TABLE IF NOT EXISTS category (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-    CONSTRAINT fk_category_image FOREIGN KEY (image_id) REFERENCES image(id),
+    CONSTRAINT fk_category_image FOREIGN KEY (image_id) REFERENCES category_item_image(id),
 
     INDEX idx_category_name (name)
 );
@@ -99,7 +100,6 @@ CREATE TABLE IF NOT EXISTS storekeeper_qr_code (
     CONSTRAINT fk_storekeeper_qr_code_storekeeper FOREIGN KEY (storekeeper_id) REFERENCES storekeeper(id) ON DELETE CASCADE,
     INDEX idx_storekeeper_qr_code_storekeeper_id (storekeeper_id)
 );
-
 
 CREATE TABLE IF NOT EXISTS item_category (
     item_id INT NOT NULL,
