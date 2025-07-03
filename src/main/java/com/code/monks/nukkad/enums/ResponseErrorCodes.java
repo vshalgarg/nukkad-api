@@ -6,6 +6,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ResponseErrorCodes {
+	DEFAULT_QR_CODE_CAN_NOT_BE_DELETE(400,"Cannot delete default QR code"),
+	QR_CODE_LIMIT(400,"Only 3 QR codes are allowed per storekeeper."),
+	QR_CODE_NOT_FOUND(400,"QR code not found. "),
 	ADDRESS_NOT_FOUND(400,"Address not found."),
 	DEFAULT_ADDRESS_CAN_NOT_BE_CHANGE(400,"Default address can not be change."),
 	DEFAULT_ADDRESS_CAN_NOT_BE_DELETE(400,"Default address can not be delete"),

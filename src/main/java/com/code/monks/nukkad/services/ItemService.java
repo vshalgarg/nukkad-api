@@ -46,19 +46,26 @@ public class ItemService {
 		List<CreateItemResponseDTO> responses = new ArrayList<>();
 
 		for (CreateItemRequestDTO dto : requestList) {
+			log.debug("[ITEM BULK CREATE] Processing item: {}", dto.getName());
+
 			if (dto.getCategoryIds() == null || dto.getCategoryIds().isEmpty()) {
+				log.warn("[ITEM BULK CREATE] Skipped item '{}' - No categories provided", dto.getName());
 				throw new IllegalArgumentException("Item must be associated with at least one category.");
 			}
 
 			ItemEntity item = new ItemEntity();
 			item.setName(dto.getName());
 			item.setUnit(dto.getUnit());
+			log.debug("[ITEM BULK CREATE] Item basic fields set: name={}, unit={}", dto.getName(), dto.getUnit());
 
 			List<CategoryEntity> categories = categoryRepository.findAllById(dto.getCategoryIds());
 			if (categories.size() != dto.getCategoryIds().size()) {
+				log.error("[ITEM BULK CREATE] Mismatch in category count for item '{}': Expected={}, Found={}",
+						dto.getName(), dto.getCategoryIds().size(), categories.size());
 				throw new ResourceNotFoundException(ITEM_NOT_SAVED_EXCEPTION);
 			}
 			item.setCategories(categories);
+			log.debug("[ITEM BULK CREATE] Associated {} categories with item '{}'", categories.size(), dto.getName());
 
 			if (dto.getImageUrls() != null && !dto.getImageUrls().isEmpty()) {
 				List<CategoryItemImageEntity> images = dto.getImageUrls().stream()
@@ -69,12 +76,14 @@ public class ItemService {
 							return image;
 						}).toList();
 				item.setImages(images);
+				log.debug("[ITEM BULK CREATE] Attached {} image(s) to item '{}'", images.size(), dto.getName());
 			}
 
 			ItemEntity saved = itemRepository.save(item);
+			log.info("[ITEM BULK CREATE] Item created successfully: ID={}, Name={}", saved.getId(), saved.getName());
 			responses.add(CreateItemResponseDTO.fromEntity(saved));
 		}
-
+		log.info("[ITEM BULK CREATE] Successfully created {} item(s)", responses.size());
 		return new BulkCreateItemResponseDTO(responses);
 	}
 

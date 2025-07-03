@@ -1,17 +1,28 @@
 package com.code.monks.nukkad.services;
 
 import com.code.monks.nukkad.context.UserContextHolder;
+import com.code.monks.nukkad.dto.response.DeleteQrCodeResponseDto;
+import com.code.monks.nukkad.dto.response.StorekeeperQrCodeResponseDTO;
+import com.code.monks.nukkad.dto.response.UpdateStorekeeperQrResponseDTO;
+import com.code.monks.nukkad.dto.response.UploadQrCodeResponseDto;
 import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.entities.StorekeeperQrCodeEntity;
+import com.code.monks.nukkad.exception.DefaultQrCodeNotUpdatedException;
+import com.code.monks.nukkad.exception.MaxQrLimitExceededException;
+import com.code.monks.nukkad.exception.ResourceNotFoundException;
 import com.code.monks.nukkad.repositories.StorekeeperQrCodeRepository;
 import com.code.monks.nukkad.repositories.StorekeeperRepository;
 import com.code.monks.nukkad.utils.FileUploadHelper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StorekeeperQrCodeService {
@@ -19,52 +30,109 @@ public class StorekeeperQrCodeService {
     private final StorekeeperRepository storekeeperRepo;
     private final FileUploadHelper fileUploadHelper;
 
-    public void uploadQrCodes(MultipartFile[] qrCodes) {
+    public UploadQrCodeResponseDto uploadQrCodes(MultipartFile[] qrCodes) {
         Long storekeeperId = UserContextHolder.getUser().getId();
-        StorekeeperEntity storekeeper = storekeeperRepo.findById(storekeeperId).orElseThrow();
+        StorekeeperEntity storekeeper = storekeeperRepo.findById(storekeeperId)
+                .orElseThrow(() -> new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, storekeeperId));
 
         int existing = qrRepo.countByStorekeeperId(storekeeperId);
-        if (existing + qrCodes.length > 3)
-            throw new RuntimeException("Only 3 QR codes allowed");
+        if (existing + qrCodes.length > 3) {
+            log.warn("[QR UPLOAD] Upload limit exceeded for storekeeperId={}", storekeeperId);
+            throw new MaxQrLimitExceededException(QR_CODE_LIMIT);
+        }
 
         boolean hasDefault = qrRepo.existsByStorekeeperIdAndIsDefaultTrue(storekeeperId);
 
         for (int i = 0; i < qrCodes.length; i++) {
             String url = fileUploadHelper.storeFile(qrCodes[i]);
+
             qrRepo.save(StorekeeperQrCodeEntity.builder()
                     .storekeeper(storekeeper)
                     .qrImageUrl(url)
                     .isDefault(!hasDefault && i == 0)
                     .build());
+
+            log.debug("[QR UPLOAD] QR code saved with URL={} for storekeeperId={}", url, storekeeperId);
         }
+
+        log.info("[QR UPLOAD] Successfully uploaded {} QR codes for storekeeperId={}", qrCodes.length, storekeeperId);
+
+        return new UploadQrCodeResponseDto("QR codes uploaded successfully");
     }
 
-    public void deleteQr(Long qrId) {
-        StorekeeperQrCodeEntity qr = qrRepo.findById(qrId).orElseThrow();
-        if (qr.isDefault()) throw new RuntimeException("Cannot delete default QR");
+
+
+    public DeleteQrCodeResponseDto deleteQr(Long qrId) {
+        StorekeeperQrCodeEntity qr = qrRepo.findById(qrId)
+                .orElseThrow(() -> {
+                    log.warn("[QR DELETE] QR code not found: ID={}", qrId);
+                    return new ResourceNotFoundException(QR_CODE_NOT_FOUND);
+                });
+
+        if (qr.isDefault()) {
+            log.warn("[QR DELETE] Attempted to delete default QR code: ID={}", qrId);
+            throw new DefaultQrCodeNotUpdatedException(DEFAULT_QR_CODE_CAN_NOT_BE_DELETE);
+        }
+
         qrRepo.delete(qr);
+        log.info("[QR DELETE] Successfully deleted QR code: ID={}", qrId);
+
+        return new DeleteQrCodeResponseDto("QR code deleted successfully");
     }
+
+
 
     public void markAsDefault(Long qrId) {
-        StorekeeperQrCodeEntity selected = qrRepo.findById(qrId).orElseThrow();
+        log.info("[QR MARK DEFAULT] Request received to mark QR code ID={} as default", qrId);
+
+        StorekeeperQrCodeEntity selected = qrRepo.findById(qrId)
+                .orElseThrow(() -> {
+                    log.warn("[QR MARK DEFAULT] QR code not found for ID={}", qrId);
+                    return new ResourceNotFoundException(QR_CODE_NOT_FOUND);
+                });
+
         Long storekeeperId = selected.getStorekeeper().getId();
+        log.info("[QR MARK DEFAULT] Storekeeper ID={} owns the QR code", storekeeperId);
 
         List<StorekeeperQrCodeEntity> all = qrRepo.findByStorekeeperId(storekeeperId);
+        log.info("[QR MARK DEFAULT] Found {} QR codes for storekeeperId={}", all.size(), storekeeperId);
+
         for (StorekeeperQrCodeEntity qr : all) {
-            qr.setDefault(qr.getId().equals(qrId));
+            boolean isDefault = qr.getId().equals(qrId);
+            qr.setDefault(isDefault);
+            if (isDefault) {
+                log.info("[QR MARK DEFAULT] Marked QR code ID={} as default", qr.getId());
+            }
         }
+
         qrRepo.saveAll(all);
+        log.info("[QR MARK DEFAULT] Updated all QR codes for storekeeperId={}", storekeeperId);
     }
 
-    public List<StorekeeperQrCodeEntity> getAllQrCodes() {
+
+    public List<StorekeeperQrCodeResponseDTO> getAllQrCodes() {
         Long storekeeperId = UserContextHolder.getUser().getId();
-        return qrRepo.findByStorekeeperId(storekeeperId);
+
+        List<StorekeeperQrCodeEntity> qrCodes = qrRepo.findByStorekeeperId(storekeeperId);
+        log.info("[QR FETCH] Found {} QR codes for storekeeperId={}", qrCodes.size(), storekeeperId);
+
+        return qrCodes.stream()
+                .map(StorekeeperQrCodeResponseDTO::fromEntity)
+                .toList();
     }
 
-    public StorekeeperQrCodeEntity updateQr(Long qrId, MultipartFile file) {
-        StorekeeperQrCodeEntity qr = qrRepo.findById(qrId).orElseThrow();
+    public UpdateStorekeeperQrResponseDTO updateQr(Long qrId, MultipartFile file) {
+        StorekeeperQrCodeEntity qr = qrRepo.findById(qrId)
+                .orElseThrow(() -> new ResourceNotFoundException(QR_CODE_NOT_FOUND));
+
         String url = fileUploadHelper.storeFile(file);
         qr.setQrImageUrl(url);
-        return qrRepo.save(qr);
+
+        StorekeeperQrCodeEntity updated = qrRepo.save(qr);
+
+        log.info("[QR UPDATE] Updated QR code ID={} with new image URL={}", updated.getId(), updated.getQrImageUrl());
+
+        return UpdateStorekeeperQrResponseDTO.fromEntity(updated);
     }
+
 }
