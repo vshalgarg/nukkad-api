@@ -21,7 +21,7 @@ public class OrderRequestDTO {
     public static OrderEntity toEntity(OrderRequestDTO requestDTO) {
         OrderEntity orderEntity = new OrderEntity();
         // set cart entity with only id
-        CartItemEntity cart = new CartItemEntity();
+        CartProductEntity cart = new CartProductEntity();
         cart.setId(requestDTO.getCartId());
         orderEntity.setCart(cart);
         // address entity with only id

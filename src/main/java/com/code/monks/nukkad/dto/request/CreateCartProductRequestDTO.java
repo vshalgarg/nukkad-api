@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class CreateCartItemRequestDTO {
+public class CreateCartProductRequestDTO {
     private List<CartItemRequest> items;
 
     @Data

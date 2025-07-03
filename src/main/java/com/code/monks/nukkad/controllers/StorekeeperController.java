@@ -7,8 +7,10 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import static com.code.monks.nukkad.constants.UrlConstants.STOREKEEPER;
 
@@ -21,26 +23,29 @@ public class StorekeeperController {
     private final StorekeeperService storekeeperService;
 
 
-    @PostMapping(STOREKEEPER.CREATE)
+    @PostMapping(value = STOREKEEPER.CREATE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CreateStorekeeperResponseDTO> createStorekeeper(
-            @Valid @RequestBody CreateStorekeeperRequestDTO dto) {
+            @RequestPart("data") @Valid CreateStorekeeperRequestDTO dto,
+            @RequestPart("images") MultipartFile[] images) {
 
-        log.info("Creating storekeeper...");
+        log.info("Creating storekeeper with images...");
 
-        CreateStorekeeperResponseDTO response = storekeeperService.createStoreKeeper(dto);
+        CreateStorekeeperResponseDTO response = storekeeperService.createStoreKeeper(dto, images);
 
         log.info("Storekeeper created successfully.");
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @PutMapping(STOREKEEPER.UPDATE)
+
+    @PutMapping(value = STOREKEEPER.UPDATE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CreateStorekeeperResponseDTO> updateStorekeeper(
-            @Valid @RequestBody CreateStorekeeperRequestDTO dto) {
+            @RequestPart("data") @Valid CreateStorekeeperRequestDTO dto,
+            @RequestPart(value = "images", required = false) MultipartFile[] images) {
 
-        log.info("Updating storekeeper...");
+        log.info("Updating storekeeper profile...");
 
-        CreateStorekeeperResponseDTO response = storekeeperService.updateStoreKeeper(dto);
+        CreateStorekeeperResponseDTO response = storekeeperService.updateStoreKeeper(dto, images);
 
         log.info("Storekeeper updated successfully.");
 

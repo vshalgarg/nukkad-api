@@ -5,7 +5,7 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 @Converter(autoApply = true)
-public class RoleEnumConverter implements AttributeConverter<RoleEnum , Integer> {
+public class RoleEnumToCodeConverter implements AttributeConverter<RoleEnum , Integer> {
 
     public Integer convertToDatabaseColumn(RoleEnum attribute) {
         if (attribute == null) return null;

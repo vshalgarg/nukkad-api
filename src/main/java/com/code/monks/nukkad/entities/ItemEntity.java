@@ -1,6 +1,6 @@
 package com.code.monks.nukkad.entities;
 
-import com.code.monks.nukkad.converter.UnitEnumConverter;
+import com.code.monks.nukkad.converter.UnitEnumToCodeConverter;
 import com.code.monks.nukkad.enums.UnitEnum;
 import jakarta.persistence.*;
 import lombok.*;
@@ -22,12 +22,12 @@ public class ItemEntity extends BaseEntity {
 	@Column(name = "name")
 	private String name;
 
-	@Convert(converter = UnitEnumConverter.class)
+	@Convert(converter = UnitEnumToCodeConverter.class)
 	@Column(name  = "unit")
 	private UnitEnum unit;
 
 	@OneToMany( mappedBy = "item", cascade = CascadeType.ALL)
-	private List<ImageEntity> images = new ArrayList<>();
+	private List<CategoryItemImageEntity> images = new ArrayList<>();
 
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "item_category", joinColumns = @JoinColumn(name = "item_id"),

@@ -16,6 +16,18 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+	@ExceptionHandler(DefaultQrCodeNotUpdatedException.class)
+	public ResponseEntity<ErrorResponse> handleDefaultQrCodeNotUpdateAllowed(DefaultQrCodeNotUpdatedException ex){
+		ErrorResponse error = new ErrorResponse(ex.getMessage(), LocalDateTime.now(),ex.getError().getResponseCode());
+		return new ResponseEntity<>(error,HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(MaxQrLimitExceededException.class)
+	public ResponseEntity<ErrorResponse> handleMaxQrLimitExceeded(MaxQrLimitExceededException ex){
+		ErrorResponse error = new ErrorResponse(ex.getMessage(), LocalDateTime.now(),ex.getError().getResponseCode());
+		return new ResponseEntity<>(error,HttpStatus.BAD_REQUEST);
+	}
 	@ExceptionHandler(DefaultAddressUpdateNotAllowedException.class)
 	public ResponseEntity<ErrorResponse> handleDefaultAddressUpdateNotAllowed(DefaultAddressUpdateNotAllowedException ex){
 		ErrorResponse error = new ErrorResponse(ex.getMessage(), LocalDateTime.now(),ex.getError().getResponseCode());
@@ -47,9 +59,15 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(ExternalServiceException.class)
 	public ResponseEntity<ErrorResponse> handleExternalServerErrors(ExternalServiceException ex) {
-		ErrorResponse error = new ErrorResponse("Internal Server Error: " + ex.getMessage(), LocalDateTime.now(),
-				HttpStatus.INTERNAL_SERVER_ERROR.value());
-		return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+
+		String jsonString = ex.getMessage();
+		String message = jsonString.replaceAll(".*\"message\":\"([^\"]+)\".*", "$1");
+
+		String code = jsonString.replaceAll(".*\"responseCode\":(\\d+).*", "$1");
+		int errorCode = Integer.parseInt(code);
+		ErrorResponse error = new ErrorResponse(message, LocalDateTime.now(),
+				errorCode);
+		return new ResponseEntity<>(error, HttpStatus.OK);
 	}
 
 	@ExceptionHandler(DuplicateResourceException.class)

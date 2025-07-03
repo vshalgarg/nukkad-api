@@ -53,7 +53,8 @@ public class AuthRestClient {
 
 	public AuthSendOtpResponseDTO callOtpResponse(SendOtpRequestDTO otpRequest) {
 		String url = authHost + sendOtpUrl;
-		AuthSendOtpRequestDTO authDto = new AuthSendOtpRequestDTO(otpRequest.getMobileNumber(), otpRequest.getRoles());
+		String[] role = {otpRequest.getRole()};
+		AuthSendOtpRequestDTO authDto = new AuthSendOtpRequestDTO(otpRequest.getMobileNumber(), role);
 		Map<String, String> headers = new HashMap<>();
 		updateHeadersForClientNameAndSecret(headers);
 
