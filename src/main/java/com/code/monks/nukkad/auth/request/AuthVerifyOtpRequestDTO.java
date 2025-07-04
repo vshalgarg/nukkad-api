@@ -9,5 +9,4 @@ import lombok.Data;
 public class AuthVerifyOtpRequestDTO {
     private String phoneNumber;
     private String verificationCode;
-
 }

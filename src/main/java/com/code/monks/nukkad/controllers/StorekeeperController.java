@@ -26,7 +26,7 @@ public class StorekeeperController {
     @PostMapping(value = STOREKEEPER.CREATE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CreateStorekeeperResponseDTO> createStorekeeper(
             @RequestPart("data") @Valid CreateStorekeeperRequestDTO dto,
-            @RequestPart("images") MultipartFile[] images) {
+            @RequestPart(value = "images", required = false) MultipartFile[] images) {
 
         log.info("Creating storekeeper with images...");
 
@@ -36,6 +36,7 @@ public class StorekeeperController {
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+
 
 
     @PutMapping(value = STOREKEEPER.UPDATE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

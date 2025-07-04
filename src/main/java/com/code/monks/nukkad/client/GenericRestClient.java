@@ -56,7 +56,6 @@ public class GenericRestClient {
 			throw new ExternalServiceException(ex.getMessage());
 		}
 	}
-
 }
 
 
