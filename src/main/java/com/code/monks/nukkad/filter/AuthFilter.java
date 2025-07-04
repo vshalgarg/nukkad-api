@@ -27,8 +27,8 @@ public class AuthFilter extends OncePerRequestFilter {
     private final AuthRestClient authRestClient;
     private final Environment environment;
 
-    @Value("${auth.monk.local:false}")
-    private boolean isLocalAuthEnabled;
+    @Value("${auth.mock.local:false}")
+    private boolean isMockEnabled;
 
     public AuthFilter(AuthRestClient authRestClient, Environment environment) {
         this.authRestClient = authRestClient;
@@ -51,7 +51,7 @@ public class AuthFilter extends OncePerRequestFilter {
             String authHeader = request.getHeader("Authorization");
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                if (isLocalAuthEnabled && isLocalProfileActive()) {
+                if (isMockEnabled && isLocalProfileActive()) {
                     log.warn("[AUTH FILTER] No token found. Injecting dummy user (LOCAL ONLY).");
 
                     User dummyUser = new User();
