@@ -55,8 +55,6 @@ public class GetOrderByStoreKeeperResponseDTO {
             responseDTO.setStoreKeeperId(entity.getStoreKeeper().getId());
         }
 
-
-
         responseDTO.setStatus(entity.getStatus());
 
         // Items from OrderItemEntity

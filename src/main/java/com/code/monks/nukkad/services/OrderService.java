@@ -31,16 +31,18 @@ public class OrderService { // placeOrderService
     private final CustomerRepository customerRepository;
     private final StorekeeperRepository storekeeperRepository;
     private final OrderItemRepository orderItemRepository;
-    private final CartItemRepository cartItemRepository;
+    private final CartProductRepository cartProductRepository;
 
 
-    public OrderService(OrderRepository orderRepository, AddressRepository addressRepository, CustomerRepository customerRepository, StorekeeperRepository storekeeperRepository, OrderItemRepository orderItemRepository, CartItemRepository cartItemRepository) {
+    public OrderService(OrderRepository orderRepository, AddressRepository addressRepository, CustomerRepository customerRepository,
+                        StorekeeperRepository storekeeperRepository, OrderItemRepository orderItemRepository,
+                        CartProductRepository cartProductRepository) {
         this.orderRepository = orderRepository;
         this.addressRepository = addressRepository;
         this.customerRepository = customerRepository;
         this.storekeeperRepository = storekeeperRepository;
         this.orderItemRepository = orderItemRepository;
-        this.cartItemRepository = cartItemRepository;
+        this.cartProductRepository = cartProductRepository;
     }
 
     public PlaceOrderResponseDTO placeOrders(OrderRequestDTO requestDTO) {
@@ -77,7 +79,7 @@ public class OrderService { // placeOrderService
             log.debug("[CREATE ORDER] Delivery address set: {}", deliveryAddress.getAddressLine1());
 
             // Fetch cart items
-            List<CartItemEntity> cartItems = cartItemRepository.findByCustomerId(customerId);
+            List<CartProductEntity> cartItems = cartProductRepository.findByCustomerId(customerId);
             log.debug("[CREATE ORDER] Found {} cart item(s) for customerId={}", cartItems.size(), customerId);
 
             // Convert cart items to order items
@@ -242,7 +244,6 @@ public class OrderService { // placeOrderService
         log.info("[STOREKEEPER ORDERS] {} order(s) found for storeKeeperId={}", responseDTOs.size(), storekeeperId);
         return responseDTOs;
     }
-
 
     public RepeatOrderResponseDTO repeatOrder(Long id)
     {
