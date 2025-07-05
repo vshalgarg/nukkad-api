@@ -16,10 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -53,7 +50,9 @@ public class AuthRestClient {
 
 	public AuthSendOtpResponseDTO callOtpResponse(SendOtpRequestDTO otpRequest) {
 		String url = authHost + sendOtpUrl;
-		AuthSendOtpRequestDTO authDto = new AuthSendOtpRequestDTO(otpRequest.getMobileNumber(), otpRequest.getRoles());
+		Set<String> roles = new HashSet<>();
+		roles.add(otpRequest.getRole());
+		AuthSendOtpRequestDTO authDto = new AuthSendOtpRequestDTO(otpRequest.getMobileNumber(), roles);
 		Map<String, String> headers = new HashMap<>();
 		updateHeadersForClientNameAndSecret(headers);
 

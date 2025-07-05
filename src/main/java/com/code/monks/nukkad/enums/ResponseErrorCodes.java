@@ -6,6 +6,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ResponseErrorCodes {
+	DEFAULT_QR_CODE_CAN_NOT_BE_DELETE(400,"Cannot delete default QR code"),
+	QR_CODE_LIMIT(400,"Only 3 QR codes are allowed per storekeeper."),
+	QR_CODE_NOT_FOUND(400,"QR code not found. "),
 	ADDRESS_NOT_FOUND(400,"Address not found."),
 	DEFAULT_ADDRESS_CAN_NOT_BE_CHANGE(400,"Default address can not be change."),
 	DEFAULT_ADDRESS_CAN_NOT_BE_DELETE(400,"Default address can not be delete"),
@@ -22,8 +25,8 @@ public enum ResponseErrorCodes {
 	ACCESS_DENIED_FOR_ADMIN_EXCEPTION(403,"Only Admin can perform this action "),
 	UNHANDLED_EXCEPTION(500, "Unhandled exception"),
 	SEARCH_NOT_FOUND(400, "Failed to perform search. Please try again later."),
-	ITEM_NOT_SAVED_EXCEPTION(400,"Categories not found so you can't add item.");
-
+	ITEM_NOT_SAVED_EXCEPTION(400,"Categories not found so you can't add item."),
+    DUPLICATE_RESOURCE_EXCEPTION(400,"");
 	private int responseCode;
 
 	private String message;

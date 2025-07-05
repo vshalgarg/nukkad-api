@@ -40,8 +40,8 @@ public class UrlConstants {
  public static class OTP{
 
 	 public static final String BASE = CONTEXT +  "/api/otp";
-	 public static final String SENDOTP = "/v1/send";
-	 public static final String VERIFYOTP ="/v1/verify";
+	 public static final String SEND_OTP = "/v1/send";
+	 public static final String VERIFY_OTP ="/v1/verify";
  }
 
 
@@ -49,7 +49,7 @@ public static class STOREKEEPER{
 
 		public static final String BASE = CONTEXT + "/api/storekeeper";
 		public static final String CREATE = "/v1/profile/save";
-		public static  final String UPDATE = "/v1/profile/update/{id}";
+		public static  final String UPDATE = "/v1/profile/update";
 }
 
 public static class ADDRESS{
@@ -91,8 +91,17 @@ public static class ADDRESS{
 
 	public static class RATING
 	{
-		public static final String BASE= CONTEXT + "/api/rating";
+		public static final String BASE = CONTEXT + "/api/rating";
 		public static final String CREATE ="/v1/create";
+	}
+
+	public static class STOREKEEPER_QR_CODE{
+		public static final String BASE = CONTEXT + "/api/qr";
+		public static final String UPLOAD = "/v1/upload";
+		public static final String GET = "/v1/getAll/qrCodes";
+		public static final String UPDATE = "/v1/update/{id}";
+		public static final String MARK_AS_DEFAULT = "v1/{id}/default";
+		public static final String DELETE = "/v1/delete/{id}";
 	}
 
 	private UrlConstants() {

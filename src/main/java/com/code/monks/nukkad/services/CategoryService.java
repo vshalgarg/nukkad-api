@@ -9,16 +9,14 @@ import com.code.monks.nukkad.dto.response.CreateCategoryResponseDTO;
 import com.code.monks.nukkad.dto.response.GetAllCategoryResponseDTO;
 import com.code.monks.nukkad.dto.response.UpdateCategoryResponseDTO;
 import com.code.monks.nukkad.entities.CategoryEntity;
-import com.code.monks.nukkad.entities.ImageEntity;
+import com.code.monks.nukkad.entities.CategoryItemImageEntity;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.exception.AccessDeniedException;
 import com.code.monks.nukkad.exception.DuplicateResourceException;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
-import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.CategoryRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -42,9 +40,15 @@ public class   CategoryService {
 			throw new AccessDeniedException(ACCESS_DENIED_FOR_ADMIN_EXCEPTION);
 		}
 
+
+		log.info("[CATEGORY BULK CREATE] Starting bulk category creation. Total requested: {}", requestList.size());
 		List<CreateCategoryResponseDTO> responseList = new ArrayList<>();
+
 		for (CreateCategoryRequestDTO dto : requestList) {
+			log.debug("[CATEGORY BULK CREATE] Processing category: {}", dto.getName());
+
 			if (categoryRepository.existsByNameIgnoreCase(dto.getName())) {
+				log.warn("[CATEGORY BULK CREATE] Duplicate category name found: {}", dto.getName());
 				throw new DuplicateResourceException(DUPLICATE_CATEGORY_EXCEPTION);
 			}
 
@@ -52,15 +56,16 @@ public class   CategoryService {
 			category.setName(dto.getName());
 
 			if (dto.getImageUrl() != null && !dto.getImageUrl().isBlank()) {
-				ImageEntity image = new ImageEntity();
+				CategoryItemImageEntity image = new CategoryItemImageEntity();
 				image.setImageUrl(dto.getImageUrl());
 				category.setImage(image);
+				log.debug("[CATEGORY BULK CREATE] Image set for category '{}': {}", dto.getName(), dto.getImageUrl());
 			}
 
 			CategoryEntity saved = categoryRepository.save(category);
 			responseList.add(CreateCategoryResponseDTO.fromEntity(saved));
 		}
-
+		log.info("[CATEGORY BULK CREATE] Successfully created {} categories", responseList.size());
 		return new BulkCreateCategoryResponseDTO(responseList);
 	}
 
@@ -73,17 +78,27 @@ public class   CategoryService {
 		}
 
 		CategoryEntity category = categoryRepository.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException(CATEGORY_NOT_FOUND, id));
+				.orElseThrow(() -> {
+					log.warn("[CATEGORY UPDATE] Category not found with ID={}", id);
+					return new ResourceNotFoundException(CATEGORY_NOT_FOUND, id);
+				});
+
+		log.debug("[CATEGORY UPDATE] Found category: ID={}, Current name={}", category.getId(), category.getName());
 
 		category.setName(dto.getName());
+		log.debug("[CATEGORY UPDATE] Updated name to: {}", dto.getName());
 
 		if (dto.getImageUrl() != null && !dto.getImageUrl().isEmpty()) {
-			ImageEntity image = new ImageEntity();
+			CategoryItemImageEntity image = new CategoryItemImageEntity();
 			image.setImageUrl(dto.getImageUrl());
 			category.setImage(image);
-		}
+			log.debug("[CATEGORY UPDATE] Updated image URL: {}", dto.getImageUrl());
 
-		return UpdateCategoryResponseDTO.fromEntity(categoryRepository.save(category));
+		}
+		CategoryEntity saved = categoryRepository.save(category);
+		log.info("[CATEGORY UPDATE] Successfully updated category ID={} with new name='{}'", saved.getId(), saved.getName());
+
+		return UpdateCategoryResponseDTO.fromEntity(saved);
 	}
 
 
@@ -99,11 +114,19 @@ public class   CategoryService {
 	}
 
 	public CreateCategoryResponseDTO getById(Long id) {
-		CategoryEntity entity = categoryRepository.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException(CATEGORY_NOT_FOUND, id));
-		return CreateCategoryResponseDTO.fromEntity(entity);
+		log.info("[CATEGORY FETCH] Fetch request received for category ID={}", id);
 
+		CategoryEntity entity = categoryRepository.findById(id)
+				.orElseThrow(() -> {
+					log.warn("[CATEGORY FETCH] Category not found for ID={}", id);
+					return new ResourceNotFoundException(CATEGORY_NOT_FOUND, id);
+				});
+
+		log.info("[CATEGORY FETCH] Category found: ID={}, Name={}", entity.getId(), entity.getName());
+
+		return CreateCategoryResponseDTO.fromEntity(entity);
 	}
+
 }
 
 

@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
+import static com.code.monks.nukkad.dto.response.CreateCustomerResponseDTO.setAddress;
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
 
 @Slf4j
@@ -48,16 +48,7 @@ public class CustomerService {
 
 		log.info("[CREATE CUSTOMER] Saving default address for customerId={}", saved.getId());
 
-		AddressEntity address = new AddressEntity();
-		address.setAddressLine1(dto.getAddressLine1());
-		address.setAddressLine2(dto.getAddressLine2());
-		address.setLandmark(dto.getLandmark());
-		address.setCity(dto.getCity());
-		address.setState(dto.getState());
-		address.setPincode(dto.getPincode());
-		address.setCustomerId(saved.getId());
-		address.setIsDefault(true);
-
+		AddressEntity address = setAddress(dto, saved.getId());
 		addressRepository.save(address);
 		log.info("[CREATE CUSTOMER] Customer and address created successfully for customerId={}", saved.getId());
 
@@ -86,32 +77,33 @@ public class CustomerService {
 		return UpdateCustomerResponseDTO.fromEntity(updated);
 	}
 
-	public AddStoreResponseDto addStoreToCustomer(String storeId) {
+	public AddStoreResponseDto addStoreToCustomer(Long storekeeperId) {
 		Long customerId = UserContextHolder.getUser().getId();
-		log.info("[ADD STORE] Adding storeId={} to customerId={}", storeId, customerId);
+		log.info("[ADD STORE] Adding storekeeperId={} to customerId={}", storekeeperId, customerId);
 
 		CustomerEntity customer = customerRepository.findById(customerId)
 				.orElseThrow(() -> {
 					log.error("[ADD STORE] Customer not found. ID={}", customerId);
-                    return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
+					return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
 				});
 
-		StorekeeperEntity storekeeper = storekeeperRepository.findByStoreId(storeId)
+		StorekeeperEntity storekeeper = storekeeperRepository.findById(storekeeperId)
 				.orElseThrow(() -> {
-					log.error("[ADD STORE] Storekeeper not found with storeId={}", storeId);
-                    return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND_WITH_STORE_ID, storeId);
+					log.error("[ADD STORE] Storekeeper not found. ID={}", storekeeperId);
+					return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, storekeeperId);
 				});
 
 		if (!customer.getStorekeepers().contains(storekeeper)) {
 			customer.getStorekeepers().add(storekeeper);
 			customerRepository.save(customer);
-			log.info("[ADD STORE] Store successfully linked to customerId={}", customerId);
+			log.info("[ADD STORE] Storekeeper successfully linked to customerId={}", customerId);
 			return new AddStoreResponseDto("Store added to customer.");
 		} else {
-			log.info("[ADD STORE] Store already linked to customerId={}", customerId);
+			log.info("[ADD STORE] Storekeeper already linked to customerId={}", customerId);
 			return new AddStoreResponseDto("Store already added.");
 		}
 	}
+
 
 	public List<GetMyStoreResponseDto> getMyStores() {
 		Long customerId = UserContextHolder.getUser().getId();
@@ -139,7 +131,7 @@ public class CustomerService {
 						.city(storekeeper.getCity())
 						.state(storekeeper.getState())
 						.pincode(storekeeper.getPincode())
-						.storeId(storekeeper.getStoreId())
+						.storeId(storekeeper.getStoreQrId())
 						.build())
 				.collect(Collectors.toList());
 	}

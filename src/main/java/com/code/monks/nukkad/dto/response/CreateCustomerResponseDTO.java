@@ -1,5 +1,6 @@
 package com.code.monks.nukkad.dto.response;
 
+import com.code.monks.nukkad.dto.request.CreateCustomerRequestDTO;
 import com.code.monks.nukkad.entities.AddressEntity;
 import com.code.monks.nukkad.entities.CustomerEntity;
 import com.code.monks.nukkad.enums.RoleEnum;
@@ -27,7 +28,19 @@ public class CreateCustomerResponseDTO {
 		customerResponseDTO.setMobileNumber(customer.getMobileNumber());
 
 		return customerResponseDTO;
+	}
 
+	public static AddressEntity setAddress(CreateCustomerRequestDTO dto, Long id){
+		AddressEntity address = new AddressEntity();
+		address.setAddressLine1(dto.getAddressLine1());
+		address.setAddressLine2(dto.getAddressLine2());
+		address.setLandmark(dto.getLandmark());
+		address.setCity(dto.getCity());
+		address.setState(dto.getState());
+		address.setPincode(dto.getPincode());
+		address.setCustomerId(id);
+		address.setIsDefault(true);
+		return address;
 	}
 }
 

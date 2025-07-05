@@ -34,7 +34,7 @@ public class OtpService {
 		AuthVerifyOtpResponseDTO authResponse= authRestClient.callVerifyOtpResponse(verifyRequestDTO);
 		return new VerifyOtpResponseDTO(authResponse.getUserId(),
 				                     authResponse.getUsername(),
-				                     authResponse.getRoles(),
+ 				                     authResponse.getRoles(),
 				                     authResponse.getToken());
 	}
 }

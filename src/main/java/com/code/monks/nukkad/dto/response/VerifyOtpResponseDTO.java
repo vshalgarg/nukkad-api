@@ -9,7 +9,7 @@ import java.util.List;
 @AllArgsConstructor
 public class VerifyOtpResponseDTO {
     private Long userId;
-    private String phoneNumber;
+    private String mobileNumber;
     private List<String> roles;
     private String token;
 }

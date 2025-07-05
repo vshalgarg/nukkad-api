@@ -10,25 +10,35 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
 @Component
-@AllArgsConstructor
 public class AuthFilter extends OncePerRequestFilter {
 
     private final AuthRestClient authRestClient;
+    private final Environment environment;
+
+    @Value("${auth.mock.local:false}")
+    private boolean isMockEnabled;
+
+    public AuthFilter(AuthRestClient authRestClient, Environment environment) {
+        this.authRestClient = authRestClient;
+        this.environment = environment;
+    }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path.equals("/send") || path.equals("/verify");
+        return path.equals("/nukkad/api/otp/v1/send") || path.equals("/nukkad/api/otp/v1/verify");
     }
 
     @Override
@@ -41,18 +51,23 @@ public class AuthFilter extends OncePerRequestFilter {
             String authHeader = request.getHeader("Authorization");
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                log.warn("[AUTH FILTER] No Authorization header or invalid format. Injecting dummy STOREKEEPER user");
+                if (isMockEnabled && isLocalProfileActive()) {
+                    log.warn("[AUTH FILTER] No token found. Injecting dummy user (LOCAL ONLY).");
 
-                User dummyUser = new User();
-                dummyUser.setId(403L);
-                dummyUser.setMobileNumber("9560121707");
-                dummyUser.setRoles(List.of(RoleEnum.STOREKEEPER));
-                UserContextHolder.setUser(dummyUser);
+                    User dummyUser = new User();
+                    dummyUser.setId(403L);
+                    dummyUser.setMobileNumber("9560121707");
+                    dummyUser.setRoles(List.of(RoleEnum.STOREKEEPER));
+                    UserContextHolder.setUser(dummyUser);
 
-                log.info("[AUTH FILTER] Dummy user set: ID={}, Mobile={}, Roles={}",
-                        dummyUser.getId(), dummyUser.getMobileNumber(), dummyUser.getRoles());
-
-            } else {
+                } else {
+                    log.warn("[AUTH FILTER] Missing or invalid token in non-local environment.");
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("Unauthorized: Token missing or invalid");
+                    return;
+                }
+            }
+            else {
                 String token = authHeader.substring(7);
                 log.info("[AUTH FILTER] Validating token...");
 
@@ -89,4 +104,11 @@ public class AuthFilter extends OncePerRequestFilter {
             UserContextHolder.clear();
         }
     }
+
+    private boolean isLocalProfileActive() {
+        String[] activeProfiles = environment.getActiveProfiles();
+        log.info("[AUTH FILTER] Active Spring Profiles: {}", Arrays.toString(activeProfiles));
+        return Arrays.asList(activeProfiles).contains("local");
+    }
 }
+

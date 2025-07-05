@@ -4,12 +4,12 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @EqualsAndHashCode(callSuper = true)
-@Entity(name = "image")
+@Entity(name = "category_item_image")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ImageEntity extends BaseEntity{
+public class CategoryItemImageEntity extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -21,5 +21,8 @@ public class ImageEntity extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id")
     private ItemEntity item;
+
+
+
 
 }
