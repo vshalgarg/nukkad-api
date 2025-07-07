@@ -21,5 +21,12 @@ public enum  UnitEnum {
         }
         throw new IllegalArgumentException("Invalid UnitEnum code: " + code);
     }
+
+    public String toUpperCaseUnit() {
+        return (units != null && units.length > 0) ? units[0].toUpperCase() : "";
+    }
+
+
+
 }
 

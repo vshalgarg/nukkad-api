@@ -203,16 +203,24 @@ CREATE TABLE IF NOT EXISTS orders (
     INDEX idx_order_status (status)
 );
 
-CREATE TABLE IF NOT EXISTS cart_item_Order (
+CREATE TABLE IF NOT EXISTS order_item (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
     order_id BIGINT NOT NULL,
-    cart_item_id BIGINT NOT NULL,
+    item_id INT NOT NULL,
+    item_name VARCHAR(50),
+    quantity INT NOT NULL,
+    unit VARCHAR(50),
+    price DOUBLE,
 
-    PRIMARY KEY (order_id, cart_item_id),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-    CONSTRAINT fk_ic_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    CONSTRAINT fk_ic_cart_item FOREIGN KEY (cart_item_id) REFERENCES cart_item(id) ON DELETE CASCADE,
+    CONSTRAINT fk_order_item_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    CONSTRAINT fk_order_item_item FOREIGN KEY (item_id) REFERENCES item(id) ON DELETE CASCADE,
 
-    INDEX idx_ic_cart_item_id (cart_item_id)
+    INDEX idx_order_item_order_id (order_id),
+    INDEX idx_order_item_item_id (item_id)
 );
 
 CREATE TABLE  IF NOT EXISTS  rating (
