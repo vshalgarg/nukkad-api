@@ -14,8 +14,7 @@ public class UrlConstants {
 		public static final String GET_ALL = "/v1/get";
 		public static final String GET_BY_ID = "/v1/get/{id}";
 	}
-
-
+	
 	public static class ITEM{
 
 		public static final String BASE = CONTEXT + "/api/item";

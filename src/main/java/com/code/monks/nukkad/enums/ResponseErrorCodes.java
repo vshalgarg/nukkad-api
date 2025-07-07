@@ -6,6 +6,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ResponseErrorCodes {
+	EXTERNAL_API_CALL_FAILED(502,"External API call failed"),
+	EXTERNAL_SERVICE_ERROR(502,"External service exception occur"),
 	DEFAULT_QR_CODE_CAN_NOT_BE_DELETE(400,"Cannot delete default QR code"),
 	QR_CODE_LIMIT(400,"Only 3 QR codes are allowed per storekeeper."),
 	QR_CODE_NOT_FOUND(400,"QR code not found. "),

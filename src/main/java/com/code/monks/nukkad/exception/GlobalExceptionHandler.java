@@ -59,16 +59,15 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(ExternalServiceException.class)
 	public ResponseEntity<ErrorResponse> handleExternalServerErrors(ExternalServiceException ex) {
+		String combined = ex.getMessage();
+		String[] parts = combined.split("::", 2);
 
-		String jsonString = ex.getMessage();
-		String message = jsonString.replaceAll(".*\"message\":\"([^\"]+)\".*", "$1");
-
-		String code = jsonString.replaceAll(".*\"responseCode\":(\\d+).*", "$1");
-		int errorCode = Integer.parseInt(code);
-		ErrorResponse error = new ErrorResponse(message, LocalDateTime.now(),
-				errorCode);
+		String code = parts.length > 0 ? parts[0] : "UNKNOWN";
+		String message = parts.length > 1 ? parts[1] : "No message provided";
+        int errorCode = Integer.parseInt(code);
+		ErrorResponse error = new ErrorResponse(message, LocalDateTime.now(),errorCode);
 		return new ResponseEntity<>(error, HttpStatus.OK);
-	}
+}
 
 	@ExceptionHandler(DuplicateResourceException.class)
 	public ResponseEntity<ErrorResponse> handleDuplicateResourceErrors(DuplicateResourceException ex) {

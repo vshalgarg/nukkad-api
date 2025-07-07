@@ -44,14 +44,15 @@ public class CustomerController {
 	}
 
 	@PostMapping(CUSTOMER.ADD_STORE_TO_CUSTOMER)
-	public ResponseEntity<AddStoreResponseDto> addStoreToCustomer(@RequestParam Long storekeeperId) {
-		log.info("[ADD STORE] Adding storeId={} to customer", storekeeperId);
+	public ResponseEntity<AddStoreResponseDto> addStoreToCustomer(@RequestParam String storeQrId) {
+		log.info("[ADD STORE] Adding store with QR ID={} to customer", storeQrId);
 
-		AddStoreResponseDto responseDto = customerService.addStoreToCustomer(storekeeperId);
+		AddStoreResponseDto responseDto = customerService.addStoreToCustomer(storeQrId);
 
 		log.info("[ADD STORE] {}", responseDto.getMessage());
 		return ResponseEntity.ok(responseDto);
 	}
+
 
 	@GetMapping(CUSTOMER.GET_MY_STORES)
 	public ResponseEntity<List<GetMyStoreResponseDto>> getStores() {
