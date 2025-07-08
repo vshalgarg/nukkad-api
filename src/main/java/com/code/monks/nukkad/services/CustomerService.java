@@ -77,9 +77,9 @@ public class CustomerService {
 		return UpdateCustomerResponseDTO.fromEntity(updated);
 	}
 
-	public AddStoreResponseDto addStoreToCustomer(Long storekeeperId) {
+	public AddStoreResponseDto addStoreToCustomer(String storeQrId) {
 		Long customerId = UserContextHolder.getUser().getId();
-		log.info("[ADD STORE] Adding storekeeperId={} to customerId={}", storekeeperId, customerId);
+		log.info("[ADD STORE] Adding store with QR ID={} to customerId={}", storeQrId, customerId);
 
 		CustomerEntity customer = customerRepository.findById(customerId)
 				.orElseThrow(() -> {
@@ -87,10 +87,10 @@ public class CustomerService {
 					return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
 				});
 
-		StorekeeperEntity storekeeper = storekeeperRepository.findById(storekeeperId)
+		StorekeeperEntity storekeeper = storekeeperRepository.findByStoreQrId(storeQrId)
 				.orElseThrow(() -> {
-					log.error("[ADD STORE] Storekeeper not found. ID={}", storekeeperId);
-					return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, storekeeperId);
+					log.error("[ADD STORE] Storekeeper not found with QR ID={}", storeQrId);
+					return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, storeQrId);
 				});
 
 		if (!customer.getStorekeepers().contains(storekeeper)) {
@@ -103,6 +103,7 @@ public class CustomerService {
 			return new AddStoreResponseDto("Store already added.");
 		}
 	}
+
 
 
 	public List<GetMyStoreResponseDto> getMyStores() {

@@ -6,6 +6,7 @@ import com.code.monks.nukkad.dto.request.CreateRatingRequestDTO;
 import com.code.monks.nukkad.dto.response.CreateRatingResponseDTO;
 import com.code.monks.nukkad.services.RatingService;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import static com.code.monks.nukkad.constants.UrlConstants.RATING.CREATE;
 @Slf4j
 @RestController
 @RequestMapping(BASE)
+@AllArgsConstructor
 public class RatingController
 {
     @Autowired

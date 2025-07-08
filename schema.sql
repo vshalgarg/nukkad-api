@@ -125,9 +125,6 @@ CREATE TABLE IF NOT EXISTS customer_storekeeper (
     INDEX idx_cs_store_customer (storekeeper_id, customer_id)
 );
 
-
-
-
 CREATE TABLE IF NOT EXISTS address (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     address_line1 VARCHAR(100) NOT NULL,
@@ -139,11 +136,15 @@ CREATE TABLE IF NOT EXISTS address (
     customer_id BIGINT,
     is_default BOOLEAN NOT NULL DEFAULT FALSE,
 
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
     INDEX idx_address_customer_id (customer_id),
     INDEX idx_address_city (city),
     INDEX idx_address_pincode (pincode),
     INDEX idx_address_customer_default (customer_id, is_default)
 );
+
 
   CREATE TABLE IF NOT EXISTS cart (
      id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -182,37 +183,45 @@ CREATE TABLE IF NOT EXISTS cart_item (
 CREATE TABLE IF NOT EXISTS orders (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
 
-    cart_id BIGINT NOT NULL,
     customer_id BIGINT NOT NULL,
     delivery_address_id BIGINT NOT NULL,
     store_keeper_id BIGINT NOT NULL,
     status VARCHAR(50) NOT NULL,
+    store_keeper_note VARCHAR(255), -- Matches `@Column(name = "store_keeper_note") private String note;`
 
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-    CONSTRAINT fk_order_cart FOREIGN KEY (cart_id) REFERENCES cart_item(id),
     CONSTRAINT fk_order_customer FOREIGN KEY (customer_id) REFERENCES customer(id),
     CONSTRAINT fk_order_delivery FOREIGN KEY (delivery_address_id) REFERENCES address(id),
     CONSTRAINT fk_order_store_keeper FOREIGN KEY (store_keeper_id) REFERENCES storekeeper(id),
 
-    INDEX idx_order_cart (cart_id),
     INDEX idx_order_customer (customer_id),
     INDEX idx_order_delivery (delivery_address_id),
     INDEX idx_order_store_keeper (store_keeper_id),
     INDEX idx_order_status (status)
 );
 
-CREATE TABLE IF NOT EXISTS cart_item_Order (
+
+
+CREATE TABLE IF NOT EXISTS order_item (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
     order_id BIGINT NOT NULL,
-    cart_item_id BIGINT NOT NULL,
+    item_id INT NOT NULL,
+    item_name VARCHAR(50),
+    quantity INT NOT NULL,
+    unit VARCHAR(50),
+    price DOUBLE,
 
-    PRIMARY KEY (order_id, cart_item_id),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-    CONSTRAINT fk_ic_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    CONSTRAINT fk_ic_cart_item FOREIGN KEY (cart_item_id) REFERENCES cart_item(id) ON DELETE CASCADE,
+    CONSTRAINT fk_order_item_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    CONSTRAINT fk_order_item_item FOREIGN KEY (item_id) REFERENCES item(id) ON DELETE CASCADE,
 
-    INDEX idx_ic_cart_item_id (cart_item_id)
+    INDEX idx_order_item_order_id (order_id),
+    INDEX idx_order_item_item_id (item_id)
 );
 
 CREATE TABLE  IF NOT EXISTS  rating (

@@ -14,9 +14,6 @@ public enum RoleEnum {
     RoleEnum(int code){
         this.code = code;
     }
-    public int getCode() {
-        return code;
-    }
 
     public static RoleEnum fromCode(int code) {
         for (RoleEnum role : values()) {

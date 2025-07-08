@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.code.monks.nukkad.constants.UrlConstants.*;
+import static com.code.monks.nukkad.constants.UrlConstants.ITEM.GET_BY_CATEGORY;
 
 @Slf4j
 @RestController
@@ -59,4 +60,15 @@ public class ItemController {
 		log.info("[UPDATE ITEM] Updated item with ID: {}", updatedItem.getId());
 		return ResponseEntity.ok(updatedItem);
 	}
+
+	@GetMapping(GET_BY_CATEGORY)
+	public ResponseEntity<List<GetAllItemResponseDTO>> getItemsByCategory(@PathVariable Long categoryId) {
+		log.info("[GET ITEMS BY CATEGORY] categoryId={}", categoryId);
+
+		List<GetAllItemResponseDTO> items = itemService.getItemsByCategory(categoryId);
+		log.info("[GET ITEMS BY CATEGORY] Found {} items for categoryId={}", items.size(), categoryId);
+
+		return ResponseEntity.ok(items);
+	}
+
 }

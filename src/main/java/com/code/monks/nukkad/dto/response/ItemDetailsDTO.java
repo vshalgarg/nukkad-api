@@ -1,6 +1,5 @@
 package com.code.monks.nukkad.dto.response;
 
-import com.code.monks.nukkad.enums.UnitEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,8 +7,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ItemDetailsDto {
-  private int itemId;
+public class ItemDetailsDTO {
+  private Long itemId;
   private String itemName;
-  private UnitEnum unit;
+  private String unit;
+  private int quantity;
+  private double price;
 }

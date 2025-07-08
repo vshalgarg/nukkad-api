@@ -59,16 +59,15 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(ExternalServiceException.class)
 	public ResponseEntity<ErrorResponse> handleExternalServerErrors(ExternalServiceException ex) {
+		String combined = ex.getMessage();
+		String[] parts = combined.split("::", 2);
 
-		String jsonString = ex.getMessage();
-		String message = jsonString.replaceAll(".*\"message\":\"([^\"]+)\".*", "$1");
-
-		String code = jsonString.replaceAll(".*\"responseCode\":(\\d+).*", "$1");
-		int errorCode = Integer.parseInt(code);
-		ErrorResponse error = new ErrorResponse(message, LocalDateTime.now(),
-				errorCode);
+		String code = parts.length > 0 ? parts[0] : "UNKNOWN";
+		String message = parts.length > 1 ? parts[1] : "No message provided";
+        int errorCode = Integer.parseInt(code);
+		ErrorResponse error = new ErrorResponse(message, LocalDateTime.now(),errorCode);
 		return new ResponseEntity<>(error, HttpStatus.OK);
-	}
+}
 
 	@ExceptionHandler(DuplicateResourceException.class)
 	public ResponseEntity<ErrorResponse> handleDuplicateResourceErrors(DuplicateResourceException ex) {
@@ -89,14 +88,16 @@ public class GlobalExceptionHandler {
 		return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
-    @ExceptionHandler(com.code.monks.nukkad.exception.OrderNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleOrderNotFound(com.code.monks.nukkad.exception.OrderNotFoundException exception)
-    {
-        ErrorResponse response= new ErrorResponse
-				("Order Not Found :" + LocalDateTime.now(), 400);
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+	@ExceptionHandler(OrderNotFoundException.class)
+	public ResponseEntity<ErrorResponse> handleOrderNotFound(OrderNotFoundException exception) {
+		ErrorResponse response = new ErrorResponse();
+		response.setMessage("Order Not Found"); // keep message clean
+		response.setTimestamp(LocalDateTime.now()); // set actual timestamp
+		response.setResponseCode(400); // HTTP 400
 
-    }
+		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+	}
+
 
 	@ExceptionHandler(UnauthorizedAccessException.class)
 	public ResponseEntity<ErrorResponse> handleUnauthorizedAccessException(UnauthorizedAccessException ex){

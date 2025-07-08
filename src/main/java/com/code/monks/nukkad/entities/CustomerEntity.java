@@ -31,7 +31,6 @@ public class CustomerEntity extends UserEntity {
     @Column(name = "mobile_number")
     private String mobileNumber;
 
-
     @Override
     public RoleEnum getRole(){
         return RoleEnum.CUSTOMER;
