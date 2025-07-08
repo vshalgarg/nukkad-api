@@ -28,6 +28,7 @@ public class GetOrderByStoreKeeperResponseDTO {
     private List<ItemDetailsDTO> items;
 
     private Status status;
+    private String storeKeeperNote;
 
     public static GetOrderByStoreKeeperResponseDTO toEntity(OrderEntity entity ) {
         GetOrderByStoreKeeperResponseDTO responseDTO = new GetOrderByStoreKeeperResponseDTO();
@@ -56,6 +57,7 @@ public class GetOrderByStoreKeeperResponseDTO {
         }
 
         responseDTO.setStatus(entity.getStatus());
+        responseDTO.setStoreKeeperNote(entity.getNote());
 
         // Items from OrderItemEntity
         List<ItemDetailsDTO> itemList = new ArrayList<>();

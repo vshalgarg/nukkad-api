@@ -176,5 +176,23 @@ public class ItemService {
 		}
 	}
 
+	public List<GetAllItemResponseDTO> getItemsByCategory(Long categoryId) {
+		log.info("[SERVICE] Fetching items for categoryId={}", categoryId);
+
+		CategoryEntity category = categoryRepository.findById(categoryId)
+				.orElseThrow(() -> new ResourceNotFoundException(CATEGORY_NOT_FOUND,categoryId));
+
+		List<ItemEntity> items = category.getItems();  // If you have @OneToMany mapped in CategoryEntity
+		if (items == null || items.isEmpty()) {
+			log.warn("No items found for categoryId={}", categoryId);
+			return Collections.emptyList();
+		}
+
+		return items.stream()
+				.map(GetAllItemResponseDTO::fromEntity)
+				.collect(Collectors.toList());
+	}
+
+
 }
 

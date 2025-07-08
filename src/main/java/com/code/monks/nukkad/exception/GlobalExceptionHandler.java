@@ -88,14 +88,16 @@ public class GlobalExceptionHandler {
 		return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
-    @ExceptionHandler(com.code.monks.nukkad.exception.OrderNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleOrderNotFound(com.code.monks.nukkad.exception.OrderNotFoundException exception)
-    {
-        ErrorResponse response= new ErrorResponse
-				("Order Not Found :" + LocalDateTime.now(), 400);
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+	@ExceptionHandler(OrderNotFoundException.class)
+	public ResponseEntity<ErrorResponse> handleOrderNotFound(OrderNotFoundException exception) {
+		ErrorResponse response = new ErrorResponse();
+		response.setMessage("Order Not Found"); // keep message clean
+		response.setTimestamp(LocalDateTime.now()); // set actual timestamp
+		response.setResponseCode(400); // HTTP 400
 
-    }
+		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+	}
+
 
 	@ExceptionHandler(UnauthorizedAccessException.class)
 	public ResponseEntity<ErrorResponse> handleUnauthorizedAccessException(UnauthorizedAccessException ex){

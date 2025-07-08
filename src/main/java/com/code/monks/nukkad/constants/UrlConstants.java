@@ -22,8 +22,10 @@ public class UrlConstants {
 		public static final String GET_ALL = "/v1/get";
 		public static final String GET_BY_ID = "/v1/get_by_id/{id}";
 		public static final String UPDATE = "/v1/update/{id}";
+		public static final String GET_BY_CATEGORY = "/v1/get_by_category/{categoryId}";
 
- }
+
+	}
 
  public static class CUSTOMER{
 

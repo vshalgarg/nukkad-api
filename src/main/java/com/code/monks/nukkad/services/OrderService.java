@@ -199,6 +199,8 @@ public class OrderService { // placeOrderService
         LocalDateTime start = (startDate != null) ? startDate.atStartOfDay() : null;
         LocalDateTime end = (endDate != null) ? endDate.atTime(23, 59, 59) : null;
 
+        log.info("[ORDER FILTER] Converted StartDateTime={}, EndDateTime={}", start, end);
+
         List<OrderEntity> orders;
 
         if (roles.contains(RoleEnum.CUSTOMER)) {
@@ -219,11 +221,15 @@ public class OrderService { // placeOrderService
         }
 
         log.info("[ORDER FILTER] {} orders found for userId={}", orders.size(), userId);
+        for (OrderEntity order : orders) {
+            log.info("[ORDER FILTER] OrderId={}, CreatedAt={}", order.getId(), order.getCreatedAt());
+        }
 
         return orders.stream()
                 .map(GetUserHistoryByStatusAndDateResponseDTO::fromEntity)
                 .toList();
     }
+
 
     public List<GetOrderByStoreKeeperResponseDTO> getOrdersByStorekeeper() {
 
