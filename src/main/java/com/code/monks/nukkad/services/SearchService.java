@@ -34,7 +34,7 @@ public class SearchService {
         }
 
         try {
-            List<CategoryEntity> dbCategories = categoryRepository.findByNameContainingIgnoreCase(keyword);
+            List<CategoryEntity> dbCategories = categoryRepository.findAllByNameContainingIgnoreCase(keyword);
             List<ItemEntity> dbItems = itemRepository.findByNameContainingIgnoreCase(keyword);
 
             log.debug("Found {} categories and {} items for keyword '{}'", dbCategories.size(), dbItems.size(), keyword);

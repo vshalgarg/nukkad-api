@@ -3,6 +3,7 @@ package com.code.monks.nukkad.services;
 import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.request.CreateStorekeeperRequestDTO;
 import com.code.monks.nukkad.dto.response.CreateStorekeeperResponseDTO;
+import com.code.monks.nukkad.dto.response.GetStorekeeperProfileResponseDTO;
 import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.entities.StorekeeperImageEntity;
 import com.code.monks.nukkad.enums.RoleEnum;
@@ -149,6 +150,24 @@ public class StorekeeperService {
         log.info("[UPDATE STOREKEEPER] Storekeeper updated successfully with ID: {}", updated.getId());
 
         return CreateStorekeeperResponseDTO.fromEntity(updated, imageUrls);
+    }
+
+    public GetStorekeeperProfileResponseDTO getStorekeeperProfile() {
+        if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.STOREKEEPER)) {
+            log.warn("[GET PROFILE] Access denied: User is not a STOREKEEPER");
+            throw new AccessDeniedException(ACCESS_DENIED_FOR_CUSTOMER_EXCEPTION);
+        }
+
+        Long storekeeperId = UserContextHolder.getUser().getId();
+        log.info("[GET PROFILE] Fetching profile for storekeeperId={}", storekeeperId);
+
+        StorekeeperEntity storekeeper = storekeeperRepository.findById(storekeeperId)
+                .orElseThrow(() -> {
+                    log.error("[GET PROFILE] Storekeeper not found. ID={}", storekeeperId);
+                    return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, storekeeperId);
+                });
+
+        return GetStorekeeperProfileResponseDTO.fromEntity(storekeeper);
     }
 
 

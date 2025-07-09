@@ -43,6 +43,17 @@ public class CustomerController {
 		return ResponseEntity.ok(response);
 	}
 
+	@GetMapping(CUSTOMER.GET_PROFILE)
+	public ResponseEntity<GetCustomerProfileResponseDTO> getCustomerProfile() {
+		log.info("[GET PROFILE] Request to fetch customer profile");
+
+		GetCustomerProfileResponseDTO response = customerService.getCustomerProfile();
+
+		log.info("[GET PROFILE] Profile fetched for customerId={}", response.getId());
+		return ResponseEntity.ok(response);
+	}
+
+
 	@PostMapping(CUSTOMER.ADD_STORE_TO_CUSTOMER)
 	public ResponseEntity<AddStoreResponseDto> addStoreToCustomer(@RequestParam String storeQrId) {
 		log.info("[ADD STORE] Adding store with QR ID={} to customer", storeQrId);
@@ -73,4 +84,6 @@ public class CustomerController {
 		log.info("[DELETE STORE] {}", result.getMessage());
 		return ResponseEntity.ok(result);
 	}
+
+
 }

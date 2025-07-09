@@ -32,7 +32,8 @@ public class UrlConstants {
 		public static final String BASE = CONTEXT + "/api/customer";
 		public static final String CREATE = "/v1/create";
 		public static final String UPDATE = "/v1/update";
-		public static final String ADD_STORE_TO_CUSTOMER = "/v1/add/store";
+	    public static final String GET_PROFILE = "/v1/get/profile";
+	    public static final String ADD_STORE_TO_CUSTOMER = "/v1/add/store";
 		public  static final String GET_MY_STORES = "/v1/myStores";
 		public static final String DELETE_STORE = "/v1/delete/store";
 
@@ -51,6 +52,7 @@ public static class STOREKEEPER{
 		public static final String BASE = CONTEXT + "/api/storekeeper";
 		public static final String CREATE = "/v1/profile/save";
 		public static  final String UPDATE = "/v1/profile/update";
+		public static  final String GET_PROFILE = "/v1/get/profile";
 }
 
 public static class ADDRESS{

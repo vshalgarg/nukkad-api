@@ -48,7 +48,7 @@ public class CustomerService {
 
 		log.info("[CREATE CUSTOMER] Saving default address for customerId={}", saved.getId());
 
-		AddressEntity address = setAddress(dto, saved.getId());
+		AddressEntity address = setAddress(dto, saved.getId(),saved.getName(),saved.getMobileNumber());
 		addressRepository.save(address);
 		log.info("[CREATE CUSTOMER] Customer and address created successfully for customerId={}", saved.getId());
 
@@ -125,7 +125,7 @@ public class CustomerService {
 						.name(storekeeper.getName())
 						.storeName(storekeeper.getStoreName())
 						.mobileNumber(storekeeper.getMobileNumber())
-						.gstIn(storekeeper.getGstIn())
+						.gstIn(storekeeper.getGstIn()) 
 						.addressLine1(storekeeper.getAddressLine1())
 						.addressLine2(storekeeper.getAddressLine2())
 						.landmark(storekeeper.getLandmark())
@@ -163,4 +163,24 @@ public class CustomerService {
 			return new DeleteStoreResponseDto("Store not associated with customer.");
 		}
 	}
+
+
+	public GetCustomerProfileResponseDTO getCustomerProfile() {
+		if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.CUSTOMER)) {
+			log.warn("[GET PROFILE] Access denied: User role does not include CUSTOMER");
+			throw new AccessDeniedException(ACCESS_DENIED_FOR_STOREKEEPER_EXCEPTION);
+		}
+
+		Long customerId = UserContextHolder.getUser().getId();
+		log.info("[GET PROFILE] Fetching profile for customerId={}", customerId);
+
+		CustomerEntity customer = customerRepository.findById(customerId)
+				.orElseThrow(() -> {
+					log.error("[GET PROFILE] Customer not found. ID={}", customerId);
+					return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
+				});
+
+		return GetCustomerProfileResponseDTO.fromEntity(customer);
+	}
+
 }
