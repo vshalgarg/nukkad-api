@@ -1,0 +1,83 @@
+
+package com.code.monks.nukkad.dto.response;
+
+import com.code.monks.nukkad.entities.*;
+import com.code.monks.nukkad.enums.Status;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+public class GetOrderByStoreKeeperResponseDTO {
+
+    private Long customerId;
+    private String customerName;
+    private String customerMobileNumber;
+
+    private Long storeKeeperId;
+
+    private Long deliveryAddressId;
+    private String address;
+    private String landmark;
+
+     private Long orderId;
+    private LocalDateTime orderDate;
+
+    private List<ItemDetailsDTO> items;
+
+    private Status status;
+    private String storeKeeperNote;
+
+    public static GetOrderByStoreKeeperResponseDTO toEntity(OrderEntity entity ) {
+        GetOrderByStoreKeeperResponseDTO responseDTO = new GetOrderByStoreKeeperResponseDTO();
+        responseDTO.setOrderId(entity.getId());
+        responseDTO.setOrderDate(entity.getCreatedAt());
+
+
+        // Customer Info
+        if (entity.getCustomer() != null) {
+            responseDTO.setCustomerId(entity.getCustomer().getId());
+            responseDTO.setCustomerName(entity.getCustomer().getName());
+            responseDTO.setCustomerMobileNumber(entity.getCustomer().getMobileNumber());
+        }
+
+        // Address Info
+        if (entity.getDeliveryAddress() != null) {
+            AddressEntity address = entity.getDeliveryAddress();
+            responseDTO.setDeliveryAddressId(address.getId());
+            responseDTO.setAddress(address.getAddressLine1());
+            responseDTO.setLandmark(address.getLandmark());
+        }
+
+        // Storekeeper Info
+        if (entity.getStoreKeeper() != null) {
+            responseDTO.setStoreKeeperId(entity.getStoreKeeper().getId());
+        }
+
+        responseDTO.setStatus(entity.getStatus());
+        responseDTO.setStoreKeeperNote(entity.getNote());
+
+        // Items from OrderItemEntity
+        List<ItemDetailsDTO> itemList = new ArrayList<>();
+        if (entity.getOrderItems() != null) {
+            for (OrderItemEntity orderItem : entity.getOrderItems()) {
+                if (orderItem.getItem() == null) continue;
+
+                ItemEntity itemEntity = orderItem.getItem();
+                ItemDetailsDTO itemDTO = new ItemDetailsDTO();
+                itemDTO.setItemId(itemEntity.getId());
+                itemDTO.setItemName(itemEntity.getName());
+                itemDTO.setUnit(orderItem.getUnit());
+                itemDTO.setQuantity(orderItem.getQuantity());
+                itemDTO.setPrice(orderItem.getPrice()); // direct from orderItem
+
+                itemList.add(itemDTO);
+            }
+        }
+
+        responseDTO.setItems(itemList);
+        return responseDTO;
+    }
+}

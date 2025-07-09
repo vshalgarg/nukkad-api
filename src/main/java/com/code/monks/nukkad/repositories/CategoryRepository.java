@@ -10,7 +10,6 @@ import java.util.List;
 public interface  CategoryRepository extends JpaRepository<CategoryEntity, Long> {
 
 	boolean existsByNameIgnoreCase(String name); // Checks case-insensitive duplicates
-	List<CategoryEntity> findByNameContainingIgnoreCase(String keyword);
-
+	List<CategoryEntity> findAllByNameContainingIgnoreCase(String keyword);
 
 }

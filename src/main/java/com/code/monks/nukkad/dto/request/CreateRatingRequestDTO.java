@@ -10,8 +10,6 @@ import lombok.Data;
 @Data
 public class CreateRatingRequestDTO
 {
-    @NotNull
-    private Long customerId;
 
     @NotNull
     private Long storeKeeperId;

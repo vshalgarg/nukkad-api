@@ -48,7 +48,7 @@ public class CustomerService {
 
 		log.info("[CREATE CUSTOMER] Saving default address for customerId={}", saved.getId());
 
-		AddressEntity address = setAddress(dto, saved.getId());
+		AddressEntity address = setAddress(dto, saved.getId(),saved.getName(),saved.getMobileNumber());
 		addressRepository.save(address);
 		log.info("[CREATE CUSTOMER] Customer and address created successfully for customerId={}", saved.getId());
 
@@ -77,9 +77,9 @@ public class CustomerService {
 		return UpdateCustomerResponseDTO.fromEntity(updated);
 	}
 
-	public AddStoreResponseDto addStoreToCustomer(Long storekeeperId) {
+	public AddStoreResponseDto addStoreToCustomer(String storeQrId) {
 		Long customerId = UserContextHolder.getUser().getId();
-		log.info("[ADD STORE] Adding storekeeperId={} to customerId={}", storekeeperId, customerId);
+		log.info("[ADD STORE] Adding store with QR ID={} to customerId={}", storeQrId, customerId);
 
 		CustomerEntity customer = customerRepository.findById(customerId)
 				.orElseThrow(() -> {
@@ -87,10 +87,10 @@ public class CustomerService {
 					return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
 				});
 
-		StorekeeperEntity storekeeper = storekeeperRepository.findById(storekeeperId)
+		StorekeeperEntity storekeeper = storekeeperRepository.findByStoreQrId(storeQrId)
 				.orElseThrow(() -> {
-					log.error("[ADD STORE] Storekeeper not found. ID={}", storekeeperId);
-					return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, storekeeperId);
+					log.error("[ADD STORE] Storekeeper not found with QR ID={}", storeQrId);
+					return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, storeQrId);
 				});
 
 		if (!customer.getStorekeepers().contains(storekeeper)) {
@@ -103,6 +103,7 @@ public class CustomerService {
 			return new AddStoreResponseDto("Store already added.");
 		}
 	}
+
 
 
 	public List<GetMyStoreResponseDto> getMyStores() {
@@ -124,7 +125,7 @@ public class CustomerService {
 						.name(storekeeper.getName())
 						.storeName(storekeeper.getStoreName())
 						.mobileNumber(storekeeper.getMobileNumber())
-						.gstIn(storekeeper.getGstIn())
+						.gstIn(storekeeper.getGstIn()) 
 						.addressLine1(storekeeper.getAddressLine1())
 						.addressLine2(storekeeper.getAddressLine2())
 						.landmark(storekeeper.getLandmark())
@@ -162,4 +163,24 @@ public class CustomerService {
 			return new DeleteStoreResponseDto("Store not associated with customer.");
 		}
 	}
+
+
+	public GetCustomerProfileResponseDTO getCustomerProfile() {
+		if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.CUSTOMER)) {
+			log.warn("[GET PROFILE] Access denied: User role does not include CUSTOMER");
+			throw new AccessDeniedException(ACCESS_DENIED_FOR_STOREKEEPER_EXCEPTION);
+		}
+
+		Long customerId = UserContextHolder.getUser().getId();
+		log.info("[GET PROFILE] Fetching profile for customerId={}", customerId);
+
+		CustomerEntity customer = customerRepository.findById(customerId)
+				.orElseThrow(() -> {
+					log.error("[GET PROFILE] Customer not found. ID={}", customerId);
+					return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
+				});
+
+		return GetCustomerProfileResponseDTO.fromEntity(customer);
+	}
+
 }

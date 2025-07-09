@@ -68,23 +68,56 @@ public class AuthRestClient {
 		}
 	}
 
+//	public AuthVerifyOtpResponseDTO callVerifyOtpResponse(VerifyRequestDTO requestDTO) {
+//		String url = authHost + verifyOtpUrl;
+//		AuthVerifyOtpRequestDTO authDto = new AuthVerifyOtpRequestDTO(requestDTO.getMobileNumber(), requestDTO.getOtp());
+//		Map<String, String> headers = new HashMap<>();
+//		updateHeadersForClientNameAndSecret(headers);
+//
+//		log.info("[OTP VERIFY] Verifying OTP for mobile: {}", requestDTO.getMobileNumber());
+//
+////		try {
+////			AuthVerifyOtpResponseDTO response = genericRestClient.postForEntity(url, authDto, headers, AuthVerifyOtpResponseDTO.class);
+////			log.info("[OTP VERIFY] OTP verified successfully for mobile: {}", requestDTO.getMobileNumber());
+////			return response;
+////		} catch (Exception ex) {
+////			log.error("[OTP VERIFY] Failed to verify OTP for mobile: {}. Error: {}", requestDTO.getMobileNumber(), ex.getMessage());
+////			throw ex;
+////		}
+//		return genericRestClient.postForEntity(url, authDto, headers, AuthVerifyOtpResponseDTO.class);
+//
+//	}
+
 	public AuthVerifyOtpResponseDTO callVerifyOtpResponse(VerifyRequestDTO requestDTO) {
-		String url = authHost + verifyOtpUrl;
-		AuthVerifyOtpRequestDTO authDto = new AuthVerifyOtpRequestDTO(requestDTO.getMobileNumber(), requestDTO.getOtp());
-		Map<String, String> headers = new HashMap<>();
-		updateHeadersForClientNameAndSecret(headers);
+	String url = authHost + verifyOtpUrl;
+	AuthVerifyOtpRequestDTO authDto = new AuthVerifyOtpRequestDTO(requestDTO.getMobileNumber(), requestDTO.getOtp());
+	Map<String, String> headers = new HashMap<>();
+	updateHeadersForClientNameAndSecret(headers);
 
-		log.info("[OTP VERIFY] Verifying OTP for mobile: {}", requestDTO.getMobileNumber());
+	log.info("[OTP VERIFY] Verifying OTP for mobile: {}", requestDTO.getMobileNumber());
 
-		try {
-			AuthVerifyOtpResponseDTO response = genericRestClient.postForEntity(url, authDto, headers, AuthVerifyOtpResponseDTO.class);
-			log.info("[OTP VERIFY] OTP verified successfully for mobile: {}", requestDTO.getMobileNumber());
-			return response;
-		} catch (Exception ex) {
-			log.error("[OTP VERIFY] Failed to verify OTP for mobile: {}. Error: {}", requestDTO.getMobileNumber(), ex.getMessage());
-			throw ex;
+	try {
+		AuthVerifyOtpResponseDTO response = genericRestClient.postForEntity(
+				url, authDto, headers, AuthVerifyOtpResponseDTO.class
+		);
+
+		if (response.getUserId() == null || response.getToken() == null) {
+			String rawResponse = genericRestClient.postForEntity(url, authDto, headers, String.class);
+			String message = rawResponse.replaceAll(".*\"message\"\\s*:\\s*\"([^\"]+)\".*", "$1");
+			String code = rawResponse.replaceAll(".*\"responseCode\"\\s*:\\s*(\\d+).*", "$1");
+
+			throw new ExternalServiceException(
+					String.format("{\"message\":\"%s\",\"responseCode\":%s}", message, code)
+			);
 		}
+
+		return response;
+
+	} catch (Exception ex) {
+		log.error("[OTP VERIFY] Failed to verify OTP for mobile: {}. Error: {}", requestDTO.getMobileNumber(), ex.getMessage());
+		throw ex;
 	}
+}
 
 	public User validateToken(AuthTokenRequestDto authDto) {
 		String url = authHost + validateUrl;
@@ -104,7 +137,7 @@ public class AuthRestClient {
 			List<RoleEnum> roleEnums = authResponse.getRoles().stream()
 					.map(roleStr ->  {
 						try {
-							String cleanRole = roleStr.replaceFirst("^ROLE_", ""); // remove prefix if present
+							String cleanRole = roleStr.replaceFirst("^ROLE_", "");
 							return RoleEnum.valueOf(cleanRole.toUpperCase());
 						} catch (IllegalArgumentException e) {
 							log.warn("[TOKEN VALIDATION] Unknown role string received: '{}'", roleStr);
@@ -129,3 +162,11 @@ public class AuthRestClient {
 		headers.put("clientSecret", authClientSecret);
 	}
 }
+
+
+
+
+
+
+
+

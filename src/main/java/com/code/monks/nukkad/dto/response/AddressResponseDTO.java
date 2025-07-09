@@ -6,6 +6,8 @@ import lombok.Data;
 @Data
 public class AddressResponseDTO {
     private Long id;
+    private String name;
+    private String mobileNumber;
     private String addressLine1;
     private String addressLine2;
     private String landmark;
@@ -18,6 +20,8 @@ public class AddressResponseDTO {
         AddressResponseDTO dto = new AddressResponseDTO();
 
         dto.setId(entity.getId());
+        dto.setName(entity.getName());
+        dto.setMobileNumber(entity.getMobileNumber());
         dto.setAddressLine1(entity.getAddressLine1());
         dto.setAddressLine2(entity.getAddressLine2());
         dto.setLandmark(entity.getLandmark());

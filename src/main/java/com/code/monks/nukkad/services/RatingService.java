@@ -1,6 +1,7 @@
 
 package com.code.monks.nukkad.services;
 
+import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.request.CreateRatingRequestDTO;
 import com.code.monks.nukkad.dto.response.CreateRatingResponseDTO;
 import com.code.monks.nukkad.entities.CustomerEntity;
@@ -27,12 +28,14 @@ public class RatingService
     public CreateRatingResponseDTO createRating(CreateRatingRequestDTO dto)
     {
         log.info("[Create Rating] Received request:{}", dto);
-        CustomerEntity customerEntity = customerRepository.findById(dto.getCustomerId())
+        Long customerId = UserContextHolder.getUser().getId();
+
+        CustomerEntity customerEntity = customerRepository.findById(customerId)
                 .orElseThrow(()->
                 {
-                    log.error("[CREATE RATING] Customer not found with Id:{}",dto.getCustomerId());
+                    log.error("[CREATE RATING] Customer not found with Id:{}",customerId);
 
-                    return new ResourceNotFoundException(ResponseErrorCodes.CUSTOMER_NOT_FOUND, dto.getCustomerId());
+                    return new ResourceNotFoundException(ResponseErrorCodes.CUSTOMER_NOT_FOUND,customerId);
                 });
 
         StorekeeperEntity storekeeperEntity =storekeeperRepository.findById(dto.getStoreKeeperId())

@@ -5,10 +5,12 @@ import com.code.monks.nukkad.dto.request.CreateAddressRequestDTO;
 import com.code.monks.nukkad.dto.request.UpdateAddressRequestDTO;
 import com.code.monks.nukkad.dto.response.AddressResponseDTO;
 import com.code.monks.nukkad.entities.AddressEntity;
+import com.code.monks.nukkad.entities.CustomerEntity;
 import com.code.monks.nukkad.exception.AccessDeniedException;
 import com.code.monks.nukkad.exception.DefaultAddressUpdateNotAllowedException;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
 import com.code.monks.nukkad.repositories.AddressRepository;
+import com.code.monks.nukkad.repositories.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,13 +25,27 @@ import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
 public class AddressService {
 
     private final AddressRepository addressRepository;
+    private final CustomerRepository customerRepository;
 
     public AddressResponseDTO createAddress(CreateAddressRequestDTO request) {
         Long customerId = UserContextHolder.getUser().getId();
         log.info("Creating address for userId={}", customerId);
 
+        CustomerEntity customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> {
+                    log.error("Customer not found while creating address. userId={}", customerId);
+                    return new ResourceNotFoundException(CUSTOMER_NOT_FOUND);
+                });
+
         AddressEntity address = CreateAddressRequestDTO.toEntity(request);
         address.setCustomerId(customerId);
+
+        if (address.getName() == null || address.getName().isBlank()) {
+            address.setName(customer.getName());
+        }
+        if (address.getMobileNumber() == null || address.getMobileNumber().isBlank()) {
+            address.setMobileNumber(customer.getMobileNumber());
+        }
 
         AddressEntity saved = addressRepository.save(address);
         log.info("Address created successfully. AddressId={}, userId={}", saved.getId(), customerId);

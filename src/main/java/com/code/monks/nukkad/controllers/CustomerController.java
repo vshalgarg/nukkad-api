@@ -43,15 +43,27 @@ public class CustomerController {
 		return ResponseEntity.ok(response);
 	}
 
-	@PostMapping(CUSTOMER.ADD_STORE_TO_CUSTOMER)
-	public ResponseEntity<AddStoreResponseDto> addStoreToCustomer(@RequestParam Long storekeeperId) {
-		log.info("[ADD STORE] Adding storeId={} to customer", storekeeperId);
+	@GetMapping(CUSTOMER.GET_PROFILE)
+	public ResponseEntity<GetCustomerProfileResponseDTO> getCustomerProfile() {
+		log.info("[GET PROFILE] Request to fetch customer profile");
 
-		AddStoreResponseDto responseDto = customerService.addStoreToCustomer(storekeeperId);
+		GetCustomerProfileResponseDTO response = customerService.getCustomerProfile();
+
+		log.info("[GET PROFILE] Profile fetched for customerId={}", response.getId());
+		return ResponseEntity.ok(response);
+	}
+
+
+	@PostMapping(CUSTOMER.ADD_STORE_TO_CUSTOMER)
+	public ResponseEntity<AddStoreResponseDto> addStoreToCustomer(@RequestParam String storeQrId) {
+		log.info("[ADD STORE] Adding store with QR ID={} to customer", storeQrId);
+
+		AddStoreResponseDto responseDto = customerService.addStoreToCustomer(storeQrId);
 
 		log.info("[ADD STORE] {}", responseDto.getMessage());
 		return ResponseEntity.ok(responseDto);
 	}
+
 
 	@GetMapping(CUSTOMER.GET_MY_STORES)
 	public ResponseEntity<List<GetMyStoreResponseDto>> getStores() {
@@ -72,4 +84,6 @@ public class CustomerController {
 		log.info("[DELETE STORE] {}", result.getMessage());
 		return ResponseEntity.ok(result);
 	}
+
+
 }

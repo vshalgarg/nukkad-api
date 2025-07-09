@@ -4,10 +4,7 @@ import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.User;
 import com.code.monks.nukkad.dto.request.CreateItemRequestDTO;
 import com.code.monks.nukkad.dto.request.UpdateItemRequestDTO;
-import com.code.monks.nukkad.dto.response.BulkCreateItemResponseDTO;
-import com.code.monks.nukkad.dto.response.CreateItemResponseDTO;
-import com.code.monks.nukkad.dto.response.GetAllItemResponseDTO;
-import com.code.monks.nukkad.dto.response.UpdateItemResponseDTO;
+import com.code.monks.nukkad.dto.response.*;
 import com.code.monks.nukkad.entities.CategoryEntity;
 import com.code.monks.nukkad.entities.CategoryItemImageEntity;
 import com.code.monks.nukkad.entities.ItemEntity;
@@ -176,5 +173,36 @@ public class ItemService {
 		}
 	}
 
+	public GetItemsByCategoryResponseDTO getItemsByCategory(Long categoryId) {
+		log.info("[SERVICE] Fetching items for categoryId={}", categoryId);
+
+		User admin = UserContextHolder.getRequiredUser();
+		if (!admin.getRoles().contains(RoleEnum.CUSTOMER)) {
+			log.warn("[ITEM FETCH] Access denied: User role does not include CUSTOMER");
+			throw new AccessDeniedException(ACCESS_DENIED_FOR_STOREKEEPER_EXCEPTION);
+		}
+
+		CategoryEntity category = categoryRepository.findById(categoryId)
+				.orElseThrow(() -> new ResourceNotFoundException(CATEGORY_NOT_FOUND, categoryId));
+
+		List<ItemEntity> items = category.getItems();
+		if (items == null || items.isEmpty()) {
+			String msg = "No items found for this category";
+			log.warn(msg);
+			return GetItemsByCategoryResponseDTO.builder()
+					.message(msg)
+					.items(List.of())
+					.build();
+		}
+
+		List<GetAllItemResponseDTO> dtoList = items.stream()
+				.map(GetAllItemResponseDTO::fromEntity)
+				.collect(Collectors.toList());
+
+		return GetItemsByCategoryResponseDTO.builder()
+				.message("Items fetched successfully for category")
+				.items(dtoList)
+				.build();
+	}
 }
 
