@@ -187,8 +187,7 @@ CREATE TABLE IF NOT EXISTS orders (
     delivery_address_id BIGINT NOT NULL,
     store_keeper_id BIGINT NOT NULL,
     status VARCHAR(50) NOT NULL,
-    store_keeper_note VARCHAR(255), -- Matches `@Column(name = "store_keeper_note") private String note;`
-
+    store_keeper_note VARCHAR(255),
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
