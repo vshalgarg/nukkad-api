@@ -33,7 +33,7 @@ public class StorekeeperEntity extends UserEntity{
 	private String mobileNumber;
 
 	@Column(name = "gst_in")
-	private String gstIn;
+	private String gstNum;
 
 	@Column(name = "address_line1")
 	private String addressLine1;

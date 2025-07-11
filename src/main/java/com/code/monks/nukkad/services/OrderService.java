@@ -225,7 +225,7 @@ public UpdateOrderStatusResponseDTO updateOrderStatus(Long id, UpdateOrderStatus
         if (!existingOrder.getCustomer().getId().equals(customerId)) {
             throw new RuntimeException("You are not authorized to repeat this order.");
         }
-        // create new order
+
         OrderEntity newOrder = new OrderEntity();
         newOrder.setCustomer(existingOrder.getCustomer());
         newOrder.setDeliveryAddress(existingOrder.getDeliveryAddress());

@@ -127,6 +127,10 @@ CREATE TABLE IF NOT EXISTS customer_storekeeper (
 
 CREATE TABLE IF NOT EXISTS address (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+
+    name VARCHAR(50),
+    mobile_number VARCHAR(10),
+
     address_line1 VARCHAR(100) NOT NULL,
     address_line2 VARCHAR(100),
     landmark VARCHAR(100) NOT NULL,
@@ -144,6 +148,7 @@ CREATE TABLE IF NOT EXISTS address (
     INDEX idx_address_pincode (pincode),
     INDEX idx_address_customer_default (customer_id, is_default)
 );
+
 
 
   CREATE TABLE IF NOT EXISTS cart (
@@ -188,6 +193,7 @@ CREATE TABLE IF NOT EXISTS orders (
     store_keeper_id BIGINT NOT NULL,
     status VARCHAR(50) NOT NULL,
     store_keeper_note VARCHAR(255),
+
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 

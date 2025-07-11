@@ -2,6 +2,7 @@ package com.code.monks.nukkad.controllers;
 
 import com.code.monks.nukkad.dto.request.CreateStorekeeperRequestDTO;
 import com.code.monks.nukkad.dto.response.CreateStorekeeperResponseDTO;
+import com.code.monks.nukkad.dto.response.GetStorekeeperProfileResponseDTO;
 import com.code.monks.nukkad.services.StorekeeperService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -52,4 +53,15 @@ public class StorekeeperController {
 
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping(STOREKEEPER.GET_PROFILE)
+    public ResponseEntity<GetStorekeeperProfileResponseDTO> getProfile() {
+        log.info("[GET PROFILE] Request to fetch storekeeper profile");
+
+        GetStorekeeperProfileResponseDTO response = storekeeperService.getStorekeeperProfile();
+
+        log.info("[GET PROFILE] Profile fetched for storekeeperId={}", response.getId());
+        return ResponseEntity.ok(response);
+    }
+
 }

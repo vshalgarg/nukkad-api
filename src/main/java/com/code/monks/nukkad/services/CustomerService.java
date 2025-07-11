@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import static com.code.monks.nukkad.dto.response.CreateCustomerResponseDTO.setAddress;
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
@@ -48,7 +49,7 @@ public class CustomerService {
 
 		log.info("[CREATE CUSTOMER] Saving default address for customerId={}", saved.getId());
 
-		AddressEntity address = setAddress(dto, saved.getId());
+		AddressEntity address = setAddress(dto, saved.getId(),saved.getName(),saved.getMobileNumber());
 		addressRepository.save(address);
 		log.info("[CREATE CUSTOMER] Customer and address created successfully for customerId={}", saved.getId());
 
@@ -74,8 +75,21 @@ public class CustomerService {
 		CustomerEntity updated = customerRepository.save(customer);
 		log.info("[UPDATE CUSTOMER] Customer profile updated. customerId={}", updated.getId());
 
+
+		Optional<AddressEntity> defaultAddressOpt = addressRepository.findByCustomerIdAndIsDefaultTrue(customerId);
+		if (defaultAddressOpt.isPresent()) {
+			AddressEntity defaultAddress = defaultAddressOpt.get();
+			defaultAddress.setName(updated.getName());
+			defaultAddress.setMobileNumber(updated.getMobileNumber());
+			addressRepository.save(defaultAddress);
+			log.info("[UPDATE CUSTOMER] Default address updated with new name and mobile number for customerId={}", customerId);
+		} else {
+			log.warn("[UPDATE CUSTOMER] Default address not found for customerId={}", customerId);
+		}
+
 		return UpdateCustomerResponseDTO.fromEntity(updated);
 	}
+
 
 	public AddStoreResponseDto addStoreToCustomer(String storeQrId) {
 		Long customerId = UserContextHolder.getUser().getId();
@@ -97,7 +111,7 @@ public class CustomerService {
 			customer.getStorekeepers().add(storekeeper);
 			customerRepository.save(customer);
 			log.info("[ADD STORE] Storekeeper successfully linked to customerId={}", customerId);
-			return new AddStoreResponseDto("Store added to customer.");
+			return new AddStoreResponseDto(storekeeper.getId(),storekeeper.getName(),storekeeper.getStoreName(),storekeeper.getAddressLine1(),storekeeper.getAddressLine2(),"Store added to customer.");
 		} else {
 			log.info("[ADD STORE] Storekeeper already linked to customerId={}", customerId);
 			return new AddStoreResponseDto("Store already added.");
@@ -125,7 +139,7 @@ public class CustomerService {
 						.name(storekeeper.getName())
 						.storeName(storekeeper.getStoreName())
 						.mobileNumber(storekeeper.getMobileNumber())
-						.gstIn(storekeeper.getGstIn())
+						.gstIn(storekeeper.getGstNum())
 						.addressLine1(storekeeper.getAddressLine1())
 						.addressLine2(storekeeper.getAddressLine2())
 						.landmark(storekeeper.getLandmark())
@@ -163,4 +177,24 @@ public class CustomerService {
 			return new DeleteStoreResponseDto("Store not associated with customer.");
 		}
 	}
+
+
+	public GetCustomerProfileResponseDTO getCustomerProfile() {
+		if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.CUSTOMER)) {
+			log.warn("[GET PROFILE] Access denied: User role does not include CUSTOMER");
+			throw new AccessDeniedException(ACCESS_DENIED_FOR_STOREKEEPER_EXCEPTION);
+		}
+
+		Long customerId = UserContextHolder.getUser().getId();
+		log.info("[GET PROFILE] Fetching profile for customerId={}", customerId);
+
+		CustomerEntity customer = customerRepository.findById(customerId)
+				.orElseThrow(() -> {
+					log.error("[GET PROFILE] Customer not found. ID={}", customerId);
+					return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
+				});
+
+		return GetCustomerProfileResponseDTO.fromEntity(customer);
+	}
+
 }

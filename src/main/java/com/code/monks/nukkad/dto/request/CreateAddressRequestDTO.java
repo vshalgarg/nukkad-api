@@ -12,6 +12,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateAddressRequestDTO {
+    @NotBlank(message = "Name is required")
+    private String name;
+    @NotBlank(message = "Mobile number is required")
+    private String mobileNumber;
 
     @NotBlank(message = "Address Line 1 is required")
     @Size(max = 100, message = "Address Line 1 must be at most 100 characters")
@@ -37,6 +41,8 @@ public class CreateAddressRequestDTO {
 
     public static AddressEntity toEntity(CreateAddressRequestDTO dto) {
         AddressEntity address = new AddressEntity();
+        address.setName(dto.getName());
+        address.setMobileNumber(dto.getMobileNumber());
         address.setAddressLine1(dto.getAddressLine1());
         address.setAddressLine2(dto.getAddressLine2());
         address.setLandmark(dto.getLandmark());

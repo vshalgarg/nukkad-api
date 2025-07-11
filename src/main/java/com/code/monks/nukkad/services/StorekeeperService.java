@@ -1,29 +1,30 @@
 package com.code.monks.nukkad.services;
 
 import com.code.monks.nukkad.context.UserContextHolder;
+import com.code.monks.nukkad.dto.User;
 import com.code.monks.nukkad.dto.request.CreateStorekeeperRequestDTO;
 import com.code.monks.nukkad.dto.response.CreateStorekeeperResponseDTO;
+import com.code.monks.nukkad.dto.response.GetStorekeeperProfileResponseDTO;
 import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.entities.StorekeeperImageEntity;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.exception.AccessDeniedException;
-import com.code.monks.nukkad.exception.DuplicateResourceException;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
-import com.code.monks.nukkad.utils.FileUploadHelper;
+import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.StorekeeperImageRepository;
 import com.code.monks.nukkad.repositories.StorekeeperRepository;
+import com.code.monks.nukkad.utils.ExceptionHandleUtil;
+import com.code.monks.nukkad.utils.FileUploadHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
-import static com.code.monks.nukkad.utils.ExceptionUtil.extractFieldConflictMessage;
+
 
 @Slf4j
 @Service
@@ -33,7 +34,7 @@ public class StorekeeperService {
     private final StorekeeperRepository storekeeperRepository;
     private final StorekeeperImageRepository storekeeperImageRepository;
     private final FileUploadHelper fileUploadHelper;
-
+    private final ExceptionHandleUtil exceptionHandleUtil;
 
     public CreateStorekeeperResponseDTO createStoreKeeper(CreateStorekeeperRequestDTO dto, MultipartFile[] images) {
         if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.STOREKEEPER)) {
@@ -51,22 +52,18 @@ public class StorekeeperService {
         storekeeper.setStoreQrId(storeQrId);
         storekeeper.setMobileNumber(mobileNumber);
 
+
+        exceptionHandleUtil.validateUniqueFields(storekeeper);
+
         StorekeeperEntity saved;
         try {
             saved = storekeeperRepository.save(storekeeper);
             log.info("[CREATE STOREKEEPER] Storekeeper saved with ID={}", saved.getId());
-        } catch (DataIntegrityViolationException e) {
-            log.error("[CREATE STOREKEEPER] Duplicate entry for GST_IN or Mobile. gstIn={}, mobile={}", dto.getGstIn(), mobileNumber, e);
-            String rootCauseMessage = e.getRootCause() != null ? e.getRootCause().getMessage() : "";
-            String cleanMessage = extractFieldConflictMessage(rootCauseMessage);
-            throw new DuplicateResourceException(DUPLICATE_RESOURCE_EXCEPTION,cleanMessage);
-        } catch (TransactionSystemException e) {
-            log.error("[CREATE STOREKEEPER] Validation or transaction error", e);
-            throw new RuntimeException("Invalid storekeeper data. Please check input.");
         } catch (Exception e) {
             log.error("[CREATE STOREKEEPER] Unexpected error while saving storekeeper", e);
-            throw new RuntimeException("Something went wrong while creating the storekeeper.");
+            throw new UnhandledException(UNHANDLED_EXCEPTION,e);
         }
+
 
         List<String> imageUrls = new ArrayList<>();
 
@@ -82,8 +79,8 @@ public class StorekeeperService {
                     imageUrls.add(imageUrl);
                 } catch (Exception e) {
                     log.error("[CREATE STOREKEEPER] Failed to store image: {}", image.getOriginalFilename(), e);
-                    // Optionally, continue storing others or throw an exception
-                    throw new RuntimeException("Failed to upload store image: " + image.getOriginalFilename());
+
+                    throw new UnhandledException(UNHANDLED_EXCEPTION,e);
                 }
             }
         }
@@ -107,49 +104,89 @@ public class StorekeeperService {
                     return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, storekeeperId);
                 });
 
-        storekeeper.setName(dto.getName());
-        storekeeper.setStoreName(dto.getStoreName());
-        storekeeper.setGstIn(dto.getGstIn());
-        storekeeper.setAddressLine1(dto.getAddressLine1());
-        storekeeper.setAddressLine2(dto.getAddressLine2());
-        storekeeper.setCity(dto.getCity());
-        storekeeper.setState(dto.getState());
-        storekeeper.setPincode(dto.getPincode());
+        try {
+            storekeeper.setName(dto.getName());
+            storekeeper.setStoreName(dto.getStoreName());
+            storekeeper.setGstNum(dto.getGstNum());
+            storekeeper.setAddressLine1(dto.getAddressLine1());
+            storekeeper.setAddressLine2(dto.getAddressLine2());
+            storekeeper.setCity(dto.getCity());
+            storekeeper.setState(dto.getState());
+            storekeeper.setPincode(dto.getPincode());
 
-        List<String> imageUrls = new ArrayList<>();
+            List<String> imageUrls = new ArrayList<>();
 
-        if (newImages != null && newImages.length > 0) {
-            // Delete existing images only if new ones are uploaded
-            List<StorekeeperImageEntity> existingImages = storekeeperImageRepository.findByStorekeeperId(storekeeperId);
-            if (!existingImages.isEmpty()) {
-                storekeeperImageRepository.deleteAll(existingImages);
-                log.info("[UPDATE STOREKEEPER] Deleted existing images for storekeeperId={}", storekeeperId);
+            if (newImages != null && newImages.length > 0) {
+                try {
+                    List<StorekeeperImageEntity> existingImages = storekeeperImageRepository.findByStorekeeperId(storekeeperId);
+                    if (!existingImages.isEmpty()) {
+                        storekeeperImageRepository.deleteAll(existingImages);
+                        log.info("[UPDATE STOREKEEPER] Deleted {} existing image(s) for storekeeperId={}", existingImages.size(), storekeeperId);
+                    }
+
+                    for (MultipartFile image : newImages) {
+                        String imageUrl = fileUploadHelper.storeFile(image);
+                        StorekeeperImageEntity imageEntity = StorekeeperImageEntity.builder()
+                                .storekeeper(storekeeper)
+                                .imageUrl(imageUrl)
+                                .build();
+                        storekeeperImageRepository.save(imageEntity);
+                        imageUrls.add(imageUrl);
+                    }
+
+                    log.info("[UPDATE STOREKEEPER] Stored {} new image(s) for storekeeperId={}", imageUrls.size(), storekeeperId);
+                } catch (Exception e) {
+                    log.error("[UPDATE STOREKEEPER] Error while storing new images", e);
+                    throw new UnhandledException(UNHANDLED_EXCEPTION,e);
+                }
+            } else {
+                imageUrls = storekeeper.getImages().stream()
+                        .map(StorekeeperImageEntity::getImageUrl)
+                        .toList();
+                log.info("[UPDATE STOREKEEPER] No new images uploaded. Retaining existing {} image(s).", imageUrls.size());
             }
 
-            // Save new images
-            for (MultipartFile image : newImages) {
-                String imageUrl = fileUploadHelper.storeFile(image);
-                StorekeeperImageEntity imageEntity = StorekeeperImageEntity.builder()
-                        .storekeeper(storekeeper)
-                        .imageUrl(imageUrl)
-                        .build();
-                storekeeperImageRepository.save(imageEntity);
-                imageUrls.add(imageUrl);
-            }
+            StorekeeperEntity updated = storekeeperRepository.save(storekeeper);
+            log.info("[UPDATE STOREKEEPER] Successfully updated storekeeper ID={} with name='{}'", updated.getId(), updated.getName());
 
-            log.info("[UPDATE STOREKEEPER] Stored new images for storekeeperId={}", storekeeperId);
-        } else {
-            // No new images uploaded, retain old image URLs
-            imageUrls = storekeeper.getImages().stream()
-                    .map(StorekeeperImageEntity::getImageUrl)
-                    .toList();
+            return CreateStorekeeperResponseDTO.fromEntity(updated, imageUrls);
+
+        } catch (Exception e) {
+            log.error("[UPDATE STOREKEEPER] Unexpected error occurred while updating storekeeper", e);
+            throw new UnhandledException(UNHANDLED_EXCEPTION,e);
+        }
+    }
+
+
+    public GetStorekeeperProfileResponseDTO getStorekeeperProfile() {
+        User user = UserContextHolder.getRequiredUser();
+
+        if (!user.getRoles().contains(RoleEnum.STOREKEEPER)) {
+            log.warn("[GET PROFILE] Access denied: User role={} is not STOREKEEPER", user.getRoles());
+            throw new AccessDeniedException(ACCESS_DENIED_FOR_CUSTOMER_EXCEPTION);
         }
 
-        StorekeeperEntity updated = storekeeperRepository.save(storekeeper);
-        log.info("[UPDATE STOREKEEPER] Storekeeper updated successfully with ID: {}", updated.getId());
+        Long storekeeperId = user.getId();
+        log.info("[GET PROFILE] Initiating profile fetch for storekeeperId={}", storekeeperId);
 
-        return CreateStorekeeperResponseDTO.fromEntity(updated, imageUrls);
+        try {
+            StorekeeperEntity storekeeper = storekeeperRepository.findById(storekeeperId)
+                    .orElseThrow(() -> {
+                        log.error("[GET PROFILE] Storekeeper not found with ID={}", storekeeperId);
+                        return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, storekeeperId);
+                    });
+
+            log.info("[GET PROFILE] Storekeeper profile found. ID={}, Name={}", storekeeper.getId(), storekeeper.getName());
+            return GetStorekeeperProfileResponseDTO.fromEntity(storekeeper);
+
+        } catch (ResourceNotFoundException ex) {
+            throw ex;
+        } catch (Exception e) {
+            log.error("[GET PROFILE] Unexpected error while fetching storekeeper profile. ID={}", storekeeperId, e);
+            throw new UnhandledException(UNHANDLED_EXCEPTION, e);
+        }
     }
+
 
 
     private String generateUniqueStoreQrId(String mobileNumber) {

@@ -14,6 +14,7 @@ import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.exception.AccessDeniedException;
 import com.code.monks.nukkad.exception.DuplicateResourceException;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
+import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.CategoryRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,97 +36,145 @@ public class   CategoryService {
 
 	public BulkCreateCategoryResponseDTO createBulkCategories(List<CreateCategoryRequestDTO> requestList) {
 		User admin = UserContextHolder.getRequiredUser();
+
 		if (!admin.getRoles().contains(RoleEnum.ADMIN)) {
 			log.warn("[CATEGORY BULK CREATE] Access denied: User role does not include ADMIN");
 			throw new AccessDeniedException(ACCESS_DENIED_FOR_ADMIN_EXCEPTION);
 		}
 
+		log.info("[CATEGORY BULK CREATE] Starting bulk creation. Total requested: {}", requestList.size());
 
-		log.info("[CATEGORY BULK CREATE] Starting bulk category creation. Total requested: {}", requestList.size());
 		List<CreateCategoryResponseDTO> responseList = new ArrayList<>();
 
-		for (CreateCategoryRequestDTO dto : requestList) {
-			log.debug("[CATEGORY BULK CREATE] Processing category: {}", dto.getName());
+		try {
+			for (CreateCategoryRequestDTO dto : requestList) {
+				log.debug("[CATEGORY BULK CREATE] Processing category: {}", dto.getName());
 
-			if (categoryRepository.existsByNameIgnoreCase(dto.getName())) {
-				log.warn("[CATEGORY BULK CREATE] Duplicate category name found: {}", dto.getName());
-				throw new DuplicateResourceException(DUPLICATE_CATEGORY_EXCEPTION);
+				if (categoryRepository.existsByNameIgnoreCase(dto.getName())) {
+					log.warn("[CATEGORY BULK CREATE] Duplicate category name found: {}", dto.getName());
+					throw new DuplicateResourceException(DUPLICATE_CATEGORY_EXCEPTION, dto.getName());
+				}
+
+				CategoryEntity category = new CategoryEntity();
+				category.setName(dto.getName());
+
+				if (dto.getImageUrl() != null && !dto.getImageUrl().isBlank()) {
+					CategoryItemImageEntity image = new CategoryItemImageEntity();
+					image.setImageUrl(dto.getImageUrl());
+					category.setImage(image);
+					log.debug("[CATEGORY BULK CREATE] Image set for '{}': {}", dto.getName(), dto.getImageUrl());
+				}
+
+				CategoryEntity saved = categoryRepository.save(category);
+				responseList.add(CreateCategoryResponseDTO.fromEntity(saved));
+
+				log.info("[CATEGORY BULK CREATE] Successfully created category: '{}'", saved.getName());
 			}
 
-			CategoryEntity category = new CategoryEntity();
-			category.setName(dto.getName());
+			log.info("[CATEGORY BULK CREATE] Successfully created all {} categories.", responseList.size());
+			return new BulkCreateCategoryResponseDTO(responseList);
 
-			if (dto.getImageUrl() != null && !dto.getImageUrl().isBlank()) {
-				CategoryItemImageEntity image = new CategoryItemImageEntity();
-				image.setImageUrl(dto.getImageUrl());
-				category.setImage(image);
-				log.debug("[CATEGORY BULK CREATE] Image set for category '{}': {}", dto.getName(), dto.getImageUrl());
-			}
-
-			CategoryEntity saved = categoryRepository.save(category);
-			responseList.add(CreateCategoryResponseDTO.fromEntity(saved));
+		} catch (DuplicateResourceException e) {
+			log.error("[CATEGORY BULK CREATE] Duplicate category error: {}", e.getMessage());
+			throw e;
+		} catch (Exception e) {
+			log.error("[CATEGORY BULK CREATE] Unexpected error during bulk creation", e);
+			throw new UnhandledException(UNHANDLED_EXCEPTION,e);
 		}
-		log.info("[CATEGORY BULK CREATE] Successfully created {} categories", responseList.size());
-		return new BulkCreateCategoryResponseDTO(responseList);
 	}
+
 
 
 	public UpdateCategoryResponseDTO updateCategory(Long id, UpdateCategoryRequestDTO dto) {
 		User user = UserContextHolder.getRequiredUser();
-		if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.ADMIN)) {
-			log.warn("[CATEGORY BULK CREATE] Access denied: User role does not include ADMIN");
+
+		if (!user.getRoles().contains(RoleEnum.ADMIN)) {
+			log.warn("[CATEGORY UPDATE] Access denied for userId={}. Role does not include ADMIN", user.getId());
 			throw new AccessDeniedException(ACCESS_DENIED_FOR_ADMIN_EXCEPTION);
 		}
 
+		log.info("[CATEGORY UPDATE] Request received to update categoryId={} by adminId={}", id, user.getId());
+
 		CategoryEntity category = categoryRepository.findById(id)
 				.orElseThrow(() -> {
-					log.warn("[CATEGORY UPDATE] Category not found with ID={}", id);
+					log.warn("[CATEGORY UPDATE] Category not found. ID={}", id);
 					return new ResourceNotFoundException(CATEGORY_NOT_FOUND, id);
 				});
 
-		log.debug("[CATEGORY UPDATE] Found category: ID={}, Current name={}", category.getId(), category.getName());
+		log.debug("[CATEGORY UPDATE] Existing category found: ID={}, Name='{}'", category.getId(), category.getName());
 
-		category.setName(dto.getName());
-		log.debug("[CATEGORY UPDATE] Updated name to: {}", dto.getName());
+		try {
+			// Update name
+			category.setName(dto.getName());
+			log.debug("[CATEGORY UPDATE] Category name updated to '{}'", dto.getName());
 
-		if (dto.getImageUrl() != null && !dto.getImageUrl().isEmpty()) {
-			CategoryItemImageEntity image = new CategoryItemImageEntity();
-			image.setImageUrl(dto.getImageUrl());
-			category.setImage(image);
-			log.debug("[CATEGORY UPDATE] Updated image URL: {}", dto.getImageUrl());
+			// Update image if present
+			if (dto.getImageUrl() != null && !dto.getImageUrl().isBlank()) {
+				CategoryItemImageEntity image = new CategoryItemImageEntity();
+				image.setImageUrl(dto.getImageUrl());
+				category.setImage(image);
+				log.debug("[CATEGORY UPDATE] Category image URL updated to '{}'", dto.getImageUrl());
+			}
 
+			CategoryEntity saved = categoryRepository.save(category);
+			log.info("[CATEGORY UPDATE] Category successfully updated. ID={}, Name='{}'", saved.getId(), saved.getName());
+
+			return UpdateCategoryResponseDTO.fromEntity(saved);
+
+		} catch (Exception e) {
+			log.error("[CATEGORY UPDATE] Failed to update categoryId={}. Error: {}", id, e.getMessage(), e);
+			throw new UnhandledException(UNHANDLED_EXCEPTION,e);
 		}
-		CategoryEntity saved = categoryRepository.save(category);
-		log.info("[CATEGORY UPDATE] Successfully updated category ID={} with new name='{}'", saved.getId(), saved.getName());
-
-		return UpdateCategoryResponseDTO.fromEntity(saved);
 	}
+
 
 
 	public List<GetAllCategoryResponseDTO> getAllCategories() {
-		log.info("Fetching all categories from the database.");
-		List<CategoryEntity> categories = categoryRepository.findAll();
-		if (CollectionUtils.isEmpty(categories)) {
-			log.warn("No category found in DB");
-			return Collections.emptyList();
+		log.info("[CATEGORY FETCH ALL] Fetching all categories from the database");
+
+		try {
+			List<CategoryEntity> categories = categoryRepository.findAll();
+
+			if (CollectionUtils.isEmpty(categories)) {
+				log.warn("[CATEGORY FETCH ALL] No categories found in the database.");
+				return Collections.emptyList();
+			}
+
+			log.info("[CATEGORY FETCH ALL] Total categories found: {}", categories.size());
+			return categories.stream()
+					.map(GetAllCategoryResponseDTO::fromEntity)
+					.toList();
+
+		} catch (Exception e) {
+			log.error("[CATEGORY FETCH ALL] Unexpected error occurred while fetching categories: {}", e.getMessage(), e);
+			throw new UnhandledException(UNHANDLED_EXCEPTION,e);
 		}
-		log.info("Total categories found: {}", categories.size());
-		return categories.stream().map(GetAllCategoryResponseDTO::fromEntity).toList();
 	}
+
 
 	public CreateCategoryResponseDTO getById(Long id) {
 		log.info("[CATEGORY FETCH] Fetch request received for category ID={}", id);
 
-		CategoryEntity entity = categoryRepository.findById(id)
-				.orElseThrow(() -> {
-					log.warn("[CATEGORY FETCH] Category not found for ID={}", id);
-					return new ResourceNotFoundException(CATEGORY_NOT_FOUND, id);
-				});
+		try {
+			CategoryEntity entity = categoryRepository.findById(id)
+					.orElseThrow(() -> {
+						log.warn("[CATEGORY FETCH] Category not found for ID={}", id);
+						return new ResourceNotFoundException(CATEGORY_NOT_FOUND, id);
+					});
 
-		log.info("[CATEGORY FETCH] Category found: ID={}, Name={}", entity.getId(), entity.getName());
+			log.info("[CATEGORY FETCH] Category found: ID={}, Name={}", entity.getId(), entity.getName());
+			return CreateCategoryResponseDTO.fromEntity(entity);
 
-		return CreateCategoryResponseDTO.fromEntity(entity);
+		} catch (ResourceNotFoundException e) {
+			log.error("[CATEGORY FETCH] Category not found: {}", e.getMessage());
+			throw e;
+
+		} catch (Exception e) {
+			log.error("[CATEGORY FETCH] Unexpected error occurred while fetching category ID={}: {}", id, e.getMessage(), e);
+			throw new UnhandledException(UNHANDLED_EXCEPTION,e);
+		}
 	}
+
 
 }
 

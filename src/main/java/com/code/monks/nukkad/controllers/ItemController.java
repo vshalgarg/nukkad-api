@@ -1,12 +1,8 @@
 package com.code.monks.nukkad.controllers;
 
 import com.code.monks.nukkad.dto.request.BulkCreateItemRequestDTO;
-import com.code.monks.nukkad.dto.request.CreateItemRequestDTO;
 import com.code.monks.nukkad.dto.request.UpdateItemRequestDTO;
-import com.code.monks.nukkad.dto.response.BulkCreateItemResponseDTO;
-import com.code.monks.nukkad.dto.response.CreateItemResponseDTO;
-import com.code.monks.nukkad.dto.response.GetAllItemResponseDTO;
-import com.code.monks.nukkad.dto.response.UpdateItemResponseDTO;
+import com.code.monks.nukkad.dto.response.*;
 import com.code.monks.nukkad.services.ItemService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -17,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.code.monks.nukkad.constants.UrlConstants.*;
+import static com.code.monks.nukkad.constants.UrlConstants.ITEM;
 import static com.code.monks.nukkad.constants.UrlConstants.ITEM.GET_BY_CATEGORY;
 
 @Slf4j
@@ -62,13 +58,12 @@ public class ItemController {
 	}
 
 	@GetMapping(GET_BY_CATEGORY)
-	public ResponseEntity<List<GetAllItemResponseDTO>> getItemsByCategory(@PathVariable Long categoryId) {
-		log.info("[GET ITEMS BY CATEGORY] categoryId={}", categoryId);
+	public ResponseEntity<GetItemsByCategoryResponseDTO> getItemsByCategory(@PathVariable Long categoryId) {
+		log.info("Getting items for categoryId={}", categoryId);
 
-		List<GetAllItemResponseDTO> items = itemService.getItemsByCategory(categoryId);
-		log.info("[GET ITEMS BY CATEGORY] Found {} items for categoryId={}", items.size(), categoryId);
+		GetItemsByCategoryResponseDTO response = itemService.getItemsByCategory(categoryId);
 
-		return ResponseEntity.ok(items);
+		return ResponseEntity.ok(response);
 	}
 
 }

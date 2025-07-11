@@ -60,8 +60,10 @@ public class CartProductService {
             log.info("Cart item list was null. Initialized empty item list for cartId={}", cart.getId());
         }
 
+        List<Long> cartItemIds = new ArrayList<>();
+
         for (CreateCartProductRequestDTO.CartItemRequest itemReq : dto.getItems()) {
-            Long itemId =  itemReq.getItemId();
+            Long itemId = itemReq.getItemId();
             log.info("Processing cart addition for itemId={} (unit={}, quantity={})",
                     itemId, itemReq.getUnit(), itemReq.getQuantity());
 
@@ -88,10 +90,10 @@ public class CartProductService {
 
             if (existingItem.isPresent()) {
                 CartProductEntity cartItem = existingItem.get();
-                int oldQty = cartItem.getQuantity();
-                cartItem.setQuantity(oldQty + itemReq.getQuantity());
-                log.info("Updated existing cart item. itemId={}, oldQty={}, newQty={}",
-                        itemId, oldQty, cartItem.getQuantity());
+                cartItem.setQuantity(cartItem.getQuantity() + itemReq.getQuantity());
+                cartItemIds.add(cartItem.getId());
+                log.info("Updated existing cart item. itemId={}, newQty={}, cartItemId={}",
+                        itemId, cartItem.getQuantity(), cartItem.getId());
             } else {
                 CartProductEntity cartItem = new CartProductEntity();
                 cartItem.setCart(cart);
@@ -99,18 +101,18 @@ public class CartProductService {
                 cartItem.setCustomer(customer);
                 cartItem.setQuantity(itemReq.getQuantity());
                 cartItem.setUnit(requestedUnit.toUpperCase());
-                cart.getItems().add(cartItem);
-                log.info("Added new item to cart. itemId={}, quantity={}, unit={}",
-                        itemId, itemReq.getQuantity(), requestedUnit.toUpperCase());
+
+                CartProductEntity savedItem = cartItemRepository.save(cartItem);
+                cart.getItems().add(savedItem);
+                cartItemIds.add(savedItem.getId());
+                log.info("Added new item to cart. itemId={}, quantity={}, unit={}, cartItemId={}",
+                        itemId, itemReq.getQuantity(), requestedUnit.toUpperCase(), savedItem.getId());
             }
         }
 
-        cartRepository.save(cart);
         log.info("Cart updated and saved successfully for customerId={}", customerId);
-        return new CreateCartProductResponseDTO("Items added to cart successfully.");
+        return new CreateCartProductResponseDTO("Items added to cart successfully.", cartItemIds);
     }
-
-
 
 
 

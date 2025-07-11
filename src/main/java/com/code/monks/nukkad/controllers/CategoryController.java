@@ -1,7 +1,6 @@
 package com.code.monks.nukkad.controllers;
 
 import com.code.monks.nukkad.dto.request.BulkCreateCategoryRequestDTO;
-import com.code.monks.nukkad.dto.request.CreateCategoryRequestDTO;
 import com.code.monks.nukkad.dto.request.UpdateCategoryRequestDTO;
 import com.code.monks.nukkad.dto.response.BulkCreateCategoryResponseDTO;
 import com.code.monks.nukkad.dto.response.CreateCategoryResponseDTO;

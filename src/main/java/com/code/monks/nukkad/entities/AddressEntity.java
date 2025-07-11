@@ -18,6 +18,12 @@ public class AddressEntity extends BaseEntity {
     @Column(name = "id")
     private Long id;
 
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "mobile_number")
+    private String mobileNumber;
+
     @Column(name = "address_line1")
     private String addressLine1;
 

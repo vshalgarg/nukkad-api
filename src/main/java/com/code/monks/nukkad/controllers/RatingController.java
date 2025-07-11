@@ -1,7 +1,6 @@
 
 package com.code.monks.nukkad.controllers;
 
-import com.code.monks.nukkad.constants.UrlConstants;
 import com.code.monks.nukkad.dto.request.CreateRatingRequestDTO;
 import com.code.monks.nukkad.dto.response.CreateRatingResponseDTO;
 import com.code.monks.nukkad.services.RatingService;

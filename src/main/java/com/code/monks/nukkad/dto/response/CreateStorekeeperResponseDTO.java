@@ -35,7 +35,7 @@ public class CreateStorekeeperResponseDTO {
         dto.setName(entity.getName());
         dto.setStoreName(entity.getStoreName());
         dto.setMobileNumber(entity.getMobileNumber());
-        dto.setGstIn(entity.getGstIn());
+        dto.setGstIn(entity.getGstNum());
         dto.setAddressLine1(entity.getAddressLine1());
         dto.setAddressLine2(entity.getAddressLine2());
         dto.setLandmark(entity.getLandmark());
