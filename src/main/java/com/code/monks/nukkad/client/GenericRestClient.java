@@ -6,15 +6,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import org.springframework.http.*;
-
-import java.util.Collections;
 import java.util.Map;
 
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.EXTERNAL_API_CALL_FAILED;
@@ -52,7 +49,6 @@ public class GenericRestClient {
 				throw new ExternalServiceException(EXTERNAL_SERVICE_ERROR, "Empty response body");
 			}
 
-			// Try parsing as error format first
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode node = mapper.readTree(responseBody);
 
@@ -63,7 +59,6 @@ public class GenericRestClient {
 				throw new ExternalServiceException(EXTERNAL_SERVICE_ERROR, errorCode + "::" + message);
 			}
 
-			// Else, treat as success
 			R result = mapper.readValue(responseBody, responseType);
 			return result;
 

@@ -1,7 +1,6 @@
 package com.code.monks.nukkad.controllers;
 
 import com.code.monks.nukkad.dto.request.BulkCreateItemRequestDTO;
-import com.code.monks.nukkad.dto.request.CreateItemRequestDTO;
 import com.code.monks.nukkad.dto.request.UpdateItemRequestDTO;
 import com.code.monks.nukkad.dto.response.*;
 import com.code.monks.nukkad.services.ItemService;
@@ -14,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.code.monks.nukkad.constants.UrlConstants.*;
+import static com.code.monks.nukkad.constants.UrlConstants.ITEM;
 import static com.code.monks.nukkad.constants.UrlConstants.ITEM.GET_BY_CATEGORY;
 
 @Slf4j

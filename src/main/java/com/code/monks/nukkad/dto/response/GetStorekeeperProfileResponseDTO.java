@@ -33,7 +33,7 @@ public class GetStorekeeperProfileResponseDTO {
                 .id(entity.getId())
                 .name(entity.getName())
                 .storeName(entity.getStoreName())
-                .gstIn(entity.getGstIn())
+                .gstIn(entity.getGstNum())
                 .addressLine1(entity.getAddressLine1())
                 .addressLine2(entity.getAddressLine2())
                 .city(entity.getCity())

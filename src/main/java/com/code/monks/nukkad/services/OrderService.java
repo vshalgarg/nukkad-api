@@ -24,7 +24,7 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class OrderService { // placeOrderService
+public class OrderService {
 
     private final OrderRepository orderRepository;
     private final AddressRepository addressRepository;
@@ -261,7 +261,7 @@ public class OrderService { // placeOrderService
         if (!existingOrder.getCustomer().getId().equals(customerId)) {
             throw new RuntimeException("You are not authorized to repeat this order.");
         }
-        // create new order
+
         OrderEntity newOrder = new OrderEntity();
         newOrder.setCustomer(existingOrder.getCustomer());
         newOrder.setDeliveryAddress(existingOrder.getDeliveryAddress());
