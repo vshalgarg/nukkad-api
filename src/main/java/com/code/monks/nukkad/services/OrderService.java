@@ -1,18 +1,17 @@
-
 package com.code.monks.nukkad.services;
 
 import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.request.DispatchOrderRequestDTO;
-import com.code.monks.nukkad.dto.request.OrderRequestDTO;
+import com.code.monks.nukkad.dto.request.PlaceOrderRequestDTO;
 import com.code.monks.nukkad.dto.request.UpdateOrderStatusRequestDTO;
 import com.code.monks.nukkad.dto.response.*;
 import com.code.monks.nukkad.entities.*;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.enums.Status;
-import com.code.monks.nukkad.exception.OrderNotFoundException;
-import com.code.monks.nukkad.exception.UnauthorizedAccessException;
+import com.code.monks.nukkad.exception.*;
 import com.code.monks.nukkad.repositories.*;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -21,31 +20,20 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
 
 @Service
 @Slf4j
-public class OrderService { // placeOrderService
+@RequiredArgsConstructor
+public class OrderService {
 
     private final OrderRepository orderRepository;
     private final AddressRepository addressRepository;
     private final CustomerRepository customerRepository;
-    private final StorekeeperRepository storekeeperRepository;
-    private final OrderItemRepository orderItemRepository;
     private final CartProductRepository cartProductRepository;
 
 
-    public OrderService(OrderRepository orderRepository, AddressRepository addressRepository, CustomerRepository customerRepository,
-                        StorekeeperRepository storekeeperRepository, OrderItemRepository orderItemRepository,
-                        CartProductRepository cartProductRepository) {
-        this.orderRepository = orderRepository;
-        this.addressRepository = addressRepository;
-        this.customerRepository = customerRepository;
-        this.storekeeperRepository = storekeeperRepository;
-        this.orderItemRepository = orderItemRepository;
-        this.cartProductRepository = cartProductRepository;
-    }
-
-    public PlaceOrderResponseDTO placeOrders(OrderRequestDTO requestDTO) {
+    public PlaceOrderResponseDTO placeOrders(PlaceOrderRequestDTO requestDTO) {
         log.info("[CREATE ORDER] Request received for customer. Payload: {}", requestDTO);
 
         try {
@@ -53,7 +41,7 @@ public class OrderService { // placeOrderService
             log.debug("[CREATE ORDER] Authenticated customer ID: {}", customerId);
 
             // Convert DTO to entity
-            OrderEntity orderEntity = OrderRequestDTO.toEntity(requestDTO);
+            OrderEntity orderEntity = PlaceOrderRequestDTO.toEntity(requestDTO);
             log.debug("[CREATE ORDER] Mapped OrderEntity: {}", orderEntity);
 
             // Set timestamps
@@ -106,81 +94,58 @@ public class OrderService { // placeOrderService
             responseDTO.setMessage("Order placed successfully");
             return responseDTO;
 
-        } catch (Exception e) {
+        } catch (UnhandledException e) {
             log.error("[CREATE ORDER] Failed to create order for request: {}", requestDTO, e);
-            throw new RuntimeException("Failed to create order", e);
+            throw new UnhandledException(UNHANDLED_EXCEPTION, e);
         }
     }
 
-    public CancelOrderByStoreKeeperResponseDTO cancelOrderByStoreKeeper(Long id) {
-        Long storekeeperId = UserContextHolder.getUser().getId();
+public UpdateOrderStatusResponseDTO updateOrderStatus(Long id, UpdateOrderStatusRequestDTO updateOrderStatusRequestDTO) {
+    Status newStatus = updateOrderStatusRequestDTO.getStatus();
+    Long storekeeperId = UserContextHolder.getUser().getId();
+    List<RoleEnum> roles = UserContextHolder.getUser().getRoles();
 
-        log.info("StoreKeeper [{}] requested to cancel order Id:{}", storekeeperId, id);
-        try {
-            OrderEntity orderEntity = orderRepository.findById(id)
-                    .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + id));
+    log.info("User [{}] with roles {} is attempting to update order [{}] to status [{}]", storekeeperId, roles, id, newStatus);
 
-            if (orderEntity.getStatus() == Status.PENDING) {
-                log.info("Order [{}] is PENDING. Proceeding with cancellation.", id);
+
+        if (newStatus == null) {
+            log.error("Status in request is null");
+            throw new InvalidOrderStatusException(INVALID_ORDER_STATUS_EXCEPTION);
+        }
+
+        OrderEntity orderEntity = orderRepository.findById(id)
+                .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + id));
+
+        if (orderEntity.getStatus() == Status.CANCELLED) {
+            log.warn("Order [{}] is already CANCELLED. Cannot update further.", id);
+            throw new OrderStatusUpdateException(ORDER_STATUS_UPDATE_EXCEPTION);
+        }
+
+        String responseMessage;
+
+        // If storekeeper is cancelling the order
+        if (newStatus == Status.CANCELLED && roles.contains(RoleEnum.STOREKEEPER)) {
+            if (orderEntity.getStatus() == Status.PENDING || orderEntity.getStatus() == Status.IN_PROGRESS) {
+                log.info("STOREKEEPER [{}] is cancelling order [{}]", storekeeperId, id);
                 orderEntity.setStatus(Status.CANCELLED);
-
-            } else if (orderEntity.getStatus() == Status.IN_PROGRESS) {
-                log.info("Order [{}] is IN_PROGRESS. Proceeding with cancellation.", id);
-                orderEntity.setStatus(Status.CANCELLED);
-
+                responseMessage = "Order cancelled successfully.";
             } else {
-                log.warn("Order [{}] is in status [{}] and cannot be cancelled", id, orderEntity.getStatus());
-                throw new IllegalArgumentException("Only PENDING or IN_PROGRESS orders can be cancelled by storeKeeper");
+                log.warn("Invalid cancellation attempt by STOREKEEPER [{}] for order [{}] in status [{}]",
+                        storekeeperId, id, orderEntity.getStatus());
+                throw new OrderStatusUpdateException(ORDER_STATUS_UPDATE_EXCEPTION);
             }
-
-            OrderEntity updatedOrder = orderRepository.save(orderEntity);
-            log.info("Order [{}] cancelled successfully by storekeeper [{}]", id, storekeeperId);
-            return  new CancelOrderByStoreKeeperResponseDTO("Order are cancelled successfully !!");
-
-        } catch (OrderNotFoundException e) {
-            throw e;
-        } catch (IllegalArgumentException e) {
-            log.error("Invalid cancellation attempt: {}", e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            log.error("Failed to cancel order [{}] by storekeeper [{}]", id, storekeeperId, e);
-            throw new RuntimeException("Failed to cancel order", e);
-        }
-    }
-
-    public UpdateOrderStatusResponseDTO updateOrderStatus(long id, UpdateOrderStatusRequestDTO updateOrderStatusRequestDTO) {
-        Status newStatus = updateOrderStatusRequestDTO.getStatus();
-        log.info("Updating status for Order ID [{}] to [{}]", id, newStatus);
-
-        try {
-            // Validate input
-            if (newStatus == null) {
-                log.error("Status in request is null");
-                throw new IllegalArgumentException("Status cannot be null");
-            }
-
-            // Fetch existing order
-            OrderEntity orderEntity = orderRepository.findById(id)
-                    .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + id));
-
-            if (orderEntity.getStatus().equals(Status.CANCELLED)){
-                throw  new RuntimeException("");
-            }
-            // Update status
+        } else {
+            log.info("Updating order [{}] status to [{}]", id, newStatus);
             orderEntity.setStatus(newStatus);
-
-            OrderEntity updatedOrder = orderRepository.save(orderEntity);
-
-            log.info("Order status updated successfully to [{}] for ID [{}]", newStatus, id);
-            return new UpdateOrderStatusResponseDTO("Status are updated successfully");
-
-        } catch (OrderNotFoundException | IllegalArgumentException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Failed to update order status for ID [{}]", id, e);
-            throw new RuntimeException("Failed to update order status", e);
+            responseMessage = "Order status updated successfully.";
         }
-    }
+
+        orderRepository.save(orderEntity);
+        log.info("Order [{}] status changed to [{}]", id, orderEntity.getStatus());
+
+        return new UpdateOrderStatusResponseDTO(responseMessage);
+}
+
 
     public List<GetUserHistoryByStatusAndDateResponseDTO> getUserHistoryByOptionalFilters(
             Status status, LocalDate startDate, LocalDate endDate) {
@@ -230,13 +195,12 @@ public class OrderService { // placeOrderService
                 .toList();
     }
 
-
     public List<GetOrderByStoreKeeperResponseDTO> getOrdersByStorekeeper() {
 
         Long storekeeperId = UserContextHolder.getUser().getId();
         log.info("[STOREKEEPER ORDERS] Fetching orders for storeKeeperId={}", storekeeperId);
 
-        List<OrderEntity> orders = orderRepository.findByStoreKeeperId(storekeeperId);
+        List<OrderEntity> orders = orderRepository.findAllByStoreKeeperId(storekeeperId);
 
         if (orders.isEmpty()) {
             log.warn("[STOREKEEPER ORDERS] No orders found for storeKeeperId={}", storekeeperId);
@@ -296,7 +260,7 @@ public class OrderService { // placeOrderService
         // Validate item list
         if (request.getOrderItem() == null || request.getOrderItem().isEmpty()) {
             log.warn("[DISPATCH] Item list is empty or null for orderId={}", request.getOrderId());
-            throw new IllegalArgumentException("Item list must not be null or empty.");
+            throw new InvalidItemListException(HANDLE_INVALID_ITEM_LIST);
         }
 
         // Fetch the order
@@ -305,11 +269,15 @@ public class OrderService { // placeOrderService
                     log.warn("[DISPATCH] Order not found with ID={}", request.getOrderId());
                     return new OrderNotFoundException("Order not found with ID: " + request.getOrderId());
                 });
+        if(order.getStatus()==Status.CANCELLED)
+        {
+            throw  new OrderAlreadyCancelledException(ORDER_ALREADY_CANCELLED_EXCEPTION);
+        }
 
         // Validate ownership
         if (!order.getStoreKeeper().getId().equals(storekeeperId)) {
             log.error("[DISPATCH] Unauthorized attempt by storekeeperId={} for orderId={}", storekeeperId, order.getId());
-            throw new RuntimeException("You are not authorized to dispatch this order.");
+            throw new UnauthorizedDispatchException(UNAUTHORIZED_DISPATCH_EXCEPTION);
         }
 
         // Update each item's price

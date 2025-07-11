@@ -91,9 +91,9 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(OrderNotFoundException.class)
 	public ResponseEntity<ErrorResponse> handleOrderNotFound(OrderNotFoundException exception) {
 		ErrorResponse response = new ErrorResponse();
-		response.setMessage("Order Not Found"); // keep message clean
-		response.setTimestamp(LocalDateTime.now()); // set actual timestamp
-		response.setResponseCode(400); // HTTP 400
+		response.setMessage("Order Not Found");
+		response.setTimestamp(LocalDateTime.now());
+		response.setResponseCode(400);
 
 		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 	}
@@ -110,5 +110,36 @@ public class GlobalExceptionHandler {
 		ErrorResponse error = new ErrorResponse(ex.getMessage(),LocalDateTime.now(),HttpStatus.FORBIDDEN.value());
 		return new ResponseEntity<>(error,HttpStatus.FORBIDDEN);
 	}
+
+	@ExceptionHandler(InvalidOrderStatusException.class)
+	public ResponseEntity<ErrorResponse> handleInvalidOrderStatusException(InvalidOrderStatusException ex){
+		ErrorResponse error = new ErrorResponse(ex.getMessage(),LocalDateTime.now(),ex.getError().getResponseCode());
+		return new ResponseEntity<>(error,HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(OrderStatusUpdateException.class)
+	public ResponseEntity<ErrorResponse> handleStatusUpdateException(OrderStatusUpdateException ex){
+		ErrorResponse error = new ErrorResponse(ex.getMessage(),LocalDateTime.now(),ex.getError().getResponseCode());
+		return new ResponseEntity<>(error,HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(UnauthorizedDispatchException.class)
+	public ResponseEntity<ErrorResponse> handleUnauthorizedDispatch(UnauthorizedDispatchException ex){
+		ErrorResponse error = new ErrorResponse(ex.getMessage(),LocalDateTime.now(),ex.getError().getResponseCode());
+		return new ResponseEntity<>(error,HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(InvalidItemListException.class)
+	public ResponseEntity<ErrorResponse> handleInvalidItemList(InvalidItemListException ex){
+		ErrorResponse error = new ErrorResponse(ex.getMessage(),LocalDateTime.now(),ex.getError().getResponseCode());
+		return new ResponseEntity<>(error,HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(OrderAlreadyCancelledException.class)
+	public ResponseEntity<ErrorResponse> handleOrderAlreadyCancelled(OrderAlreadyCancelledException ex){
+		ErrorResponse error = new ErrorResponse(ex.getMessage(),LocalDateTime.now(),ex.getError().getResponseCode());
+		return new ResponseEntity<>(error,HttpStatus.BAD_REQUEST);
+	}
+
 
 }

@@ -25,7 +25,7 @@ public class GetOrderByStoreKeeperResponseDTO {
      private Long orderId;
     private LocalDateTime orderDate;
 
-    private List<ItemDetailsDTO> items;
+    private List<ItemDetailsResponseDTO> items;
 
     private Status status;
     private String storeKeeperNote;
@@ -60,13 +60,13 @@ public class GetOrderByStoreKeeperResponseDTO {
         responseDTO.setStoreKeeperNote(entity.getNote());
 
         // Items from OrderItemEntity
-        List<ItemDetailsDTO> itemList = new ArrayList<>();
+        List<ItemDetailsResponseDTO> itemList = new ArrayList<>();
         if (entity.getOrderItems() != null) {
             for (OrderItemEntity orderItem : entity.getOrderItems()) {
                 if (orderItem.getItem() == null) continue;
 
                 ItemEntity itemEntity = orderItem.getItem();
-                ItemDetailsDTO itemDTO = new ItemDetailsDTO();
+                ItemDetailsResponseDTO itemDTO = new ItemDetailsResponseDTO();
                 itemDTO.setItemId(itemEntity.getId());
                 itemDTO.setItemName(itemEntity.getName());
                 itemDTO.setUnit(orderItem.getUnit());

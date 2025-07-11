@@ -20,7 +20,7 @@ import java.util.List;
 
 import static com.code.monks.nukkad.constants.UrlConstants.ORDER.*;
 
-@RequestMapping(UrlConstants.ORDER.BASE)
+@RequestMapping(BASE)
 @RestController
 @Slf4j
 @RequiredArgsConstructor

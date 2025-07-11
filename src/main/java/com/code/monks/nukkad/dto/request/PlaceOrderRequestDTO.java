@@ -2,20 +2,19 @@
 package com.code.monks.nukkad.dto.request;
 
 import com.code.monks.nukkad.entities.*;
-import com.code.monks.nukkad.enums.Status;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-public class OrderRequestDTO {
+public class PlaceOrderRequestDTO {
 
     private Long deliveryAddressId;
 
     private Long storeKeeperId;
     private List<OrderItemEntity> orderItem;
 
-    public static OrderEntity toEntity(OrderRequestDTO requestDTO) {
+    public static OrderEntity toEntity(PlaceOrderRequestDTO requestDTO) {
         OrderEntity orderEntity = new OrderEntity();
 
         // address entity with only id

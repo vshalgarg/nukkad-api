@@ -13,22 +13,11 @@ import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<OrderEntity,Long> {
 
-    List<OrderEntity> findByStatus(Status status); // Correct
-
-//    List<OrderEntity> findByOrderById();  // Ascending order
-
-    List<OrderEntity> findByCustomerId(Long id);
-
     Optional<OrderEntity> findById (Long id);
 
-    List<OrderEntity> findByStoreKeeperId(Long storeKeeperId);
-
-
-    List<OrderEntity> findByStatusAndCreatedAtBetween(Status status, LocalDateTime startOfDay, LocalDateTime endOfDay);
+    List<OrderEntity> findAllByStoreKeeperId(Long storeKeeperId);
 
     Long countByCustomerId(Long customerId);
-
-
 
     @Query("SELECT o FROM OrderEntity o " +
             "WHERE o.customer.id = :customerId " +

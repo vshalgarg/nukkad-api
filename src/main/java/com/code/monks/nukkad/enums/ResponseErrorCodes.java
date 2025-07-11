@@ -1,5 +1,6 @@
 package com.code.monks.nukkad.enums;
 
+import com.code.monks.nukkad.exception.InvalidOrderStatusException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -28,7 +29,14 @@ public enum ResponseErrorCodes {
 	UNHANDLED_EXCEPTION(500, "Unhandled exception"),
 	SEARCH_NOT_FOUND(400, "Failed to perform search. Please try again later."),
 	ITEM_NOT_SAVED_EXCEPTION(400,"Categories not found so you can't add item."),
-    DUPLICATE_RESOURCE_EXCEPTION(400,"");
+    DUPLICATE_RESOURCE_EXCEPTION(400,""),
+
+	INVALID_ORDER_STATUS_EXCEPTION(10409, "Order status cannot be null"),
+	ORDER_STATUS_UPDATE_EXCEPTION(10400,"Oops! Order are cancelled. Status cannot be update "),
+	UNAUTHORIZED_DISPATCH_EXCEPTION(10401,"You are not authorized to dispatch this order."),
+	HANDLE_INVALID_ITEM_LIST(10402,"Item list must not be null or empty"),
+	ORDER_ALREADY_CANCELLED_EXCEPTION(10403,"Order already cancelled so its cannot be update");
+
 	private int responseCode;
 
 	private String message;

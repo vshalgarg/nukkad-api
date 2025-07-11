@@ -21,7 +21,7 @@ public class GetUserHistoryByStatusAndDateResponseDTO {
     private Long storeKeeperId;
     private String storeName;
 
-    private List<ItemDetailsDTO> items;
+    private List<ItemDetailsResponseDTO> items;
 
     private Status status;
 
@@ -50,13 +50,13 @@ public class GetUserHistoryByStatusAndDateResponseDTO {
         }
 
         // Order Items
-        List<ItemDetailsDTO> itemList = new ArrayList<>();
+        List<ItemDetailsResponseDTO> itemList = new ArrayList<>();
         if (order.getOrderItems() != null) {
             for (OrderItemEntity orderItem : order.getOrderItems()) {
                 if (orderItem.getItem() == null) continue;
 
                 ItemEntity itemEntity = orderItem.getItem();
-                ItemDetailsDTO itemDto = new ItemDetailsDTO();
+                ItemDetailsResponseDTO itemDto = new ItemDetailsResponseDTO();
 
                 itemDto.setItemId(itemEntity.getId());
                 itemDto.setItemName(itemEntity.getName());

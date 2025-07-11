@@ -1,9 +1,9 @@
-package com.code.monks.nukkad.dto.response;
+package com.code.monks.nukkad.dto.request;
 
 import lombok.Data;
 
 @Data
-public class DispatchItemDTO
+public class DispatchItemRequestDTO
 {
     private Long itemId;
     private double price;

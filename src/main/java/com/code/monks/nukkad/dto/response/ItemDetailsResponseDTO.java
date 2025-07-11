@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ItemDetailsDTO {
+public class ItemDetailsResponseDTO {
   private Long itemId;
   private String itemName;
   private String unit;
