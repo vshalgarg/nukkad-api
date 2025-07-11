@@ -21,7 +21,7 @@ public class CreateStorekeeperRequestDTO {
     private String storeName;
 
 	@NotBlank(message = "GST_IN is mandatory")
-	private String gstIn;
+	private String gstNum;
 
 	@NotBlank(message = "Address Line 1 is mandatory")
 	private String addressLine1;
@@ -46,7 +46,7 @@ public class CreateStorekeeperRequestDTO {
 
 		storekeeper.setName(dto.getName());
 		storekeeper.setStoreName(dto.getStoreName());
-		storekeeper.setGstIn(dto.getGstIn());
+		storekeeper.setGstNum(dto.getGstNum());
 		storekeeper.setAddressLine1(dto.getAddressLine1());
 		storekeeper.setAddressLine2(dto.getAddressLine2());
 		storekeeper.setLandmark(dto.getLandmark());

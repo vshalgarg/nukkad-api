@@ -9,7 +9,7 @@ public class UnhandledException extends RuntimeException {
 	private final ResponseErrorCodes errorCode;
 
 	public UnhandledException(ResponseErrorCodes errorCode, Throwable e) {
-		super(e);
+		super(e.getMessage());
 		this.errorCode = errorCode;
 	}
 

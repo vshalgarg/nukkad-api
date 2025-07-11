@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import static com.code.monks.nukkad.dto.response.CreateCustomerResponseDTO.setAddress;
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
@@ -74,8 +75,21 @@ public class CustomerService {
 		CustomerEntity updated = customerRepository.save(customer);
 		log.info("[UPDATE CUSTOMER] Customer profile updated. customerId={}", updated.getId());
 
+
+		Optional<AddressEntity> defaultAddressOpt = addressRepository.findByCustomerIdAndIsDefaultTrue(customerId);
+		if (defaultAddressOpt.isPresent()) {
+			AddressEntity defaultAddress = defaultAddressOpt.get();
+			defaultAddress.setName(updated.getName());
+			defaultAddress.setMobileNumber(updated.getMobileNumber());
+			addressRepository.save(defaultAddress);
+			log.info("[UPDATE CUSTOMER] Default address updated with new name and mobile number for customerId={}", customerId);
+		} else {
+			log.warn("[UPDATE CUSTOMER] Default address not found for customerId={}", customerId);
+		}
+
 		return UpdateCustomerResponseDTO.fromEntity(updated);
 	}
+
 
 	public AddStoreResponseDto addStoreToCustomer(String storeQrId) {
 		Long customerId = UserContextHolder.getUser().getId();
@@ -97,7 +111,7 @@ public class CustomerService {
 			customer.getStorekeepers().add(storekeeper);
 			customerRepository.save(customer);
 			log.info("[ADD STORE] Storekeeper successfully linked to customerId={}", customerId);
-			return new AddStoreResponseDto("Store added to customer.");
+			return new AddStoreResponseDto(storekeeper.getId(),storekeeper.getName(),storekeeper.getStoreName(),storekeeper.getAddressLine1(),storekeeper.getAddressLine2(),"Store added to customer.");
 		} else {
 			log.info("[ADD STORE] Storekeeper already linked to customerId={}", customerId);
 			return new AddStoreResponseDto("Store already added.");
@@ -125,7 +139,7 @@ public class CustomerService {
 						.name(storekeeper.getName())
 						.storeName(storekeeper.getStoreName())
 						.mobileNumber(storekeeper.getMobileNumber())
-						.gstIn(storekeeper.getGstIn()) 
+						.gstIn(storekeeper.getGstNum())
 						.addressLine1(storekeeper.getAddressLine1())
 						.addressLine2(storekeeper.getAddressLine2())
 						.landmark(storekeeper.getLandmark())
