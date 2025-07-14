@@ -1,11 +1,12 @@
 package com.code.monks.nukkad.controllers;
 
-import com.code.monks.nukkad.dto.request.CreateCartProductRequestDTO;
-import com.code.monks.nukkad.dto.response.CreateCartProductResponseDTO;
-import com.code.monks.nukkad.dto.response.GetCartProductResponseDTO;
-import com.code.monks.nukkad.dto.response.UpdateItemQuantityResponseDto;
+import com.code.monks.nukkad.dto.request.CreateCartItemRequestDTO;
+import com.code.monks.nukkad.dto.request.UpdateCartItemRequestDTO;
+import com.code.monks.nukkad.dto.response.CreateCartItemResponseDTO;
+import com.code.monks.nukkad.dto.response.GetCartItemResponseDTO;
+import com.code.monks.nukkad.dto.response.UpdateCartItemResponseDTO;
 import com.code.monks.nukkad.dto.response.removeCartProductResponseDTO;
-import com.code.monks.nukkad.services.CartProductService;
+import com.code.monks.nukkad.services.CartItemService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,22 +21,22 @@ import static com.code.monks.nukkad.constants.UrlConstants.CART_ITEM;
 @RestController
 @RequestMapping(CART_ITEM.BASE)
 @RequiredArgsConstructor
-public class CartProductController {
+public class CartItemController {
 
-    private final CartProductService cartItemService;
+    private final CartItemService cartItemService;
 
     @PostMapping(CART_ITEM.ADD)
-    public ResponseEntity<CreateCartProductResponseDTO> addToCart(@RequestBody CreateCartProductRequestDTO dto) {
+    public ResponseEntity<CreateCartItemResponseDTO> addToCart(@RequestBody CreateCartItemRequestDTO dto) {
         log.info("[ADD TO CART] Received request to add item: {}", dto);
-        CreateCartProductResponseDTO response = cartItemService.addToCart(dto);
+        CreateCartItemResponseDTO response = cartItemService.addToCart(dto);
         log.info("[ADD TO CART] Item added successfully to cart. Response: {}", response);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @GetMapping(CART_ITEM.GET_CART_ITEM_FOR_CUSTOMER)
-    public ResponseEntity<List<GetCartProductResponseDTO>> getCartItems() {
+    public ResponseEntity<List<GetCartItemResponseDTO>> getCartItems() {
         log.info("[GET CART ITEMS] Fetching cart items for customer");
-        List<GetCartProductResponseDTO> items = cartItemService.getCartItemsForCustomer();
+        List<GetCartItemResponseDTO> items = cartItemService.getCartItemsForCustomer();
         log.info("[GET CART ITEMS] Found {} items in cart", items.size());
         return ResponseEntity.ok(items);
     }
@@ -49,11 +50,12 @@ public class CartProductController {
     }
 
 
-    @PutMapping(CART_ITEM.UPDATE_QUANTITY)
-    public ResponseEntity<UpdateItemQuantityResponseDto> updateQuantity(@PathVariable Long id, @RequestParam int quantity) {
-        log.info("[UPDATE QUANTITY] Updating quantity of item ID: {} to {}", id, quantity);
-        UpdateItemQuantityResponseDto updated = cartItemService.updateQuantity(id, quantity);
-        log.info("[UPDATE QUANTITY] Updated item: {}", updated);
+    @PutMapping(CART_ITEM.UPDATE_QUANTITY_AND_UNIT_OF_ITEM)
+    public ResponseEntity<UpdateCartItemResponseDTO> updateCartItem(@RequestBody UpdateCartItemRequestDTO dto) {
+        log.info("Updating cart item: {}", dto);
+        UpdateCartItemResponseDTO updated = cartItemService.updateCartItem(dto);
         return ResponseEntity.ok(updated);
     }
+
+
 }

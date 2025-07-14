@@ -14,6 +14,7 @@ public class AddressResponseDTO {
     private String city;
     private String state;
     private String pincode;
+    private Boolean isDefault;
 
 
     public static AddressResponseDTO fromEntity(AddressEntity entity) {
@@ -28,6 +29,7 @@ public class AddressResponseDTO {
         dto.setCity(entity.getCity());
         dto.setState(entity.getState());
         dto.setPincode(entity.getPincode());
+        dto.setIsDefault(entity.getIsDefault());
 
         return dto;
     }
