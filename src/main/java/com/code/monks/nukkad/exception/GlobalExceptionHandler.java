@@ -3,6 +3,7 @@ package com.code.monks.nukkad.exception;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -47,14 +48,15 @@ public class GlobalExceptionHandler {
 		List<String> messages = ex.getBindingResult()
 			.getFieldErrors()
 			.stream()
-			.map(error -> error.getField() + ": " + error.getDefaultMessage())
+			.map(DefaultMessageSourceResolvable::getDefaultMessage)
 			.collect(Collectors.toList());
 
 		String errorMessage = String.join(", ", messages);
 
-		ErrorResponse error = new ErrorResponse("Validation failed: " + errorMessage, LocalDateTime.now(),
+		ErrorResponse error = new ErrorResponse(errorMessage, LocalDateTime.now(),
 				HttpStatus.BAD_REQUEST.value());
-		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+		System.out.println(errorMessage);
+		return new ResponseEntity<>(error, HttpStatus.OK);
 	}
 
 	@ExceptionHandler(ExternalServiceException.class)
@@ -71,8 +73,8 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(DuplicateResourceException.class)
 	public ResponseEntity<ErrorResponse> handleDuplicateResourceErrors(DuplicateResourceException ex) {
-		ErrorResponse error = new ErrorResponse(ex.getMessage(), LocalDateTime.now(), ex.getError().getResponseCode());
-		return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+		ErrorResponse error = new ErrorResponse(ex.getError().getMessage(), LocalDateTime.now(), ex.getError().getResponseCode());
+		return new ResponseEntity<>(error, HttpStatus.OK);
 	}
 
 	@ExceptionHandler(UnhandledException.class)

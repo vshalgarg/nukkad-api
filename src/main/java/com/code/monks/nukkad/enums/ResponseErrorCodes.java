@@ -6,6 +6,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ResponseErrorCodes {
+	DUPLICATE_STOREKEEPER_PROFILE_FOUND_EXCEPTION(1026,"Storekeeper profile is already exists"),
+	DUPLICATE_CUSTOMER_PROFILE_FOUND_EXCEPTION(1025,"Customer profile is already exists"),
 	DUPLICATE_EMAIL_FOUND_EXCEPTION(1024,"Email is already exists"),
 	ITEM_NOT_FOUND_WITH_GIVEN_UNIT(1023,"Item not found in cart with given unit"),
 	CART_NOT_FOUND(1022,"Cart not found for customer id"),

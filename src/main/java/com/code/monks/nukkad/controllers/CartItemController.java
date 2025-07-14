@@ -4,8 +4,8 @@ import com.code.monks.nukkad.dto.request.CreateCartItemRequestDTO;
 import com.code.monks.nukkad.dto.request.UpdateCartItemRequestDTO;
 import com.code.monks.nukkad.dto.response.CreateCartItemResponseDTO;
 import com.code.monks.nukkad.dto.response.GetCartItemResponseDTO;
+import com.code.monks.nukkad.dto.response.RemoveCartItemResponseDTO;
 import com.code.monks.nukkad.dto.response.UpdateCartItemResponseDTO;
-import com.code.monks.nukkad.dto.response.removeCartProductResponseDTO;
 import com.code.monks.nukkad.services.CartItemService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,9 +42,9 @@ public class CartItemController {
     }
 
     @DeleteMapping(CART_ITEM.DELETE_CART_ITEM_BY_ID)
-    public ResponseEntity<removeCartProductResponseDTO> deleteCartItem(@PathVariable Long id) {
+    public ResponseEntity<RemoveCartItemResponseDTO> deleteCartItem(@PathVariable Long id) {
         log.info("[DELETE CART ITEM] Deleting cart item with ID: {}", id);
-        removeCartProductResponseDTO resultMessage = cartItemService.removeCartItem(id);
+        RemoveCartItemResponseDTO resultMessage = cartItemService.removeCartItem(id);
         log.info("[DELETE CART ITEM] {}", resultMessage);
         return ResponseEntity.ok(resultMessage);
     }
