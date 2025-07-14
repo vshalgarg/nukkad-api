@@ -11,6 +11,7 @@ import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.exception.AccessDeniedException;
 import com.code.monks.nukkad.exception.DuplicateResourceException;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
+import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.AddressRepository;
 import com.code.monks.nukkad.repositories.CustomerRepository;
 import com.code.monks.nukkad.repositories.StorekeeperRepository;
@@ -46,6 +47,12 @@ public class CustomerService {
 		String mobileNumber = UserContextHolder.getUser().getMobileNumber();
 		log.info("[CREATE CUSTOMER] Creating new customer profile for customerId={} and mobileNumber={}", customerId, mobileNumber);
 
+		// Check if customer already exists
+		if (customerRepository.existsById(customerId)) {
+			log.error("[CREATE CUSTOMER] Customer already exists for customerId={}", customerId);
+			throw new DuplicateResourceException(DUPLICATE_CUSTOMER_PROFILE_FOUND_EXCEPTION);
+		}
+
 		CustomerEntity customer = CreateCustomerRequestDTO.toEntity(dto);
 		customer.setId(customerId);
 		customer.setMobileNumber(mobileNumber);
@@ -54,23 +61,24 @@ public class CustomerService {
 			// Save customer
 			CustomerEntity saved = customerRepository.save(customer);
 
-			// Save address
+			//  Save default address
 			log.info("[CREATE CUSTOMER] Saving default address for customerId={}", saved.getId());
 			AddressEntity address = setAddress(dto, saved.getId(), saved.getName(), saved.getMobileNumber());
 			AddressEntity savedAddress = addressRepository.save(address);
 
 			log.info("[CREATE CUSTOMER] Customer and address created successfully for customerId={}", saved.getId());
 
-			// Prepare response
+			//  Prepare response
 			CreateCustomerResponseDTO responseDTO = CreateCustomerResponseDTO.fromEntity(saved);
 			responseDTO.setAddressId(savedAddress.getId());
 			return responseDTO;
 
 		} catch (DataIntegrityViolationException e) {
 			log.error("[CREATE CUSTOMER] Data integrity violation while creating customer", e);
-			throw new DuplicateResourceException(DUPLICATE_EMAIL_FOUND_EXCEPTION);
+			throw new DuplicateResourceException(DUPLICATE_EMAIL_FOUND_EXCEPTION,e);
 		}
 	}
+
 
 
 	public UpdateCustomerResponseDTO updateCustomer(UpdateCustomerRequestDTO dto) {
@@ -89,49 +97,82 @@ public class CustomerService {
 				});
 
 		customer = UpdateCustomerRequestDTO.updateEntity(customer, dto);
-		CustomerEntity updated = customerRepository.save(customer);
-		log.info("[UPDATE CUSTOMER] Customer profile updated. customerId={}", updated.getId());
 
+		try {
+			// Save customer
+			CustomerEntity updated = customerRepository.save(customer);
+			log.info("[UPDATE CUSTOMER] Customer profile updated. customerId={}", updated.getId());
 
-		Optional<AddressEntity> defaultAddressOpt = addressRepository.findByCustomerIdAndIsDefaultTrue(customerId);
-		if (defaultAddressOpt.isPresent()) {
-			AddressEntity defaultAddress = defaultAddressOpt.get();
-			defaultAddress.setName(updated.getName());
-			defaultAddress.setMobileNumber(updated.getMobileNumber());
-			addressRepository.save(defaultAddress);
-			log.info("[UPDATE CUSTOMER] Default address updated with new name and mobile number for customerId={}", customerId);
-		} else {
-			log.warn("[UPDATE CUSTOMER] Default address not found for customerId={}", customerId);
+			// Update default address if exists
+			Optional<AddressEntity> defaultAddressOpt = addressRepository.findByCustomerIdAndIsDefaultTrue(customerId);
+			if (defaultAddressOpt.isPresent()) {
+				AddressEntity defaultAddress = defaultAddressOpt.get();
+				defaultAddress.setName(updated.getName());
+				defaultAddress.setMobileNumber(updated.getMobileNumber());
+				addressRepository.save(defaultAddress);
+				log.info("[UPDATE CUSTOMER] Default address updated with new name and mobile number for customerId={}", customerId);
+			} else {
+				log.warn("[UPDATE CUSTOMER] Default address not found for customerId={}", customerId);
+			}
+
+			// Return response
+			return UpdateCustomerResponseDTO.fromEntity(updated);
+
+		} catch (DataIntegrityViolationException e) {
+			log.error("[UPDATE CUSTOMER] Email already exists. Email={}, customerId={}", dto.getEmail(), customerId, e);
+			throw new DuplicateResourceException(DUPLICATE_EMAIL_FOUND_EXCEPTION,e);
 		}
-
-		return UpdateCustomerResponseDTO.fromEntity(updated);
 	}
 
 
 	public AddStoreResponseDto addStoreToCustomer(String storeQrId) {
 		Long customerId = UserContextHolder.getUser().getId();
-		log.info("[ADD STORE] Adding store with QR ID={} to customerId={}", storeQrId, customerId);
+		log.info("[ADD STORE] Request received to add store with QR ID={} for customerId={}", storeQrId, customerId);
 
-		CustomerEntity customer = customerRepository.findById(customerId)
-				.orElseThrow(() -> {
-					log.error("[ADD STORE] Customer not found. ID={}", customerId);
-					return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
-				});
+		try {
+			// Fetch Customer
+			CustomerEntity customer = customerRepository.findById(customerId)
+					.orElseThrow(() -> {
+						log.error("[ADD STORE] Customer not found. ID={}", customerId);
+						return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
+					});
 
-		StorekeeperEntity storekeeper = storekeeperRepository.findByStoreQrId(storeQrId)
-				.orElseThrow(() -> {
-					log.error("[ADD STORE] Storekeeper not found with QR ID={}", storeQrId);
-					return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, storeQrId);
-				});
+			// Fetch Storekeeper
+			StorekeeperEntity storekeeper = storekeeperRepository.findByStoreQrId(storeQrId)
+					.orElseThrow(() -> {
+						log.error("[ADD STORE] Storekeeper not found with QR ID={}", storeQrId);
+						return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, storeQrId);
+					});
 
-		if (!customer.getStorekeepers().contains(storekeeper)) {
-			customer.getStorekeepers().add(storekeeper);
-			customerRepository.save(customer);
-			log.info("[ADD STORE] Storekeeper successfully linked to customerId={}", customerId);
-			return new AddStoreResponseDto(storekeeper.getId(),storekeeper.getName(),storekeeper.getStoreName(),storekeeper.getAddressLine1(),storekeeper.getAddressLine2(),"Store added to customer.");
-		} else {
-			log.info("[ADD STORE] Storekeeper already linked to customerId={}", customerId);
-			return new AddStoreResponseDto(storekeeper.getId(),storekeeper.getName(),storekeeper.getStoreName(),storekeeper.getAddressLine1(),storekeeper.getAddressLine2(),"Store already added.");
+			// Check if already linked
+			if (!customer.getStorekeepers().contains(storekeeper)) {
+				customer.getStorekeepers().add(storekeeper);
+				customerRepository.save(customer);
+				log.info("[ADD STORE] Storekeeper successfully linked. customerId={}, storekeeperId={}", customerId, storekeeper.getId());
+				return new AddStoreResponseDto(
+						storekeeper.getId(),
+						storekeeper.getName(),
+						storekeeper.getStoreName(),
+						storekeeper.getAddressLine1(),
+						storekeeper.getAddressLine2(),
+						"Store added to customer.");
+			} else {
+				log.info("[ADD STORE] Storekeeper already linked. customerId={}, storekeeperId={}", customerId, storekeeper.getId());
+				return new AddStoreResponseDto(
+						storekeeper.getId(),
+						storekeeper.getName(),
+						storekeeper.getStoreName(),
+						storekeeper.getAddressLine1(),
+						storekeeper.getAddressLine2(),
+						"Store already added.");
+			}
+
+		} catch (ResourceNotFoundException e) {
+
+			throw e;
+		} catch (Exception e) {
+			log.error("[ADD STORE] Unexpected error occurred while linking store. QR ID={}, customerId={}", storeQrId, customerId, e);
+			throw new UnhandledException(UNHANDLED_EXCEPTION, e);
 		}
 	}
 
@@ -139,61 +180,89 @@ public class CustomerService {
 
 	public List<GetMyStoreResponseDto> getMyStores() {
 		Long customerId = UserContextHolder.getUser().getId();
-		log.info("[GET STORES] Fetching all linked stores for customerId={}", customerId);
+		log.info("[GET STORES] Request received to fetch linked stores for customerId={}", customerId);
 
-		CustomerEntity customer = customerRepository.findById(customerId)
-				.orElseThrow(() -> {
-					log.error("[GET STORES] Customer not found. ID={}", customerId);
-                    return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
-				});
+		try {
+			// Fetch customer
+			CustomerEntity customer = customerRepository.findById(customerId)
+					.orElseThrow(() -> {
+						log.error("[GET STORES] Customer not found. ID={}", customerId);
+						return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
+					});
 
-		List<StorekeeperEntity> storekeepers = customer.getStorekeepers();
-		log.info("[GET STORES] {} stores found for customerId={}", storekeepers.size(), customerId);
+			// Fetch linked storekeepers
+			List<StorekeeperEntity> storekeepers = customer.getStorekeepers();
+			log.info("[GET STORES] {} store(s) found for customerId={}", storekeepers.size(), customerId);
 
-		return storekeepers.stream()
-				.map(storekeeper -> GetMyStoreResponseDto.builder()
-						.id(storekeeper.getId())
-						.name(storekeeper.getName())
-						.storeName(storekeeper.getStoreName())
-						.mobileNumber(storekeeper.getMobileNumber())
-						.gstIn(storekeeper.getGstNum())
-						.addressLine1(storekeeper.getAddressLine1())
-						.addressLine2(storekeeper.getAddressLine2())
-						.landmark(storekeeper.getLandmark())
-						.city(storekeeper.getCity())
-						.state(storekeeper.getState())
-						.pincode(storekeeper.getPincode())
-						.storeId(storekeeper.getStoreQrId())
-						.build())
-				.collect(Collectors.toList());
+			// Map to response DTO
+			return storekeepers.stream()
+					.map(storekeeper -> GetMyStoreResponseDto.builder()
+							.id(storekeeper.getId())
+							.name(storekeeper.getName())
+							.storeName(storekeeper.getStoreName())
+							.mobileNumber(storekeeper.getMobileNumber())
+							.gstIn(storekeeper.getGstNum())
+							.addressLine1(storekeeper.getAddressLine1())
+							.addressLine2(storekeeper.getAddressLine2())
+							.landmark(storekeeper.getLandmark())
+							.city(storekeeper.getCity())
+							.state(storekeeper.getState())
+							.pincode(storekeeper.getPincode())
+							.storeId(storekeeper.getStoreQrId())
+							.build())
+					.collect(Collectors.toList());
+
+		} catch (ResourceNotFoundException e) {
+			throw e;
+
+		} catch (Exception e) {
+			log.error("[GET STORES] Unexpected error occurred while fetching stores for customerId={}", customerId, e);
+			throw new UnhandledException(UNHANDLED_EXCEPTION, e);
+		}
 	}
+
+
+
 
 	public DeleteStoreResponseDto deleteStoreFromCustomer(Long storekeeperId) {
 		Long customerId = UserContextHolder.getUser().getId();
-		log.info("[DELETE STORE] Attempting to unlink storekeeperId={} from customerId={}", storekeeperId, customerId);
+		log.info("[DELETE STORE] Request to unlink storekeeperId={} from customerId={}", storekeeperId, customerId);
 
-		CustomerEntity customer = customerRepository.findById(customerId)
-				.orElseThrow(() -> {
-					log.error("[DELETE STORE] Customer not found. ID={}", customerId);
-                    return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
-				});
+		try {
+			// Validate customer
+			CustomerEntity customer = customerRepository.findById(customerId)
+					.orElseThrow(() -> {
+						log.error("[DELETE STORE] Customer not found. ID={}", customerId);
+						return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
+					});
 
-		StorekeeperEntity storekeeper = storekeeperRepository.findById(storekeeperId)
-				.orElseThrow(() -> {
-					log.error("[DELETE STORE] Storekeeper not found. ID={}", storekeeperId);
-                    return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, storekeeperId);
-				});
+			// Validate storekeeper
+			StorekeeperEntity storekeeper = storekeeperRepository.findById(storekeeperId)
+					.orElseThrow(() -> {
+						log.error("[DELETE STORE] Storekeeper not found. ID={}", storekeeperId);
+						return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, storekeeperId);
+					});
 
-		if (customer.getStorekeepers().contains(storekeeper)) {
-			customer.getStorekeepers().remove(storekeeper);
-			customerRepository.save(customer);
-			log.info("[DELETE STORE] Store successfully removed from customerId={}", customerId);
-			return new DeleteStoreResponseDto("Store removed from customer.");
-		} else {
-			log.warn("[DELETE STORE] Store was not linked to customerId={}", customerId);
-			return new DeleteStoreResponseDto("Store not associated with customer.");
+			// Remove if linked
+			if (customer.getStorekeepers().contains(storekeeper)) {
+				customer.getStorekeepers().remove(storekeeper);
+				customerRepository.save(customer);
+				log.info("[DELETE STORE] Storekeeper unlinked successfully from customerId={}", customerId);
+				return new DeleteStoreResponseDto("Store removed from customer.");
+			} else {
+				log.warn("[DELETE STORE] Storekeeper not associated with customerId={}", customerId);
+				return new DeleteStoreResponseDto("Store not associated with customer.");
+			}
+
+		} catch (ResourceNotFoundException e) {
+			throw e;
+
+		} catch (Exception e) {
+			log.error("[DELETE STORE] Unexpected error while unlinking storekeeperId={} from customerId={}", storekeeperId, customerId, e);
+			throw new UnhandledException(UNHANDLED_EXCEPTION, e);
 		}
 	}
+
 
 
 	public GetCustomerProfileResponseDTO getCustomerProfile() {
@@ -205,13 +274,24 @@ public class CustomerService {
 		Long customerId = UserContextHolder.getUser().getId();
 		log.info("[GET PROFILE] Fetching profile for customerId={}", customerId);
 
-		CustomerEntity customer = customerRepository.findById(customerId)
-				.orElseThrow(() -> {
-					log.error("[GET PROFILE] Customer not found. ID={}", customerId);
-					return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
-				});
+		try {
+			CustomerEntity customer = customerRepository.findById(customerId)
+					.orElseThrow(() -> {
+						log.error("[GET PROFILE] Customer not found. ID={}", customerId);
+						return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
+					});
 
-		return GetCustomerProfileResponseDTO.fromEntity(customer);
+			log.info("[GET PROFILE] Profile fetched successfully for customerId={}", customerId);
+			return GetCustomerProfileResponseDTO.fromEntity(customer);
+
+		} catch (ResourceNotFoundException e) {
+			throw e;
+
+		} catch (Exception e) {
+			log.error("[GET PROFILE] Unexpected error occurred while fetching profile for customerId={}", customerId, e);
+			throw new UnhandledException(UNHANDLED_EXCEPTION, e);
+		}
 	}
+
 
 }

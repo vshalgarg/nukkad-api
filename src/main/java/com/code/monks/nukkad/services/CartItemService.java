@@ -5,8 +5,8 @@ import com.code.monks.nukkad.dto.request.CreateCartItemRequestDTO;
 import com.code.monks.nukkad.dto.request.UpdateCartItemRequestDTO;
 import com.code.monks.nukkad.dto.response.CreateCartItemResponseDTO;
 import com.code.monks.nukkad.dto.response.GetCartItemResponseDTO;
+import com.code.monks.nukkad.dto.response.RemoveCartItemResponseDTO;
 import com.code.monks.nukkad.dto.response.UpdateCartItemResponseDTO;
-import com.code.monks.nukkad.dto.response.removeCartProductResponseDTO;
 import com.code.monks.nukkad.entities.CartEntity;
 import com.code.monks.nukkad.entities.CartItemEntity;
 import com.code.monks.nukkad.entities.CustomerEntity;
@@ -40,80 +40,90 @@ public class CartItemService {
 
     public CreateCartItemResponseDTO addToCart(CreateCartItemRequestDTO dto) {
         Long customerId = UserContextHolder.getRequiredUser().getId();
-        log.info("Initiating add-to-cart process for customerId={}", customerId);
+        log.info("[ADD TO CART] Initiating add-to-cart process for customerId={}", customerId);
 
-        CustomerEntity customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> {
-                    log.warn("Customer not found in database. customerId={}", customerId);
-                    return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
-                });
-
-        CartEntity cart = cartRepository.findByCustomer(customer)
-                .orElseGet(() -> {
-                    log.info("No existing cart found for customerId={}. Creating a new cart.", customerId);
-                    CartEntity newCart = new CartEntity();
-                    newCart.setCustomer(customer);
-                    return cartRepository.save(newCart);
-                });
-
-        if (cart.getItems() == null) {
-            cart.setItems(new ArrayList<>());
-            log.info("Cart item list was null. Initialized empty item list for cartId={}", cart.getId());
-        }
-
-        List<Long> itemIds = new ArrayList<>();
-
-        for (CreateCartItemRequestDTO.CartItemRequest itemReq : dto.getItems()) {
-            Long itemId = itemReq.getItemId();
-            log.info("Processing cart addition for itemId={} (unit={}, quantity={})",
-                    itemId, itemReq.getUnit(), itemReq.getQuantity());
-
-            ItemEntity item = itemRepository.findById(itemId)
+        try {
+            // Get customer
+            CustomerEntity customer = customerRepository.findById(customerId)
                     .orElseThrow(() -> {
-                        log.warn("Item not found in DB. itemId={}", itemId);
-                        return new ResourceNotFoundException(ITEM_NOT_FOUND, itemId);
+                        log.warn("[ADD TO CART] Customer not found. customerId={}", customerId);
+                        return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
                     });
 
-            String requestedUnit = itemReq.getUnit();
-            String[] allowedUnits = item.getUnit().getUnits();
+            // Fetch or create cart
+            CartEntity cart = cartRepository.findByCustomer(customer)
+                    .orElseGet(() -> {
+                        log.info("[ADD TO CART] No existing cart found. Creating new cart for customerId={}", customerId);
+                        CartEntity newCart = new CartEntity();
+                        newCart.setCustomer(customer);
+                        return cartRepository.save(newCart);
+                    });
 
-            boolean isValidUnit = Arrays.stream(allowedUnits)
-                    .anyMatch(unit -> unit.equalsIgnoreCase(requestedUnit));
-            if (!isValidUnit) {
-                log.warn("Invalid unit '{}' for itemId={}. Allowed units: {}", requestedUnit, itemId, Arrays.toString(allowedUnits));
-                throw new IllegalArgumentException("Invalid unit: '" + requestedUnit + "'. Allowed: " + String.join(", ", allowedUnits));
+            if (cart.getItems() == null) {
+                cart.setItems(new ArrayList<>());
+                log.info("[ADD TO CART] Cart item list initialized for cartId={}", cart.getId());
             }
 
-            Optional<CartItemEntity> existingItem = cart.getItems().stream()
-                    .filter(ci -> ci.getItem().getId().equals(itemId) &&
-                            ci.getUnit().equalsIgnoreCase(requestedUnit))
-                    .findFirst();
+            List<Long> itemIds = new ArrayList<>();
 
-            if (existingItem.isPresent()) {
-                CartItemEntity cartItem = existingItem.get();
-                cartItem.setQuantity(cartItem.getQuantity() + itemReq.getQuantity());
-                itemIds.add(itemId);
-                log.info("Updated existing cart item. itemId={}, newQty={}, cartItemId={}",
-                        itemId, cartItem.getQuantity(), cartItem.getId());
-            } else {
-                CartItemEntity cartItem = new CartItemEntity();
-                cartItem.setCart(cart);
-                cartItem.setItem(item);
-                cartItem.setCustomer(customer);
-                cartItem.setQuantity(itemReq.getQuantity());
-                cartItem.setUnit(requestedUnit.toUpperCase());
+            for (CreateCartItemRequestDTO.CartItemRequest itemReq : dto.getItems()) {
+                Long itemId = itemReq.getItemId();
+                log.info("[ADD TO CART] Processing itemId={} (unit={}, quantity={})", itemId, itemReq.getUnit(), itemReq.getQuantity());
 
-                CartItemEntity savedItem = cartItemRepository.save(cartItem);
-                cart.getItems().add(savedItem);
-                itemIds.add(itemId);
-                log.info("Added new item to cart. itemId={}, quantity={}, unit={}, cartItemId={}",
-                        itemId, itemReq.getQuantity(), requestedUnit.toUpperCase(), savedItem.getId());
+                ItemEntity item = itemRepository.findById(itemId)
+                        .orElseThrow(() -> {
+                            log.warn("[ADD TO CART] Item not found. itemId={}", itemId);
+                            return new ResourceNotFoundException(ITEM_NOT_FOUND, itemId);
+                        });
+
+                String requestedUnit = itemReq.getUnit();
+                String[] allowedUnits = item.getUnit().getUnits();
+
+                boolean isValidUnit = Arrays.stream(allowedUnits)
+                        .anyMatch(unit -> unit.equalsIgnoreCase(requestedUnit));
+                if (!isValidUnit) {
+                    log.warn("[ADD TO CART] Invalid unit '{}' for itemId={}. Allowed: {}", requestedUnit, itemId, Arrays.toString(allowedUnits));
+                    throw new IllegalArgumentException("Invalid unit: '" + requestedUnit + "'. Allowed: " + String.join(", ", allowedUnits));
+                }
+
+                Optional<CartItemEntity> existingItem = cart.getItems().stream()
+                        .filter(ci -> ci.getItem().getId().equals(itemId) &&
+                                ci.getUnit().equalsIgnoreCase(requestedUnit))
+                        .findFirst();
+
+                if (existingItem.isPresent()) {
+                    CartItemEntity cartItem = existingItem.get();
+                    cartItem.setQuantity(cartItem.getQuantity() + itemReq.getQuantity());
+                    itemIds.add(itemId);
+                    log.info("[ADD TO CART] Updated existing cart item. itemId={}, newQty={}, cartItemId={}",
+                            itemId, cartItem.getQuantity(), cartItem.getId());
+                } else {
+                    CartItemEntity cartItem = new CartItemEntity();
+                    cartItem.setCart(cart);
+                    cartItem.setItem(item);
+                    cartItem.setCustomer(customer);
+                    cartItem.setQuantity(itemReq.getQuantity());
+                    cartItem.setUnit(requestedUnit.toUpperCase());
+
+                    CartItemEntity savedItem = cartItemRepository.save(cartItem);
+                    cart.getItems().add(savedItem);
+                    itemIds.add(itemId);
+                    log.info("[ADD TO CART] Added new item. itemId={}, quantity={}, unit={}, cartItemId={}",
+                            itemId, itemReq.getQuantity(), requestedUnit.toUpperCase(), savedItem.getId());
+                }
             }
+
+            log.info("[ADD TO CART] Cart updated successfully for customerId={}", customerId);
+            return new CreateCartItemResponseDTO("Items added to cart successfully.", itemIds);
+
+        } catch (ResourceNotFoundException | IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("[ADD TO CART] Unexpected error occurred for customerId={}", customerId, e);
+            throw new UnhandledException(UNHANDLED_EXCEPTION, e);
         }
-
-        log.info("Cart updated and saved successfully for customerId={}", customerId);
-        return new CreateCartItemResponseDTO("Items added to cart successfully.", itemIds);
     }
+
 
 
 
@@ -142,23 +152,30 @@ public class CartItemService {
         }
     }
 
-    public removeCartProductResponseDTO removeCartItem(Long itemId) {
 
-            Long customerId = UserContextHolder.getRequiredUser().getId();
-            log.info("Attempting to remove cart item. CustomerId: {}, ItemId: {}", customerId, itemId);
+    public RemoveCartItemResponseDTO removeCartItem(Long itemId) {
+        Long customerId = UserContextHolder.getRequiredUser().getId();
+        log.info("[REMOVE CART ITEM] Initiating removal for customerId={}, itemId={}", customerId, itemId);
 
+        try {
+            // Fetch the cart item by customerId and itemId
             CartItemEntity item = cartItemRepository.findByCustomerIdAndItemId(customerId, itemId)
                     .orElseThrow(() -> {
-                        log.error("Cart item with itemId {} not found for customerId {}", itemId, customerId);
+                        log.warn("[REMOVE CART ITEM] Cart item not found. itemId={}, customerId={}", itemId, customerId);
                         return new ResourceNotFoundException(ITEM_NOT_FOUND, itemId);
                     });
 
+            cartItemRepository.delete(item);
+            log.info("[REMOVE CART ITEM] Item removed successfully. itemId={}, customerId={}", itemId, customerId);
 
-        cartItemRepository.delete(item);
-            log.info("Cart item with id {} deleted successfully for customerId: {}",item, customerId);
+            return new RemoveCartItemResponseDTO("Cart item deleted successfully");
 
-            return new removeCartProductResponseDTO("Cart item deleted successfully");
-
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("[REMOVE CART ITEM] Unexpected error while removing itemId={} for customerId={}", itemId, customerId, e);
+            throw new UnhandledException(UNHANDLED_EXCEPTION, e);
+        }
     }
 
 
@@ -168,37 +185,53 @@ public class CartItemService {
         String newUnit = dto.getUnit();
         Integer newQty = dto.getQuantity();
 
-        log.info("Update cart: customerId={}, itemId={}, newUnit={}, newQty={}", customerId, itemId, newUnit, newQty);
+        log.info("[UPDATE CART ITEM] customerId={}, itemId={}, newUnit={}, newQty={}", customerId, itemId, newUnit, newQty);
 
-        CartItemEntity existing = cartItemRepository.findByCustomerIdAndItemId(customerId, itemId)
-                .orElseThrow(() -> new ResourceNotFoundException(ITEM_NOT_FOUND, itemId));
+        try {
+            // Fetch existing cart item
+            CartItemEntity existing = cartItemRepository.findByCustomerIdAndItemId(customerId, itemId)
+                    .orElseThrow(() -> {
+                        log.warn("[UPDATE CART ITEM] Cart item not found. itemId={}, customerId={}", itemId, customerId);
+                        return new ResourceNotFoundException(ITEM_NOT_FOUND, itemId);
+                    });
 
-        // Validate unit BEFORE setting
-        if (newUnit != null && !newUnit.equalsIgnoreCase(existing.getUnit())) {
-            String[] allowedUnits = existing.getItem().getUnit().getUnits();
+            // Validate and update unit
+            if (newUnit != null && !newUnit.equalsIgnoreCase(existing.getUnit())) {
+                String[] allowedUnits = existing.getItem().getUnit().getUnits();
 
-            boolean isValidUnit = Arrays.stream(allowedUnits)
-                    .anyMatch(unit -> unit.equalsIgnoreCase(newUnit));
+                boolean isValidUnit = Arrays.stream(allowedUnits)
+                        .anyMatch(unit -> unit.equalsIgnoreCase(newUnit));
 
-            if (!isValidUnit) {
-                log.warn("Invalid unit '{}' for itemId={}. Allowed units: {}", newUnit, itemId, Arrays.toString(allowedUnits));
-                throw new IllegalArgumentException("Invalid unit: '" + newUnit + "'. Allowed: " + String.join(", ", allowedUnits));
+                if (!isValidUnit) {
+                    log.warn("[UPDATE CART ITEM] Invalid unit '{}' for itemId={}. Allowed units: {}", newUnit, itemId, Arrays.toString(allowedUnits));
+                    throw new IllegalArgumentException("Invalid unit: '" + newUnit + "'. Allowed: " + String.join(", ", allowedUnits));
+                }
+
+                existing.setUnit(newUnit.toUpperCase());
+                log.info("[UPDATE CART ITEM] Unit updated to '{}' for itemId={}", newUnit.toUpperCase(), itemId);
             }
 
-            // Only set if valid
-            existing.setUnit(newUnit.toUpperCase());
+            // Update quantity
+            if (newQty != null) {
+                existing.setQuantity(newQty);
+                log.info("[UPDATE CART ITEM] Quantity updated to {} for itemId={}", newQty, itemId);
+            }
+
+            cartItemRepository.save(existing);
+            log.info("[UPDATE CART ITEM] Cart item successfully updated. itemId={}, customerId={}", itemId, customerId);
+
+            return new UpdateCartItemResponseDTO("Cart item updated successfully.");
+
+        } catch (ResourceNotFoundException e) {
+            throw e; // Already logged
+        } catch (IllegalArgumentException e) {
+            log.error("[UPDATE CART ITEM] Validation error for itemId={}, customerId={}: {}", itemId, customerId, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("[UPDATE CART ITEM] Unexpected error during cart item update. itemId={}, customerId={}", itemId, customerId, e);
+            throw new UnhandledException(UNHANDLED_EXCEPTION, e);
         }
-
-        // Update quantity if provided
-        if (newQty != null) {
-            existing.setQuantity(newQty);
-        }
-
-        cartItemRepository.save(existing);
-
-        return new UpdateCartItemResponseDTO("Cart item updated successfully.");
     }
 
-
-}
+    }
 

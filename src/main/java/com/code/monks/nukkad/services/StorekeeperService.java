@@ -9,6 +9,7 @@ import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.entities.StorekeeperImageEntity;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.exception.AccessDeniedException;
+import com.code.monks.nukkad.exception.DuplicateResourceException;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
 import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.StorekeeperImageRepository;
@@ -46,13 +47,19 @@ public class StorekeeperService {
         String mobileNumber = UserContextHolder.getUser().getMobileNumber();
         log.info("[CREATE STOREKEEPER] Creating storekeeper for ID={} and mobile={}", storekeeperId, mobileNumber);
 
+        //  Check if storekeeper already exists
+        if (storekeeperRepository.existsById(storekeeperId)) {
+            log.warn("[CREATE STOREKEEPER] Storekeeper profile already exists for ID={}", storekeeperId);
+            throw new DuplicateResourceException(DUPLICATE_STOREKEEPER_PROFILE_FOUND_EXCEPTION);
+        }
+
         String storeQrId = generateUniqueStoreQrId(mobileNumber);
         StorekeeperEntity storekeeper = CreateStorekeeperRequestDTO.toEntity(dto);
         storekeeper.setId(storekeeperId);
         storekeeper.setStoreQrId(storeQrId);
         storekeeper.setMobileNumber(mobileNumber);
 
-
+        // Validate for unique fields (email, gst, etc.)
         exceptionHandleUtil.validateUniqueFields(storekeeper);
 
         StorekeeperEntity saved;
@@ -61,9 +68,8 @@ public class StorekeeperService {
             log.info("[CREATE STOREKEEPER] Storekeeper saved with ID={}", saved.getId());
         } catch (Exception e) {
             log.error("[CREATE STOREKEEPER] Unexpected error while saving storekeeper", e);
-            throw new UnhandledException(UNHANDLED_EXCEPTION,e);
+            throw new UnhandledException(UNHANDLED_EXCEPTION, e);
         }
-
 
         List<String> imageUrls = new ArrayList<>();
 
@@ -77,17 +83,20 @@ public class StorekeeperService {
                             .build();
                     storekeeperImageRepository.save(imageEntity);
                     imageUrls.add(imageUrl);
+                    log.debug("[CREATE STOREKEEPER] Image uploaded: {}", imageUrl);
                 } catch (Exception e) {
                     log.error("[CREATE STOREKEEPER] Failed to store image: {}", image.getOriginalFilename(), e);
-
-                    throw new UnhandledException(UNHANDLED_EXCEPTION,e);
+                    throw new UnhandledException(UNHANDLED_EXCEPTION, e);
                 }
             }
+        } else {
+            log.info("[CREATE STOREKEEPER] No images provided.");
         }
 
         log.info("[CREATE STOREKEEPER] Storekeeper created successfully with {} image(s)", imageUrls.size());
         return CreateStorekeeperResponseDTO.fromEntity(saved, imageUrls);
     }
+
 
     public CreateStorekeeperResponseDTO updateStoreKeeper(CreateStorekeeperRequestDTO dto, MultipartFile[] newImages) {
         if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.STOREKEEPER)) {

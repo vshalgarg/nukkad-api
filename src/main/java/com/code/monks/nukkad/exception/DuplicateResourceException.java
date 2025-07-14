@@ -17,5 +17,9 @@ public class DuplicateResourceException extends RuntimeException {
 		super(st);
 		this.error = error;
 	}
+	public DuplicateResourceException(ResponseErrorCodes error,Throwable e){
+		super(e.getMessage());
+		this.error = error;
+	}
 
 }
