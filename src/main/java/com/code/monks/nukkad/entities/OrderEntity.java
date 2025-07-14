@@ -12,7 +12,7 @@ import java.util.List;
 @Entity
 @Table(name="orders")
 @Data
-public class OrderEntity extends BaseEntity {
+public class  OrderEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

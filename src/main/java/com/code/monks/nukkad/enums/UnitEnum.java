@@ -4,7 +4,7 @@ import lombok.Getter;
 @Getter
 public enum  UnitEnum {
     WEIGHT(1, new String[]{"KG", "GM"}),
-    VOLUME(2, new String[]{"Litre", "ML"}),
+    VOLUME(2, new String[]{"L", "ML"}),
     PACKET(3, new String[]{"PKT"}); // single unit as array
 
     private final int code;
@@ -26,7 +26,16 @@ public enum  UnitEnum {
         return (units != null && units.length > 0) ? units[0].toUpperCase() : "";
     }
 
-
+    public static boolean isValidUnit(String unit) {
+        if (unit == null) return false;
+        String upperUnit = unit.toUpperCase();
+        for (UnitEnum u : values()) {
+            for (String allowed : u.getUnits()) {
+                if (allowed.equalsIgnoreCase(upperUnit)) return true;
+            }
+        }
+        return false;
+    }
 
 }
 

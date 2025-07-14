@@ -2,9 +2,10 @@ package com.code.monks.nukkad.services;
 
 import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.request.CreateCartProductRequestDTO;
+import com.code.monks.nukkad.dto.request.UpdateCartProductRequestDTO;
 import com.code.monks.nukkad.dto.response.CreateCartProductResponseDTO;
 import com.code.monks.nukkad.dto.response.GetCartProductResponseDTO;
-import com.code.monks.nukkad.dto.response.UpdateItemQuantityResponseDto;
+import com.code.monks.nukkad.dto.response.UpdateCartProductResponseDto;
 import com.code.monks.nukkad.dto.response.removeCartProductResponseDTO;
 import com.code.monks.nukkad.entities.CartEntity;
 import com.code.monks.nukkad.entities.CartProductEntity;
@@ -32,7 +33,7 @@ import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
 @RequiredArgsConstructor
 @Slf4j
 public class CartProductService {
-    private final CartProductRepository cartItemRepository;
+    private final CartProductRepository cartProductRepository;
     private final ItemRepository itemRepository;
     private final CustomerRepository customerRepository;
     private final CartRepository cartRepository;
@@ -60,7 +61,7 @@ public class CartProductService {
             log.info("Cart item list was null. Initialized empty item list for cartId={}", cart.getId());
         }
 
-        List<Long> cartItemIds = new ArrayList<>();
+        List<Long> itemIds = new ArrayList<>();
 
         for (CreateCartProductRequestDTO.CartItemRequest itemReq : dto.getItems()) {
             Long itemId = itemReq.getItemId();
@@ -91,7 +92,7 @@ public class CartProductService {
             if (existingItem.isPresent()) {
                 CartProductEntity cartItem = existingItem.get();
                 cartItem.setQuantity(cartItem.getQuantity() + itemReq.getQuantity());
-                cartItemIds.add(cartItem.getId());
+                itemIds.add(itemId);
                 log.info("Updated existing cart item. itemId={}, newQty={}, cartItemId={}",
                         itemId, cartItem.getQuantity(), cartItem.getId());
             } else {
@@ -102,16 +103,16 @@ public class CartProductService {
                 cartItem.setQuantity(itemReq.getQuantity());
                 cartItem.setUnit(requestedUnit.toUpperCase());
 
-                CartProductEntity savedItem = cartItemRepository.save(cartItem);
+                CartProductEntity savedItem = cartProductRepository.save(cartItem);
                 cart.getItems().add(savedItem);
-                cartItemIds.add(savedItem.getId());
+                itemIds.add(itemId);
                 log.info("Added new item to cart. itemId={}, quantity={}, unit={}, cartItemId={}",
                         itemId, itemReq.getQuantity(), requestedUnit.toUpperCase(), savedItem.getId());
             }
         }
 
         log.info("Cart updated and saved successfully for customerId={}", customerId);
-        return new CreateCartProductResponseDTO("Items added to cart successfully.", cartItemIds);
+        return new CreateCartProductResponseDTO("Items added to cart successfully.", itemIds);
     }
 
 
@@ -127,7 +128,7 @@ public class CartProductService {
                 throw new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
             }
 
-            List<CartProductEntity> cartItems = cartItemRepository.findByCustomerId(customerId);
+            List<CartProductEntity> cartItems = cartProductRepository.findByCustomerId(customerId);
 
             return cartItems.stream()
                     .map(GetCartProductResponseDTO::fromEntity)
@@ -146,14 +147,14 @@ public class CartProductService {
             Long customerId = UserContextHolder.getRequiredUser().getId();
             log.info("Attempting to remove cart item. CustomerId: {}, ItemId: {}", customerId, itemId);
 
-            CartProductEntity item = cartItemRepository.findByCustomerIdAndItemId(customerId, itemId)
+            CartProductEntity item = cartProductRepository.findByCustomerIdAndItemId(customerId, itemId)
                     .orElseThrow(() -> {
                         log.error("Cart item with itemId {} not found for customerId {}", itemId, customerId);
                         return new ResourceNotFoundException(ITEM_NOT_FOUND, itemId);
                     });
 
 
-            cartItemRepository.delete(item);
+        cartProductRepository.delete(item);
             log.info("Cart item with id {} deleted successfully for customerId: {}",item, customerId);
 
             return new removeCartProductResponseDTO("Cart item deleted successfully");
@@ -161,22 +162,43 @@ public class CartProductService {
     }
 
 
-    public UpdateItemQuantityResponseDto updateQuantity(Long cartItemId, int newQty) {
+    public UpdateCartProductResponseDto updateCartProduct(UpdateCartProductRequestDTO dto) {
+        Long customerId = UserContextHolder.getRequiredUser().getId();
+        Long itemId = dto.getItemId();
+        String newUnit = dto.getUnit();
+        Integer newQty = dto.getQuantity();
 
-            Long userId = UserContextHolder.getRequiredUser().getId();
-            log.info("Request to update quantity. CartItemId: {}, NewQuantity: {}, CustomerId: {}", cartItemId, newQty,userId);
+        log.info("Update cart: customerId={}, itemId={}, newUnit={}, newQty={}", customerId, itemId, newUnit, newQty);
 
-            CartProductEntity item = cartItemRepository.findById(cartItemId)
-                    .orElseThrow(() -> {
-                        log.error("Cart item not found with id: {}", cartItemId);
-                        return new ResourceNotFoundException(CART_ITEM_NOT_FOUND,cartItemId);
-                    });
+        CartProductEntity existing = cartProductRepository.findByCustomerIdAndItemId(customerId, itemId)
+                .orElseThrow(() -> new ResourceNotFoundException(ITEM_NOT_FOUND, itemId));
 
-            item.setQuantity(newQty);
-            CartProductEntity updated = cartItemRepository.save(item);
+        // ✅ Step 1: Validate unit BEFORE setting
+        if (newUnit != null && !newUnit.equalsIgnoreCase(existing.getUnit())) {
+            String[] allowedUnits = existing.getItem().getUnit().getUnits();
 
-            log.info("Updated quantity for cart item. CartItemId: {}, NewQuantity: {}, CustomerId: {}", cartItemId, newQty,userId);
-            return new UpdateItemQuantityResponseDto("success");
+            boolean isValidUnit = Arrays.stream(allowedUnits)
+                    .anyMatch(unit -> unit.equalsIgnoreCase(newUnit));
+
+            if (!isValidUnit) {
+                log.warn("Invalid unit '{}' for itemId={}. Allowed units: {}", newUnit, itemId, Arrays.toString(allowedUnits));
+                throw new IllegalArgumentException("Invalid unit: '" + newUnit + "'. Allowed: " + String.join(", ", allowedUnits));
+            }
+
+            // ✅ Only set if valid
+            existing.setUnit(newUnit.toUpperCase());
         }
+
+        // ✅ Step 2: Update quantity if provided
+        if (newQty != null) {
+            existing.setQuantity(newQty);
+        }
+
+        cartProductRepository.save(existing);
+
+        return new UpdateCartProductResponseDto("Cart item updated successfully.");
     }
+
+
+}
 

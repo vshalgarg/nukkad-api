@@ -18,6 +18,7 @@ public class CreateCustomerResponseDTO {
 	private String email;
 	private String dob;
 	private String mobileNumber;
+	private Long addressId;
 
 	public static CreateCustomerResponseDTO fromEntity(CustomerEntity customer) {
 		CreateCustomerResponseDTO customerResponseDTO = new CreateCustomerResponseDTO();
@@ -26,7 +27,6 @@ public class CreateCustomerResponseDTO {
 		customerResponseDTO.setEmail(customer.getEmail());
 		customerResponseDTO.setDob(customer.getDob());
 		customerResponseDTO.setMobileNumber(customer.getMobileNumber());
-
 		return customerResponseDTO;
 	}
 

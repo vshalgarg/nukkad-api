@@ -1,9 +1,10 @@
 package com.code.monks.nukkad.controllers;
 
 import com.code.monks.nukkad.dto.request.CreateCartProductRequestDTO;
+import com.code.monks.nukkad.dto.request.UpdateCartProductRequestDTO;
 import com.code.monks.nukkad.dto.response.CreateCartProductResponseDTO;
 import com.code.monks.nukkad.dto.response.GetCartProductResponseDTO;
-import com.code.monks.nukkad.dto.response.UpdateItemQuantityResponseDto;
+import com.code.monks.nukkad.dto.response.UpdateCartProductResponseDto;
 import com.code.monks.nukkad.dto.response.removeCartProductResponseDTO;
 import com.code.monks.nukkad.services.CartProductService;
 import lombok.RequiredArgsConstructor;
@@ -49,11 +50,12 @@ public class CartProductController {
     }
 
 
-    @PutMapping(CART_ITEM.UPDATE_QUANTITY)
-    public ResponseEntity<UpdateItemQuantityResponseDto> updateQuantity(@PathVariable Long id, @RequestParam int quantity) {
-        log.info("[UPDATE QUANTITY] Updating quantity of item ID: {} to {}", id, quantity);
-        UpdateItemQuantityResponseDto updated = cartItemService.updateQuantity(id, quantity);
-        log.info("[UPDATE QUANTITY] Updated item: {}", updated);
+    @PutMapping(CART_ITEM.UPDATE_QUANTITY_AND_UNIT_OF_PRODUCT)
+    public ResponseEntity<UpdateCartProductResponseDto> updateCartItem(@RequestBody UpdateCartProductRequestDTO dto) {
+        log.info("Updating cart item: {}", dto);
+        UpdateCartProductResponseDto updated = cartItemService.updateCartProduct(dto);
         return ResponseEntity.ok(updated);
     }
+
+
 }

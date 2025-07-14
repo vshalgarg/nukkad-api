@@ -9,5 +9,5 @@ import java.util.List;
 @AllArgsConstructor
 public class CreateCartProductResponseDTO {
     private String message;
-    private List<Long> cartItemIds;
+    private List<Long> itemIds;
 }

@@ -49,6 +49,7 @@ public class GenericRestClient {
 				throw new ExternalServiceException(EXTERNAL_SERVICE_ERROR, "Empty response body");
 			}
 
+			// Try parsing as error format first
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode node = mapper.readTree(responseBody);
 
@@ -59,6 +60,7 @@ public class GenericRestClient {
 				throw new ExternalServiceException(EXTERNAL_SERVICE_ERROR, errorCode + "::" + message);
 			}
 
+			// Else, treat as success
 			R result = mapper.readValue(responseBody, responseType);
 			return result;
 

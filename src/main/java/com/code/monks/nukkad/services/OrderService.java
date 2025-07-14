@@ -101,6 +101,10 @@ public class OrderService {
             orderRepository.save(orderEntity);
             log.info("[CREATE ORDER] Order saved successfully with ID: {}", orderEntity.getId());
 
+            // Clear the cart after order is placed
+            cartProductRepository.deleteAll(cartItems);
+            log.info("[CREATE ORDER] Cleared {} cart items for customerId={}", cartItems.size(), customerId);
+
             // Return success response
             PlaceOrderResponseDTO responseDTO = new PlaceOrderResponseDTO();
             responseDTO.setMessage("Order placed successfully");

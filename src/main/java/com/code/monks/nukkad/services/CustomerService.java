@@ -9,12 +9,14 @@ import com.code.monks.nukkad.entities.CustomerEntity;
 import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.exception.AccessDeniedException;
+import com.code.monks.nukkad.exception.DuplicateResourceException;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
 import com.code.monks.nukkad.repositories.AddressRepository;
 import com.code.monks.nukkad.repositories.CustomerRepository;
 import com.code.monks.nukkad.repositories.StorekeeperRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,6 +34,8 @@ public class CustomerService {
 	private final AddressRepository addressRepository;
 	private final StorekeeperRepository storekeeperRepository;
 
+
+
 	public CreateCustomerResponseDTO createCustomer(CreateCustomerRequestDTO dto) {
 		if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.CUSTOMER)) {
 			log.warn("[CREATE CUSTOMER] Access denied: User role does not include CUSTOMER");
@@ -40,21 +44,34 @@ public class CustomerService {
 
 		Long customerId = UserContextHolder.getUser().getId();
 		String mobileNumber = UserContextHolder.getUser().getMobileNumber();
-		log.info("[CREATE CUSTOMER] Creating new customer profile for customerId={} and mobileNumber={}", customerId,mobileNumber);
+		log.info("[CREATE CUSTOMER] Creating new customer profile for customerId={} and mobileNumber={}", customerId, mobileNumber);
 
 		CustomerEntity customer = CreateCustomerRequestDTO.toEntity(dto);
 		customer.setId(customerId);
 		customer.setMobileNumber(mobileNumber);
-		CustomerEntity saved = customerRepository.save(customer);
 
-		log.info("[CREATE CUSTOMER] Saving default address for customerId={}", saved.getId());
+		try {
+			// Save customer
+			CustomerEntity saved = customerRepository.save(customer);
 
-		AddressEntity address = setAddress(dto, saved.getId(),saved.getName(),saved.getMobileNumber());
-		addressRepository.save(address);
-		log.info("[CREATE CUSTOMER] Customer and address created successfully for customerId={}", saved.getId());
+			// Save address
+			log.info("[CREATE CUSTOMER] Saving default address for customerId={}", saved.getId());
+			AddressEntity address = setAddress(dto, saved.getId(), saved.getName(), saved.getMobileNumber());
+			AddressEntity savedAddress = addressRepository.save(address);
 
-		return CreateCustomerResponseDTO.fromEntity(saved);
+			log.info("[CREATE CUSTOMER] Customer and address created successfully for customerId={}", saved.getId());
+
+			// Prepare response
+			CreateCustomerResponseDTO responseDTO = CreateCustomerResponseDTO.fromEntity(saved);
+			responseDTO.setAddressId(savedAddress.getId());
+			return responseDTO;
+
+		} catch (DataIntegrityViolationException e) {
+			log.error("[CREATE CUSTOMER] Data integrity violation while creating customer", e);
+			throw new DuplicateResourceException(DUPLICATE_EMAIL_FOUND_EXCEPTION);
+		}
 	}
+
 
 	public UpdateCustomerResponseDTO updateCustomer(UpdateCustomerRequestDTO dto) {
 		if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.CUSTOMER)) {
@@ -114,7 +131,7 @@ public class CustomerService {
 			return new AddStoreResponseDto(storekeeper.getId(),storekeeper.getName(),storekeeper.getStoreName(),storekeeper.getAddressLine1(),storekeeper.getAddressLine2(),"Store added to customer.");
 		} else {
 			log.info("[ADD STORE] Storekeeper already linked to customerId={}", customerId);
-			return new AddStoreResponseDto("Store already added.");
+			return new AddStoreResponseDto(storekeeper.getId(),storekeeper.getName(),storekeeper.getStoreName(),storekeeper.getAddressLine1(),storekeeper.getAddressLine2(),"Store already added.");
 		}
 	}
 
