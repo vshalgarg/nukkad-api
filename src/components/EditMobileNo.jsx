@@ -85,7 +85,7 @@ const Edit = ({ visible, onClose, currentmobile, onVerified }) => {
               style={[styles.button, styles.cancel]}
               onPress={onClose}
             >
-              <Text style={[styles.buttonText, { color: "#333" }]}>Cancel</Text>
+              <Text style={[styles.buttonText, { color: Colors.secondary }]}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -99,12 +99,12 @@ export default Edit;
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: Colors.secondary,
     justifyContent: "center",
     alignItems: "center",
   },
   modalContainer: {
-    backgroundColor: "white",
+    backgroundColor: Colors.bgClr,
     borderRadius: 12,
     padding: 20,
     width: "85%",
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   input: {
-    borderColor: "#ccc",
+    borderColor: Colors.borderColor,
     borderWidth: 1,
     borderRadius:25,
     paddingHorizontal: 12,
@@ -136,10 +136,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cancel: {
-    backgroundColor: "#eee",
+    backgroundColor: Colors.bgClr,
   },
   buttonText: {
-    color: "white",
+    color: Colors.bgClr,
     fontWeight: "bold",
   },
 });

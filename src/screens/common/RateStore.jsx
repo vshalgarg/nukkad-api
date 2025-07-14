@@ -1,40 +1,43 @@
+// No change in imports
 import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  Image,
   StyleSheet,
   Modal,
   Keyboard,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 
 import BackButton from '../../components/BackButton';
 import CustomButton from '../../components/CustomButton';
 import Colors from '../../styles/colors';
-
-// ✅ Make sure these SVGs are set up properly with react-native-svg-transformer
-import CameraIcon from '../../../assets/images/add-image-camera.svg';
-import GalleryIcon from '../../../assets/images/add-image-gallary.svg';
-import TickIcon from '../../../assets/images/review.svg';
 import Fonts from '../../styles/font';
+import { rateStore } from '../../services/customer/ratingService';
+import { useAuth } from '../../contexts/authContext';
+
+// ✅ SVG for success modal
+import TickIcon from '../../../assets/images/review.svg';
+import { useStore } from '../../contexts/storeContext';
 
 const RateStore = () => {
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState('');
-  const [image, setImage] = useState(null);
   const [showThankYou, setShowThankYou] = useState(false);
   const feedbackRef = useRef(null);
   const navigation = useNavigation();
 
   const handleStarPress = value => setRating(value);
 
-  const handleSubmitReview = () => {
+  const { token } = useAuth();
+  const{storeData}=useStore();
+
+  const handleSubmitReview = async () => {
     if (rating === 0 || feedback.trim() === '') {
       Toast.show({
         type: 'error',
@@ -42,107 +45,82 @@ const RateStore = () => {
       });
       return;
     }
-    Keyboard.dismiss();
-    feedbackRef.current?.blur();
-    setShowThankYou(true);
-  };
 
-  const handlePickImage = () => {
-    launchImageLibrary({ mediaType: 'photo', quality: 0.7 }, response => {
-      if (
-        !response.didCancel &&
-        !response.errorCode &&
-        response.assets?.length
-      ) {
-        setImage(response.assets[0].uri);
-      }
-    });
-  };
+    try {
+      const storeKeeperId = storeData?.storekeeperId;
+      console.log(storeKeeperId)
 
-  const handleOpenCamera = () => {
-    launchCamera({ mediaType: 'photo', quality: 0.7 }, response => {
-      if (
-        !response.didCancel &&
-        !response.errorCode &&
-        response.assets?.length
-      ) {
-        setImage(response.assets[0].uri);
-      }
-    });
+      await rateStore(
+        {
+          storeKeeperId,
+          review: feedback,
+          rating,
+        },
+        token,
+      );
+
+      Keyboard.dismiss();
+      feedbackRef.current?.blur();
+      setShowThankYou(true);
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to submit rating.',
+        text2: error.message,
+      });
+    }
   };
 
   const handleDone = () => {
     setShowThankYou(false);
     feedbackRef.current?.blur();
-    navigation.navigate('CustomerDashboard'); // ✅ Match with your route name
+    navigation.navigate('CustomerDashboard');
   };
 
   return (
     <View style={styles.pageContainer}>
-      <BackButton title="Rate Store" backgroundColor="#eee" />
-      <View style={innerStyle.container}>
-        <View>
-          <View style={innerStyle.starsContainer}>
-            {[1, 2, 3, 4, 5].map(value => (
-              <TouchableOpacity
-                key={value}
-                onPress={() => handleStarPress(value)}
-              >
-                <Ionicons
-                  name="star"
-                  size={36}
-                  color={value <= rating ? Colors.primary : '#ccc'}
-                />
-              </TouchableOpacity>
-            ))}
-          </View>
+      <BackButton title="Rate Store" backgroundColor={Colors.backbuttonColor} />
+      <View style={styles.container}>
 
-          <TextInput
-            ref={feedbackRef}
-            style={innerStyle.textArea}
-            placeholder="Write your feedback..."
-            multiline
-            value={feedback}
-            onChangeText={setFeedback}
-          />
-
-          <Text style={innerStyle.wordCount}>{feedback.length} characters</Text>
-
-          <View style={innerStyle.buttonsRow}>
+        <View style={styles.starsContainer}>
+          {[1, 2, 3, 4, 5].map(value => (
             <TouchableOpacity
-              style={innerStyle.actionButton}
-              onPress={handlePickImage}
+              key={value}
+              style={styles.starButton}
+              onPress={() => handleStarPress(value)}
             >
-              <GalleryIcon />
+              <Ionicons
+                name="star"
+                size={40}
+                color={value <= rating ? Colors.primary : Colors.diabledText}
+              />
             </TouchableOpacity>
-            <TouchableOpacity
-              style={innerStyle.actionButton}
-              onPress={handleOpenCamera}
-            >
-              <CameraIcon />
-            </TouchableOpacity>
-          </View>
-
-          {image && (
-            <Image source={{ uri: image }} style={innerStyle.preview} />
-          )}
+          ))}
         </View>
 
-        <View style={innerStyle.btnContainer}>
+        <TextInput
+          ref={feedbackRef}
+          style={styles.textArea}
+          placeholder="Write your feedback here..."
+          multiline
+          value={feedback}
+          onChangeText={setFeedback}
+        />
+
+        <Text style={styles.wordCount}>{feedback.length} characters</Text>
+
+        <View style={styles.btnContainer}>
           <CustomButton title="Submit Review" onPress={handleSubmitReview} />
         </View>
       </View>
 
       <Modal transparent visible={showThankYou} animationType="fade">
-        <View style={innerStyle.modalOverlay}>
-          <View style={innerStyle.modalBox}>
-            <TickIcon height={81} width={81} />
-            <Text style={innerStyle.modalText}>
-              Thank you for your feedback!
-            </Text>
-            <Text style={innerStyle.modalTextArea}>
-              We appreciate your feedback. We’ll use it to improve your
-              experience.
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <TickIcon width={80} height={80} />
+            <Text style={styles.modalTitle}>Thank you!</Text>
+            <Text style={styles.modalMessage}>
+              We appreciate your feedback. It helps us improve your experience.
             </Text>
             <CustomButton title="Done" onPress={handleDone} />
           </View>
@@ -159,79 +137,79 @@ export default RateStore;
 const styles = StyleSheet.create({
   pageContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.bgClr,
   },
-});
-
-const innerStyle = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    justifyContent: 'space-between',
+    padding: 24,
+    marginTop:'5%'
+  },
+  heading: {
+    fontSize: Fonts.sizes.lg + 2,
+    fontWeight: 'bold',
+    color: Colors.primaryText,
+    textAlign: 'center',
+    marginTop: 10,
+    marginBottom: 20,
   },
   starsContainer: {
     flexDirection: 'row',
-    marginVertical: 20,
     justifyContent: 'center',
-    alignItems: 'center',
+    marginBottom: 20,
+    gap: 10,
+  },
+  starButton: {
+    padding: 5,
   },
   textArea: {
-    borderColor: '#ccc',
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 10,
-    textAlignVertical: 'top',
+    borderColor: Colors.secondary,
+    borderRadius: 10,
+    padding: 12,
     fontSize: Fonts.sizes.base,
-    height: 200,
+    textAlignVertical: 'top',
+    height: 160,
+    backgroundColor: Colors.white,
   },
   wordCount: {
     textAlign: 'right',
-    marginTop: 5,
-    marginBottom: 20,
-    color: '#888',
-  },
-  buttonsRow: {
-    flexDirection: 'row',
-    marginBottom: 20,
-    gap: 12,
-  },
-  actionButton: {
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: Colors.primary,
-    marginRight: 10,
-  },
-  preview: {
-    width: '100%',
-    height: 200,
-    borderRadius: 10,
-    resizeMode: 'cover',
+    marginVertical: 8,
+    fontSize: 12,
+    color: Colors.secondaryText,
   },
   btnContainer: {
+    marginTop: '15%',
     alignItems: 'center',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalBox: {
-    backgroundColor: 'white',
+    backgroundColor: Colors.bgClr,
     padding: 30,
-    borderRadius: 12,
-    width: '80%',
+    borderRadius: 16,
+    width: '85%',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 6,
   },
-  modalTextArea: {
-    textAlign: 'center',
-    paddingHorizontal: 10,
-    marginBottom: 20,
-  },
-  modalText: {
+  modalTitle: {
     fontSize: Fonts.sizes.lg,
-    fontWeight: '500',
-    marginBottom: 20,
+    fontWeight: '600',
+    color: Colors.primary,
+    marginVertical: 15,
+  },
+  modalMessage: {
+    fontSize: Fonts.sizes.base,
+    color: Colors.primaryText,
     textAlign: 'center',
+    marginBottom: 25,
+    lineHeight: 20,
   },
 });

@@ -5,7 +5,7 @@ import textStyles from "../../styles/textStyles";
 const CategoryCard = ({ category, onPress }) => {
   return (
     <Pressable style={styles.card} onPress={() => onPress(category)}>
-      <Image source={{ uri: category.image }} style={styles.image} />
+      <Image source={{ uri: category.imageUrl }} style={styles.image} />
       <Text style={[styles.name,textStyles.caption]}>{category.name}</Text>
     </Pressable>
   );

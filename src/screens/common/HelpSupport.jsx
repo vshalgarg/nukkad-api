@@ -13,6 +13,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import BackButton from '../../components/BackButton';
 import styles from '../../styles/globalStyles';
 import Fonts from '../../styles/font';
+import Colors from '../../styles/colors';
 
 const HelpSupport = () => {
   const supportEmail = 'support@example.com';
@@ -100,11 +101,11 @@ const innerStyles = StyleSheet.create({
     fontSize: Fonts.sizes.xl,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#222',
+    color: Colors.secondary,
   },
   subtitle: {
     fontSize: Fonts.sizes.base,
-    color: '#666',
+    color: Colors.secondaryText,
     marginBottom: 24,
   },
   cardContainer: {
@@ -113,7 +114,7 @@ const innerStyles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.bgClr,
     padding: 16,
     borderRadius: 10,
   },
@@ -128,11 +129,11 @@ const innerStyles = StyleSheet.create({
   cardTitle: {
     fontSize: Fonts.sizes.base,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.secondary,
   },
   cardInfo: {
     fontSize: Fonts.sizes.sm,
-    color: '#777',
+    color: Colors.secondaryText,
     marginTop: 2,
   },
 });

@@ -28,13 +28,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor:Colors.primary,
     paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     alignItems: 'center',
+    justifyContent:'center'
   },
   buttonText: {
-    color: '#fff',
+    color: Colors.bgClr,
     fontWeight: '600',
     fontSize:Fonts.sizes.base,
     textAlign: 'center',
+    textAlignVertical:"center"
   },
 });

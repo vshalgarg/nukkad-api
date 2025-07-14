@@ -26,6 +26,8 @@ import { resetUser } from '../../store/userSlice.js';
 import { useAddress } from '../../contexts/addressContext.js';
 import { useStore } from '../../contexts/storeContext.js';
 import Fonts from '../../styles/font.js';
+import Colors from '../../styles/colors.js';
+import { persistor } from '../../store/store.js';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -98,8 +100,8 @@ const SideBar = ({ isVisible, onClose }) => {
       Notifications: 'Notification',
       Settings: 'settings',
       // 'Help and Support': 'Help',
-      // 'Refer to Customer': 'ReferToCustomer',
-      // 'Rate Store': 'RateStore',
+      'Refer to Customer': 'ReferToCustomer',
+      'Rate Store': 'RateStore',
       'Payment Options': 'PaymentOptions',
     };
 
@@ -141,7 +143,9 @@ const SideBar = ({ isVisible, onClose }) => {
           style: 'destructive',
           onPress: async () => {
             try {
-              await AsyncStorage.clear();
+              await persistor.purge(); // ✅ Clears persisted Redux state cleanly
+              await AsyncStorage.removeItem('authToken');
+              await AsyncStorage.removeItem('userRole');
               dispatch(clearCart());
               dispatch(resetUser());
               dispatch(resetOrdersFromFile());
@@ -198,7 +202,7 @@ const SideBar = ({ isVisible, onClose }) => {
           </View>
 
           <TouchableOpacity onPress={() => safeReplace('ProfileSetting')}>
-            <Ionicons name="settings-sharp" size={24} color="#333" />
+            <Ionicons name="settings-sharp" size={24} color={Colors.secondaryText} />
           </TouchableOpacity>
         </View>
 
@@ -213,7 +217,7 @@ const SideBar = ({ isVisible, onClose }) => {
               <Ionicons
                 name={item.icon}
                 size={22}
-                color="#444"
+                color={Colors.secondary}
                 style={styles.menuIconLeft}
               />
               <Text style={styles.menuText}>{item.name}</Text>
@@ -221,7 +225,7 @@ const SideBar = ({ isVisible, onClose }) => {
                 <Ionicons
                   name="chevron-forward-outline"
                   size={20}
-                  color="#888"
+                  color={Colors.secondaryText}
                 />
               )}
             </TouchableOpacity>
@@ -236,14 +240,12 @@ export default SideBar;
 
 const styles = StyleSheet.create({
   sidebar: {
-    borderTopRightRadius: 30,
-    borderBottomRightRadius: 30,
     position: 'absolute',
     top: 0,
     left: 0,
     height: '100%',
     width: Dimensions.get('window').width * 0.8,
-    backgroundColor: '#fff',
+    backgroundColor:Colors.bgClr,
     paddingTop: 60,
     paddingHorizontal: 20,
     zIndex: 1000,
@@ -280,12 +282,12 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: Fonts.sizes.base,
     fontWeight: 'bold',
-    color: '#000',
+    color: Colors.secondary,
     flexShrink: 1,
   },
   profileEmail: {
     fontSize: Fonts.sizes.sm,
-    color: '#777',
+    color: Colors.secondaryText,
     flexShrink: 1,
   },
   menuItem: {
@@ -293,7 +295,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: Colors.borderColor,
   },
   menuIconLeft: {
     width: 26,

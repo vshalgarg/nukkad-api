@@ -6,12 +6,13 @@ import Design from '../../../assets/images/design.svg';
 import BackButton from '../../components/BackButton';
 import styles from '../../styles/globalStyles';
 import Fonts from '../../styles/font';
+import Colors from '../../styles/colors';
 
 const PlaceOrder = () => {
-  const { safePush } = useSafeRouter(); // ✅ Use your hook
+  const { safePush } = useSafeRouter(); 
 
   const handleContinueShopping = () => {
-    safePush('CustomerDashboard'); // ✅ Replace normal navigation
+    safePush('CustomerDashboard'); 
   };
 
   return (
@@ -74,7 +75,7 @@ const innerStyle = StyleSheet.create({
     marginVertical: 2,
   },
   btn: {
-    backgroundColor: '#343434',
+    backgroundColor: Colors.primary,
     borderRadius: 50,
     alignSelf: 'center',
     paddingVertical: 12,
@@ -82,7 +83,7 @@ const innerStyle = StyleSheet.create({
     marginTop: 30,
   },
   btnText: {
-    color: 'white',
+    color: Colors.bgClr,
     textAlign: 'center',
     fontWeight: '600',
     fontSize: Fonts.sizes.lg,

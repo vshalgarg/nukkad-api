@@ -39,10 +39,10 @@ const ReferToCustomer = () => {
       await Share.open({
         title: 'Share Store QR',
         message:
-        "🛍️ Add my store to start shopping!\n\n" +
-        "📲 Scan the QR code to add the store instantly.\n" +
-        "🆔 Or enter Store ID: 123456 manually in the app.\n\n" +
-        "Let’s start shopping today!",
+          '🛍️ Add my store to start shopping!\n\n' +
+          '📲 Scan the QR code to add the store instantly.\n' +
+          '🆔 Or enter Store ID: 123456 manually in the app.\n\n' +
+          'Let’s start shopping today!',
         url: `file://${destPath}`,
         type: 'image/png',
       });
@@ -65,10 +65,12 @@ const ReferToCustomer = () => {
       <View style={innerStyle.container}>
         <View style={innerStyle.qrSection}>
           <Text style={innerStyle.heading}>Your QR Code</Text>
-          <Image
-            style={innerStyle.image}
-            source={require('../../../assets/images/qrImage.png')}
-          />
+          <View style={innerStyle.imageContainer}>
+            <Image
+              style={innerStyle.image}
+              source={require('../../../assets/images/qrImage.png')}
+            />
+          </View>
         </View>
 
         <View style={innerStyle.storeIdContainer}>
@@ -89,22 +91,29 @@ const innerStyle = StyleSheet.create({
     paddingRight: 20,
   },
   container: {
-    justifyContent: 'space-evenly',
+    justifyContent: 'center',
+    gap: 15,
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.bgClr,
     height: screenHeight * 0.75,
     marginTop: 16,
   },
   shareIconContainer: {
     alignSelf: 'flex-end',
-    backgroundColor: '#f2f2f2',
+    backgroundColor: Colors.borderColor,
     padding: 10,
     borderRadius: 50,
     elevation: 2,
   },
+  imageContainer: {
+    padding: 5,
+    borderRadius: 2,
+    elevation: 8,
+    backgroundColor: Colors.bgClr,
+  },
   heading: {
-    fontSize:Fonts.sizes.base,
+    fontSize: Fonts.sizes.base,
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: 10,
@@ -115,10 +124,9 @@ const innerStyle = StyleSheet.create({
   image: {
     height: 200,
     width: 200,
-    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#ccc',
-    backgroundColor: '#fff',
+    borderColor: Colors.borderColor,
+    backgroundColor:Colors.bgClr,
   },
   storeIdContainer: {
     flexDirection: 'row',

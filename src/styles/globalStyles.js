@@ -1,6 +1,7 @@
 // src/styles/styles.js
 import { StyleSheet } from "react-native";
 import Colors from "./colors";
+import Fonts from "./font";
 
 const styles = StyleSheet.create({
   pageContainer: {
@@ -12,9 +13,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   pageHeading: {
-    fontWeight: '600',
+    // fontWeight: '600',
     textAlign: 'center',
-    marginBottom: 20,
+    fontSize:Fonts.sizes.lg,
+    color:Colors.secondary
   },
   // Customer or Storekeeper
   userType: {

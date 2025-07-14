@@ -31,19 +31,19 @@ const ConnectPopup = ({ visible, onClose, phone }) => {
         <View style={styles.popup}>
           <View style={styles.container}>
             <Text style={styles.buttonTextPhone}>
-              <Ionicons name="call" size={Fonts.sizes.base} color="red" /> Call Now
+              <Ionicons name="call" size={Fonts.sizes.base} color={Colors.reject} /> Call Now
             </Text>
             <TouchableOpacity onPress={handleCall} style={styles.button}>
-              <Text style={[styles.buttonText, { color: 'white' }]}>Done</Text>
+              <Text style={[styles.buttonText, { color: Colors.bgClr }]}>Done</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.container}>
             <Text style={styles.buttonTextChat}>
-              <FontAwesome name="whatsapp" size={20} color="green" /> WhatsApp
+              <FontAwesome name="whatsapp" size={20} color={Colors.primary}/> WhatsApp
             </Text>
             <TouchableOpacity onPress={handleWhatsApp} style={styles.button}>
-              <Text style={[styles.buttonText, { color: 'white' }]}>Done</Text>
+              <Text style={[styles.buttonText, { color: Colors.bgClr }]}>Done</Text>
             </TouchableOpacity>
           </View>
 
@@ -51,7 +51,7 @@ const ConnectPopup = ({ visible, onClose, phone }) => {
             onPress={onClose}
             style={{ marginTop: 10, width: '100%' }}
           >
-            <Text style={{ color: '#888', textAlign: 'center' }}>Cancel</Text>
+            <Text style={{ color: Colors.secondaryText, textAlign: 'center' }}>Cancel</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -66,10 +66,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: Colors.secondary,
   },
   popup: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.bgClr,
     padding: 20,
     borderRadius: 15,
     width: '80%',

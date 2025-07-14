@@ -131,7 +131,7 @@ const Orders = () => {
           }}
           style={innerStyle.filterButton}
         >
-          <MaterialIcons name="date-range" size={24} color="black" />
+          <MaterialIcons name="date-range" size={24} color={Colors.secondary} />
         </TouchableOpacity>
       </View>
 
@@ -146,7 +146,7 @@ const Orders = () => {
             <View style={innerStyle.modalHeader}>
               <Text style={innerStyle.modalTitle}>Select Date Range</Text>
               <TouchableOpacity onPress={() => setFilterModalVisible(false)}>
-                <MaterialIcons name="close" size={24} color="#333" />
+                <MaterialIcons name="close" size={24} color={Colors.secondary} />
               </TouchableOpacity>
             </View>
 
@@ -292,7 +292,7 @@ const innerStyle = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.bgClr,
   },
   filterContainer: {
     flexDirection: 'row',
@@ -302,12 +302,12 @@ const innerStyle = StyleSheet.create({
     marginBlock: 12,
   },
   clearFilterText: {
-    color: '#000',
+    color: Colors.secondary,
     fontWeight: '600',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: Colors.secondaryText,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -315,10 +315,10 @@ const innerStyle = StyleSheet.create({
   modalContent: {
     width: '100%',
     maxWidth: 350,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.bgClr,
     borderRadius: 16,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: Colors.secondary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
@@ -333,23 +333,23 @@ const innerStyle = StyleSheet.create({
   modalTitle: {
     fontSize: Fonts.sizes.lg,
     fontWeight: '600',
-    color: '#222',
+    color: Colors.secondary,
   },
   dateSelect: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.borderColor,
     padding: 14,
     borderRadius: 10,
     marginBottom: 12,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: Colors.borderColor,
   },
   dateLabel: {
     fontSize: Fonts.sizes.base,
-    color: '#333',
+    color: Colors.secondary,
   },
   datePrefix: {
     fontWeight: '600',
-    color: '#444',
+    color: Colors.secondary,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -367,18 +367,18 @@ const innerStyle = StyleSheet.create({
   cancelBtn: {
     flex: 1,
     paddingVertical: 12,
-    backgroundColor: '#999',
+    backgroundColor: Colors.secondaryText,
     borderRadius: 10,
     alignItems: 'center',
   },
   buttonText: {
-    color: '#fff',
+    color: Colors.bgClr,
     fontWeight: '600',
   },
   expandedContainer: {
     marginTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#ccc',
+    borderTopColor: Colors.borderColor,
     paddingTop: 10,
   },
   itemsTitle: {
@@ -396,6 +396,6 @@ const innerStyle = StyleSheet.create({
     fontWeight: '600',
   },
   itemText: {
-    color: '#444',
+    color: Colors.secondary,
   },
 });

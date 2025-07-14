@@ -7,38 +7,36 @@ import { PersistGate } from 'redux-persist/integration/react';
 
 import AppNavigator from './src/navigation/AppNavigator';
 import { store, persistor } from './src/store/store';
+
+import { AuthProvider } from './src/contexts/authContext'; 
 import { ProfileProvider } from './src/contexts/profileContext';
 import { StoreProvider } from './src/contexts/storeContext';
 import { AddressProvider } from './src/contexts/addressContext';
-import { toastConfig } from './src/utils/toastConfig';
 import { StorekeeperAddressProvider } from './src/contexts/storekeeperAddressContext';
-// import useCustomBackHandler from './src/hooks/useDisableBackButton';
+
+import { toastConfig } from './src/utils/toastConfig';
 
 export default function App() {
-  // useCustomBackHandler({
-  //   // Optional:
-  //   // confirmExitPaths: ["/", "/customer/Dashboard", "/storekeeper/Dashboard"],
-  //   // disableBackPaths: ["/customer/CreateProfile", "/storekeeper/CreateProfile","/customer/OrderComplete","/common/Orders"],
-  // });
-
   return (
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <ProfileProvider>
-          <AddressProvider>
-            <StoreProvider>
-              <StorekeeperAddressProvider>
-                <SafeAreaView style={{ flex: 1 }}>
-                  <NavigationContainer>
-                    <AppNavigator />
-                  </NavigationContainer>
-                  <Toast config={toastConfig} topOffset={2} />
-                </SafeAreaView>
-              </StorekeeperAddressProvider>
-            </StoreProvider>
-          </AddressProvider>
-        </ProfileProvider>
-      </PersistGate>
-    </Provider>
+    <AuthProvider>
+      <Provider store={store}>
+        <PersistGate loading={null} persistor={persistor}>
+          <ProfileProvider>
+            <AddressProvider>
+              <StoreProvider>
+                <StorekeeperAddressProvider>
+                  <SafeAreaView style={{ flex: 1 }}>
+                    <NavigationContainer>
+                      <AppNavigator />
+                    </NavigationContainer>
+                    <Toast config={toastConfig} topOffset={2} />
+                  </SafeAreaView>
+                </StorekeeperAddressProvider>
+              </StoreProvider>
+            </AddressProvider>
+          </ProfileProvider>
+        </PersistGate>
+      </Provider>
+    </AuthProvider>
   );
 }

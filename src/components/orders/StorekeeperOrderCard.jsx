@@ -1,19 +1,20 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import Fonts from "../../styles/font";
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import Fonts from '../../styles/font';
+import Colors from '../../styles/colors';
 
 const StorekeeperOrderCard = ({ order, onPress, isExpanded, expandedView }) => {
-  const getStatusColor = (status) => {
+  const getStatusColor = status => {
     switch (status.toLowerCase()) {
-      case "pending":
-        return "#e74c3c";
-      case "in progress":
-        return "#e67e22";
-      case "completed":
-        return "#27ae60";
-      case "cancelled":
-        return "#c0392b";
+      case 'pending':
+        return '#e74c3c';
+      case 'in progress':
+        return '#e67e22';
+      case 'delivered':
+        return '#27ae60';
+      case 'rejected':
+        return '#c0392b';
       default:
-        return "#555";
+        return '#555';
     }
   };
 
@@ -47,43 +48,43 @@ export default StorekeeperOrderCard;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.bgClr,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#ddd",
-    shadowColor: "#000",
+    borderColor: Colors.borderColor,
+    shadowColor: Colors.bgClr,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
   rowBetween: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 6,
   },
   orderId: {
-    fontWeight: "600",
+    fontWeight: '600',
   },
   date: {
-    color: "#666",
+    color: '#666',
   },
   name: {
     marginBottom: 6,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   quantity: {
     fontSize: Fonts.sizes.base,
   },
   status: {
-    fontWeight: "600",
+    fontWeight: '600',
   },
   expanded: {
     marginTop: 10,
     borderTopWidth: 1,
-    borderTopColor: "#eee",
+    borderTopColor: Colors.borderColor,
     paddingTop: 10,
   },
 });

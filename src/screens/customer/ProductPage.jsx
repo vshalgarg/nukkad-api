@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
   Keyboard,
-  KeyboardAvoidingView,
-  FlatList,
   Platform,
   StyleSheet,
   Text,
@@ -12,11 +10,14 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 
 import AllProduct from '../../components/AllProduct.jsx';
 import SearchContainer from '../../components/SearchContainer.jsx';
 import UserToolbar from '../../components/UserToolbar.jsx';
 import CategoryListLayout from '../../components/category/CategoriesListLayout.jsx';
+import { searchProducts } from '../../services/customer/searchService.js';
+import { getProductsByCategory } from '../../services/customer/getProductsByCategorySerivce.js';
 
 import Colors from '../../styles/colors.js';
 import styles from '../../styles/globalStyles.js';
@@ -29,8 +30,12 @@ const ProductPage = () => {
   const { safePush } = useSafeRouter();
 
   const search = route?.params?.search || '';
+  const categoryId = route?.params?.categoryId;
+  const categoryName = route?.params?.categoryName;
+
   const [searchQuery, setSearchQuery] = useState(search);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [groupedResults, setGroupedResults] = useState([]);
+  const [searching, setSearching] = useState(false);
 
   const cartItems = useSelector(state => state.cart.items);
   const totalItems = cartItems.reduce((total, item) => {
@@ -39,21 +44,100 @@ const ProductPage = () => {
   }, 0);
 
   useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () =>
-      setKeyboardVisible(true),
-    );
-    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
-      setKeyboardVisible(false),
-    );
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
+    if (categoryId) {
+      (async () => {
+        setSearching(true);
+        try {
+          const items = await getProductsByCategory(categoryId);
+          const category = {
+            id: categoryId,
+            name: categoryName || 'Category',
+            items,
+          };
+          setGroupedResults([category]);
+        } catch (err) {
+          console.error('❌ Category fetch failed:', err.message);
+          setGroupedResults([]);
+        } finally {
+          setSearching(false);
+        }
+      })();
+    }
+  }, [categoryId]);
+
+  useEffect(() => {
+    if (search && !categoryId) {
+      setSearchQuery(search);
+      handleSearch(search);
+    }
+  }, [search, categoryId]);
+
+  const handleSearch = async keyword => {
+    if (!keyword.trim()) return;
+    setSearching(true);
+    try {
+      const result = await searchProducts(keyword);
+      const items = result?.items || [];
+      setGroupedResults([{ id: 'search', items }]);
+    } catch (err) {
+      console.error('❌ Search failed:', err.message);
+      setGroupedResults([]);
+    } finally {
+      setSearching(false);
+    }
+  };
 
   return (
     <View style={[styles.pageContainer, { flex: 1, backgroundColor: 'white' }]}>
-      {/* Fixed Bottom Banner */}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={{ flex: 1 }}>
+          <KeyboardAwareFlatList
+            enableOnAndroid
+            extraScrollHeight={100}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            data={[]} // just for structure
+            keyExtractor={(item, index) => index.toString()}
+            ListHeaderComponent={
+              <View>
+                <UserToolbar hideNotification={true} hideMenu={true} />
+                <SearchContainer
+                  query={searchQuery}
+                  onSearchSubmit={newQuery => {
+                    setSearchQuery(newQuery);
+                    handleSearch(newQuery);
+                  }}
+                />
+                <CategoryListLayout selectedCategoryId={categoryId} />
+
+                {groupedResults.map(category => (
+                  <View
+                    key={category.id}
+                    style={{ marginVertical: 10, paddingHorizontal: 10 }}
+                  >
+                    <AllProduct products={category.items} loading={searching} />
+                  </View>
+                ))}
+
+                {!searching && groupedResults.length === 0 && (
+                  <Text
+                    style={{
+                      textAlign: 'center',
+                      marginTop: 40,
+                      color: Colors.secondaryText,
+                    }}
+                  >
+                    No items found.
+                  </Text>
+                )}
+              </View>
+            }
+            ListFooterComponent={<View style={{ height: 140 }} />}
+            contentContainerStyle={{ paddingBottom: 160 }}
+          />
+        </View>
+      </TouchableWithoutFeedback>
+
       {totalItems > 0 && (
         <View style={innerStyle.fixedBottomBanner}>
           <Text style={innerStyle.popupText}>
@@ -67,33 +151,6 @@ const ProductPage = () => {
           </TouchableOpacity>
         </View>
       )}
-
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={keyboardVisible ? 50 : 0}
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <FlatList
-            data={[]}
-            keyExtractor={(item, index) => index.toString()}
-            ListHeaderComponent={
-              <View>
-                <UserToolbar hideNotification={true} hideMenu={true} />
-                <SearchContainer
-                  query={searchQuery}
-                  onSearchSubmit={newQuery => setSearchQuery(newQuery)}
-                />
-                <CategoryListLayout />
-                <AllProduct searchQuery={searchQuery} />
-              </View>
-            }
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            ListFooterComponent={<View style={{ height: 100 }} />}
-          />
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
     </View>
   );
 };
@@ -104,7 +161,7 @@ const innerStyle = StyleSheet.create({
     bottom: 15,
     left: 15,
     right: 15,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: Colors.bgClr,
     borderColor: Colors.primary,
     borderWidth: 1.5,
     borderRadius: 40,
@@ -114,7 +171,7 @@ const innerStyle = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     elevation: 6,
-    shadowColor: '#000',
+    shadowColor: Colors.secondary,
     shadowOpacity: 0.15,
     shadowOffset: { width: 0, height: 3 },
     shadowRadius: 5,
@@ -123,7 +180,7 @@ const innerStyle = StyleSheet.create({
   popupText: {
     fontSize: Fonts.sizes.base,
     fontWeight: '500',
-    color: '#333',
+    color: Colors.secondary,
   },
   goToCartButton: {
     backgroundColor: Colors.primary,
@@ -132,7 +189,7 @@ const innerStyle = StyleSheet.create({
     borderRadius: 25,
   },
   goToCartText: {
-    color: '#fff',
+    color: Colors.bgClr,
     fontSize: Fonts.sizes.sm,
     fontWeight: '600',
   },

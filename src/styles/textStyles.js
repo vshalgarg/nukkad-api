@@ -1,12 +1,13 @@
+import Colors from './colors.js';
 import Fonts from './font.js';
 
 const textStyles = {
   heading: {
-    fontSize: Fonts.sizes.xl,
+    fontSize: Fonts.sizes.xxl,
     fontWeight: Fonts.weights.bold,
   },
   subheading: {
-    fontSize: Fonts.sizes.lg,
+    fontSize: Fonts.sizes.xl,
     fontWeight: Fonts.weights.bold,
   },
   body: {

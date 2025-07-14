@@ -22,6 +22,7 @@ import Orders from '../screens/common/Orders.jsx';
 import ProfileSetting from '../screens/common/ProfileSetting.jsx';
 import RateStore from '../screens/common/RateStore.jsx';
 import ReferToCustomer from '../screens/common/ReferToCustomer.jsx';
+import DeleteAccount from '../screens/auth/DeleteAccount.jsx';
 
 const Stack = createNativeStackNavigator();
 
@@ -56,6 +57,7 @@ export default function AppNavigator() {
       <Stack.Screen name='Orders' component={Orders}/>
       <Stack.Screen name='ProfileSetting' component={ProfileSetting}/>
       <Stack.Screen name='RateStore' component={RateStore} />
+      <Stack.Screen name='DeleteAccount' component={DeleteAccount} />
     </Stack.Navigator>
   );
 }

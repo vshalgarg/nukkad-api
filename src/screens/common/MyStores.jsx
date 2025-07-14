@@ -6,8 +6,8 @@ import {
   StyleSheet,
   Text,
   View,
+  ActivityIndicator,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -19,112 +19,60 @@ import Colors from '../../styles/colors';
 import styles from '../../styles/globalStyles';
 import { useSafeRouter } from '../../hooks/useSafeRouter';
 import Fonts from '../../styles/font';
-
-const STORAGE_KEY = '@scanned_stores';
+import { getMyStores, deleteStore} from "../../services/customer/getAllStoreService";
+import { useAuth } from '../../contexts/authContext'; 
 
 export default function MyStores() {
   const { safePush } = useSafeRouter();
-  const route = useRoute();
-  const scannedData = route.params?.scannedData;
-
+  const { token } = useAuth(); // assume you have token in context
   const [stores, setStores] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedStoreIndex, setSelectedStoreIndex] = useState(null);
   const { saveStore } = useStore();
 
+  const fetchStores = async () => {
+    try {
+      setLoading(true);
+      const response = await getMyStores(token);
+      console.log('📦 Stores fetched in component:', response); 
+      setStores(response);
+      if (response.length > 0) setSelectedStoreIndex(0);
+    } catch (err) {
+      console.error('❌ Failed to fetch stores in component:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
   useEffect(() => {
-    const loadAndAddStore = async () => {
-      try {
-        const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
-        const savedStores = jsonValue ? JSON.parse(jsonValue) : [];
-
-        let updatedStores = [...savedStores];
-
-        if (scannedData) {
-          let newStore;
-          try {
-            newStore = JSON.parse(scannedData);
-          } catch (e) {
-            console.warn('Invalid scanned data JSON', e);
-            return;
-          }
-
-          const exists = savedStores.some(
-            store =>
-              store.shopName === newStore.shopName &&
-              store.address === newStore.address,
-          );
-
-          if (!exists) {
-            updatedStores.push(newStore);
-            await AsyncStorage.setItem(
-              STORAGE_KEY,
-              JSON.stringify(updatedStores),
-            );
-          }
-        }
-
-        setStores(updatedStores);
-
-        if (updatedStores.length > 0 && selectedStoreIndex === null) {
-          setSelectedStoreIndex(0);
-        }
-      } catch (error) {
-        console.error('Error handling scanned store data', error);
-      }
-    };
-
-    loadAndAddStore();
+    fetchStores();
   }, []);
 
   const handleAddStore = () => {
     safePush('AddStore');
   };
 
-  const handleDelete = itemToDelete => {
+  const handleDelete = store => {
     Alert.alert(
       'Delete Store',
-      `Are you sure you want to delete "${itemToDelete.shopName}"?`,
+      `Are you sure you want to delete "${store.shopName}"?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => performDelete(itemToDelete),
+          onPress: async () => {
+            try {
+              await deleteStore(store.id, token);
+              await fetchStores(); // re-fetch after deletion
+            } catch (err) {
+              console.error('Delete failed:', err);
+            }
+          },
         },
       ],
-      { cancelable: true },
     );
-  };
-
-  const performDelete = async itemToDelete => {
-    try {
-      const filteredStores = stores.filter(
-        store =>
-          !(
-            store.shopName === itemToDelete.shopName &&
-            store.address === itemToDelete.address
-          ),
-      );
-
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(filteredStores));
-      setStores(filteredStores);
-
-      if (
-        selectedStoreIndex !== null &&
-        stores[selectedStoreIndex].shopName === itemToDelete.shopName &&
-        stores[selectedStoreIndex].address === itemToDelete.address
-      ) {
-        if (filteredStores.length > 0) {
-          setSelectedStoreIndex(0);
-        } else {
-          setSelectedStoreIndex(null);
-        }
-      } else if (selectedStoreIndex > filteredStores.length - 1) {
-        setSelectedStoreIndex(filteredStores.length - 1);
-      }
-    } catch (error) {
-      console.error('Error deleting store:', error);
-    }
   };
 
   const handleSubmit = () => {
@@ -147,12 +95,12 @@ export default function MyStores() {
     >
       <View style={innerStyle.radioContainer}>
         <View style={innerStyle.iconColumn}>
-          <Text style={innerStyle.shopName}>{item.shopName}</Text>
-          <Text style={innerStyle.address}>{item.address}</Text>
+          <Text style={innerStyle.shopName}>{item.storeName}</Text>
+          <Text style={innerStyle.address}>{`${item.addressLine1}, ${item.city}`}</Text>
         </View>
         <View style={innerStyle.iconColumn}>
           <Pressable onPress={() => handleDelete(item)}>
-            <AntDesign name="delete" size={20} color="red" />
+            <AntDesign name="delete" size={20} color={Colors.reject} />
           </Pressable>
         </View>
       </View>
@@ -163,14 +111,20 @@ export default function MyStores() {
     <View style={styles.pageContainer}>
       <BackButton title="My Stores" />
       <View style={innerStyle.container}>
-        {stores.length === 0 ? (
+        {loading ? (
+          <ActivityIndicator size="large" color={Colors.primary} />
+        ) : stores.length === 0 ? (
           <View
             style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
           >
-            <Text style={innerStyle.noStores}>No stores scanned yet</Text>
+            <Text style={innerStyle.noStores}>No stores found</Text>
             <View style={innerStyle.addStoreContainer}>
               <Pressable style={innerStyle.button} onPress={handleAddStore}>
-                <Ionicons name="add-circle-outline" size={24} color="black" />
+                <Ionicons
+                  name="add-circle-outline"
+                  size={24}
+                  color={Colors.secondary}
+                />
                 <Text style={innerStyle.buttonText}> Add store</Text>
               </Pressable>
             </View>
@@ -179,7 +133,7 @@ export default function MyStores() {
           <>
             <FlatList
               data={stores}
-              keyExtractor={(item, index) => item.shopName + index}
+              keyExtractor={(item, index) => item.id.toString()}
               renderItem={renderItem}
               contentContainerStyle={{ paddingBottom: 20 }}
             />
@@ -203,11 +157,11 @@ const innerStyle = StyleSheet.create({
   container: {
     flex: 1,
     padding: 15,
-    backgroundColor: 'white',
+    backgroundColor: Colors.bgClr,
   },
   noStores: {
     fontSize: Fonts.sizes.lg,
-    color: 'gray',
+    color: Colors.secondaryText,
     marginTop: 20,
     textAlign: 'center',
   },
@@ -232,10 +186,10 @@ const innerStyle = StyleSheet.create({
     marginTop: 16,
     padding: 16,
     borderRadius: 12,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.bgClr,
     borderWidth: 1,
-    borderColor: '#ddd',
-    shadowColor: '#000',
+    borderColor: Colors.borderColor,
+    shadowColor: Colors.secondary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -261,12 +215,12 @@ const innerStyle = StyleSheet.create({
   shopName: {
     fontSize: Fonts.sizes.lg,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.secondary,
     marginBottom: 4,
   },
   address: {
     fontSize: Fonts.sizes.sm,
-    color: '#666',
+    color: Colors.secondaryText,
   },
   btnContainer: {
     flexDirection: 'row',

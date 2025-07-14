@@ -2,16 +2,16 @@ import React, { useEffect, useRef } from 'react';
 import {
   Animated,
   Dimensions,
-  FlatList,
+  ScrollView,
+  StyleSheet,
   Text,
   View,
-  StyleSheet,
 } from 'react-native';
 import FruitBasket from '../../assets/images/fruit-basket.svg';
 import Fonts from '../styles/font';
+import Colors from '../styles/colors';
 
 const { width: screenWidth } = Dimensions.get('window');
-
 const peekPercent = 0.05;
 const gapPercent = 0.025;
 const itemWidth = screenWidth * 0.85;
@@ -24,25 +24,23 @@ const originalSlides = [
     id: '1',
     title: 'Enjoy the special offer upto 30%',
     subtitle: 'From 14th June, 2022',
-    ImageComponent: FruitBasket,
     backgroundColor: '#D6A937',
   },
   {
     id: '2',
     title: 'New Arrivals',
     subtitle: 'Trendy Collection',
-    ImageComponent: FruitBasket,
     backgroundColor: '#F69F8B',
   },
   {
     id: '3',
     title: 'Festive Offers',
     subtitle: 'Buy 1 Get 1',
-    ImageComponent: FruitBasket,
     backgroundColor: '#005942',
   },
 ];
 
+// Cloned first/last slides for infinite loop illusion
 const slides = [
   originalSlides[originalSlides.length - 1],
   ...originalSlides,
@@ -50,49 +48,53 @@ const slides = [
 ];
 
 export default function AutoSlider() {
-  const flatListRef = useRef(null);
-  const scrollX = useRef(new Animated.Value(0)).current;
+  const scrollViewRef = useRef(null);
+  const scrollX = useRef(new Animated.Value(fullItemSpace)).current;
   const indexRef = useRef(1);
-  const autoSlideTimer = useRef(null);
+  const timerRef = useRef(null);
 
   const scrollToIndex = (index, animated = true) => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToOffset({
-        offset: index * fullItemSpace,
-        animated,
-      });
+    const x = index * fullItemSpace;
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ x, animated });
     }
   };
 
-  const startAutoSlide = () => {
-    stopAutoSlide(); // clear previous timer
-    autoSlideTimer.current = setInterval(() => {
+  const startAutoScroll = () => {
+    stopAutoScroll();
+    timerRef.current = setInterval(() => {
       indexRef.current += 1;
       scrollToIndex(indexRef.current);
-    }, 3000);
+    }, 3500);
   };
 
-  const stopAutoSlide = () => {
-    if (autoSlideTimer.current) {
-      clearInterval(autoSlideTimer.current);
+  const stopAutoScroll = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
     }
   };
 
   useEffect(() => {
-    startAutoSlide();
-    return () => stopAutoSlide();
+    scrollToIndex(indexRef.current, false);
+    startAutoScroll();
+    return stopAutoScroll;
   }, []);
 
-  const onMomentumScrollEnd = e => {
+  const handleScrollEnd = e => {
     const offsetX = e.nativeEvent.contentOffset.x;
-    let index = Math.round(offsetX / fullItemSpace);
+    const index = Math.round(offsetX / fullItemSpace);
 
+    // Loop handling
     if (index === 0) {
       indexRef.current = originalSlides.length;
-      scrollToIndex(indexRef.current, false);
+      setTimeout(() => {
+        scrollToIndex(indexRef.current, false);
+      }, 20);
     } else if (index === slides.length - 1) {
       indexRef.current = 1;
-      scrollToIndex(indexRef.current, false);
+      setTimeout(() => {
+        scrollToIndex(indexRef.current, false);
+      }, 20);
     } else {
       indexRef.current = index;
     }
@@ -100,13 +102,24 @@ export default function AutoSlider() {
 
   return (
     <View style={{ marginTop: 20 }}>
-      <Animated.FlatList
-        ref={flatListRef}
-        data={slides}
+      <Animated.ScrollView
+        ref={scrollViewRef}
         horizontal
-        keyExtractor={(_, index) => index.toString()}
-        renderItem={({ item }) => (
+        pagingEnabled={false}
+        scrollEventThrottle={16}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: sidePeek }}
+        snapToInterval={fullItemSpace}
+        decelerationRate="fast"
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+          { useNativeDriver: false },
+        )}
+        onMomentumScrollEnd={handleScrollEnd}
+      >
+        {slides.map((item, index) => (
           <View
+            key={index.toString()}
             style={[
               styles.slideContainer,
               {
@@ -120,29 +133,12 @@ export default function AutoSlider() {
               <Text style={styles.title}>{item.title}</Text>
               <Text style={styles.subtitle}>{item.subtitle}</Text>
             </View>
-            <FruitBasket width={100} height={100} />
+            <FruitBasket width={160} height={160} />
           </View>
-        )}
-        showsHorizontalScrollIndicator={false}
-        snapToInterval={fullItemSpace}
-        decelerationRate="fast"
-        contentContainerStyle={{ paddingHorizontal: sidePeek }}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-          { useNativeDriver: false },
-        )}
-        onMomentumScrollEnd={onMomentumScrollEnd}
-        initialScrollIndex={1}
-        getItemLayout={(_, index) => ({
-          length: fullItemSpace,
-          offset: fullItemSpace * index,
-          index,
-        })}
-        initialNumToRender={3}
-        windowSize={5}
-        removeClippedSubviews
-      />
+        ))}
+      </Animated.ScrollView>
 
+      {/* Indicators */}
       <View style={styles.indicatorContainer}>
         {originalSlides.map((_, i) => {
           const inputRange = [
@@ -151,15 +147,15 @@ export default function AutoSlider() {
             (i + 1 + 1) * fullItemSpace,
           ];
 
-          const dotWidth = scrollX.interpolate({
+          const width = scrollX.interpolate({
             inputRange,
-            outputRange: [16, 32, 16],
+            outputRange: [8, 24, 8],
             extrapolate: 'clamp',
           });
 
-          const dotColor = scrollX.interpolate({
+          const backgroundColor = scrollX.interpolate({
             inputRange,
-            outputRange: ['#D1D5DB', '#3B82F6', '#D1D5DB'],
+            outputRange: ['#D1D5DB', Colors.primary, '#D1D5DB'],
             extrapolate: 'clamp',
           });
 
@@ -169,8 +165,8 @@ export default function AutoSlider() {
               style={[
                 styles.indicatorDot,
                 {
-                  width: dotWidth,
-                  backgroundColor: dotColor,
+                  width,
+                  backgroundColor,
                 },
               ]}
             />
@@ -189,37 +185,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     height: 200,
+    elevation: 3,
   },
   textContainer: {
     flex: 1,
+    marginRight: 10,
   },
   title: {
-    color: 'white',
+    color: Colors.bgClr,
     fontSize: Fonts.sizes.lg,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   subtitle: {
-    color: 'white',
+    color: Colors.bgClr,
     fontSize: Fonts.sizes.sm,
   },
   indicatorContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 8,
-    zIndex: 10,
+    marginTop: 10,
   },
   indicatorDot: {
     height: 4,
     borderRadius: 4,
     marginHorizontal: 4,
-  },
-  activeDot: {
-    backgroundColor: '#3B82F6',
-    width: 32,
-  },
-  inactiveDot: {
-    backgroundColor: '#D1D5DB',
-    width: 16,
   },
 });

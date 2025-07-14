@@ -11,34 +11,34 @@ import {
 } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateCartItemQuantity } from '../store/cartSlice';
+import { updateCartItemQuantity, addToCart } from '../store/cartSlice';
 import Fonts from '../styles/font';
+import Colors from '../styles/colors';
+import { useAuth } from '../contexts/authContext';
+import { addToCartAPI, updateCartAPI } from '../services/customer/cartService';
+import { showToast } from '../utils/toastUtils';
 
 const { width } = Dimensions.get('window');
 
-const ProductCard = ({
-  product,
-  onAddToCart,
-  isDropdownOpen,
-  setDropdownOpen,
-}) => {
+const ProductCard = ({ product, isDropdownOpen, setDropdownOpen }) => {
   const dispatch = useDispatch();
   const cartItems = useSelector(state => state.cart.items);
   const cartItem = cartItems.find(item => item.product.id === product.id);
+  const { token } = useAuth();
 
   const [selectedUnit, setSelectedUnit] = useState(null);
   const [amount, setAmount] = useState('');
 
-  useEffect(() => {
-    if (cartItem) {
-      const newUnit = cartItem.selectedUnit;
-      const newAmount = cartItem.product.amount?.toString() || '';
-      if (newUnit !== selectedUnit) setSelectedUnit(newUnit);
-      if (newAmount !== amount) setAmount(newAmount);
-    }
-  }, [cartItem]);
+  const units = product.quantity || product.unit || [];
+  const unitOptions = units.map(q => ({ label: q, value: q }));
 
-  const unitOptions = product.quantity.map(q => ({ label: q, value: q }));
+  useEffect(() => {
+    if (!selectedUnit && units.length > 0) {
+      setSelectedUnit(units[0]);
+    }
+  }, [units]);
+
+
 
   const isValidAmount =
     amount && !isNaN(parseFloat(amount)) && parseFloat(amount) > 0;
@@ -56,60 +56,72 @@ const ProductCard = ({
     cartItem.selectedUnit === selectedUnit &&
     cartItem.product.amount?.toString() === amount;
 
-  const handleAddToCart = () => {
-    const isPacket = selectedUnit?.toLowerCase() === 'pkt';
-    const cartQuantity = isPacket ? parseInt(amount, 10) : 1;
-    const validAmount = isPacket ? amount : parseFloat(amount).toString();
+    const handleAddToCart = async () => {
+      const cartQuantity = parseFloat(amount);
+      const validAmount = cartQuantity.toString();
 
-    if (
-      (isPacket && (isNaN(cartQuantity) || cartQuantity <= 0)) ||
-      !validAmount
-    )
-      return;
+      if (isNaN(cartQuantity) || cartQuantity <= 0) return;
 
-    if (cartItem) {
-      dispatch(
-        updateCartItemQuantity({
-          productId: product.id,
-          amount: validAmount,
-          selectedUnit,
-        }),
-      );
-    } else {
-      onAddToCart(
-        {
-          ...product,
-          selectedUnit,
-          amount: validAmount,
-        },
-        cartQuantity,
-      );
-    }
-  };
+      let response = null;
+
+      try {
+        const itemId = product.id;
+        const isPkt = selectedUnit?.toLowerCase() === 'pkt';
+        const itemCount = isPkt ? Math.round(cartQuantity) : 1;
+
+        if (cartItem && cartItem.itemId) {
+          await updateCartAPI(itemId, cartQuantity, selectedUnit, token);
+
+          dispatch(
+            updateCartItemQuantity({
+              itemId,
+              amount: validAmount,
+              selectedUnit,
+              itemCount,
+            }),
+          );
+        } else {
+          // ➕ Add new item
+          response = await addToCartAPI(
+            itemId,
+            cartQuantity,
+            selectedUnit,
+            token,
+          );
+
+          const newItemId = response?.itemIds?.[0] || response?.id || itemId; // fallback
+
+          const newItem = {
+            itemId: newItemId,
+            product: { ...product, selectedUnit, amount: validAmount },
+            selectedUnit,
+            quantity: itemCount,
+          };
+
+          dispatch(addToCart(newItem));
+        }
+
+        showToast('success', 'Added to cart');
+      } catch (err) {
+        console.error('Add to cart failed:', err.message || err);
+        showToast('error', 'Failed to add item to cart');
+      }
+    };
+    
 
   return (
     <View style={[styles.card, isDropdownOpen && { zIndex: 2000 }]}>
-      <Image source={{ uri: product.image }} style={styles.image} />
+      <View style={styles.imageContainer}>
+        <Image
+          style={styles.image}
+          source={{ uri: product.image || product.imageUrls?.[0] }}
+        />
+      </View>
       <Text style={styles.title} numberOfLines={1}>
-        {product.title}
+        {product.title || product.name}
       </Text>
 
       <View style={styles.row}>
-        <DropDownPicker
-          open={isDropdownOpen}
-          value={selectedUnit}
-          items={unitOptions}
-          setOpen={setDropdownOpen}
-          setValue={setSelectedUnit}
-          placeholder="Unit"
-          style={styles.dropdown}
-          containerStyle={styles.dropdownContainer}
-          dropDownContainerStyle={styles.dropdownBox}
-          textStyle={styles.text}
-          placeholderStyle={styles.placeholder}
-          listMode="SCROLLVIEW"
-        />
-
         <TextInput
           value={amount !== undefined && amount !== null ? String(amount) : ''}
           onChangeText={setAmount}
@@ -117,6 +129,23 @@ const ProductCard = ({
           keyboardType="numeric"
           maxLength={4}
           style={styles.textInput}
+        />
+        <DropDownPicker
+          open={isDropdownOpen}
+          value={selectedUnit}
+          items={unitOptions}
+          setOpen={setDropdownOpen}
+          ArrowUpIconComponent={() => null}
+          ArrowDownIconComponent={() => null}
+          setValue={setSelectedUnit}
+          style={styles.dropdown}
+          placeholder={null}
+          containerStyle={styles.dropdownContainer}
+          dropDownContainerStyle={styles.dropdownBox}
+          textStyle={styles.text}
+          placeholderStyle={styles.placeholder}
+          listMode="SCROLLVIEW"
+          TickIconComponent={() => null}
         />
       </View>
 
@@ -130,7 +159,10 @@ const ProductCard = ({
         disabled={!canSubmit}
       >
         <Text
-          style={[styles.buttonText, isRecentlyAdded && { color: 'green' }]}
+          style={[
+            styles.buttonText,
+            isRecentlyAdded && { color: Colors.primary },
+          ]}
         >
           {isRecentlyAdded ? 'Added' : 'Add to Cart'}
         </Text>
@@ -142,7 +174,7 @@ const ProductCard = ({
 const styles = StyleSheet.create({
   card: {
     padding: width < 360 ? 8 : 10,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.bgClr,
     borderRadius: 10,
     elevation: 3,
     alignItems: 'center',
@@ -151,10 +183,17 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     justifyContent: 'space-around',
   },
-  image: {
-    width: width < 360 ? 90 : 110,
-    height: width < 360 ? 70 : 80,
+  imageContainer: {
+    width: width < 360 ? 90 : 130,
+    height: width < 360 ? 70 : 90,
     borderRadius: 8,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
     resizeMode: 'contain',
   },
   title: {
@@ -167,37 +206,38 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 10,
+    padding: 5,
+    gap: 5,
     width: '100%',
   },
   dropdownContainer: {
     width: '50%',
   },
   dropdown: {
-    borderColor: '#ccc',
+    borderColor: Colors.borderColor,
     borderRadius: 10,
     minHeight: 35,
   },
   dropdownBox: {
-    borderColor: '#ddd',
+    borderColor: Colors.borderColor,
   },
   text: {
-    fontSize: Fonts.sizes.xs,
+    fontSize: Fonts.sizes.sm,
     textAlign: 'center',
   },
   placeholder: {
-    fontSize: Fonts.sizes.xs,
+    fontSize: Fonts.sizes.sm,
     textAlign: 'center',
   },
   textInput: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: Colors.borderColor,
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: Platform.OS === 'android' ? 4 : 6,
     width: '50%',
     height: 35,
-    fontSize: Fonts.sizes.xs,
+    fontSize: Fonts.sizes.sm,
   },
   button: {
     marginTop: 5,
@@ -211,11 +251,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: Fonts.sizes.sm,
   },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
   buttonAdded: {
-    borderColor: 'green',
+    borderColor: Colors.primary,
   },
 });
 

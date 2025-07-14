@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import {
   Alert,
   FlatList,
   Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -20,28 +24,64 @@ import styles from '../../styles/globalStyles';
 import {
   updateOrderPrices,
   updateOrderStatus,
+  updateOrderNote,
 } from '../../store/storekeeperOrdersSlice';
 import Fonts from '../../styles/font';
 
+const OrderItem = memo(({ item, price, isEditable, onPriceChange }) => {
+  const itemId = item.id || item.productId;
+  const itemTitle = item.title || item.productName;
+  const itemWeight = item.weight || '0';
+
+  return (
+    <View style={innerStyle.card}>
+      <Image source={{ uri: item.image }} style={innerStyle.image} />
+      <View style={{ flex: 1, marginLeft: 10 }}>
+        <Text style={innerStyle.title}>{itemTitle}</Text>
+        <Text style={innerStyle.text}>Weight: {itemWeight}</Text>
+      </View>
+
+      {isEditable ? (
+        <TextInput
+          placeholder="Set Price"
+          placeholderTextColor={Colors.secondaryText} 
+          style={innerStyle.input}
+          keyboardType="numeric"
+          value={price?.toString()}
+          maxLength={4}
+          onChangeText={value => onPriceChange(itemId, value)}
+        />
+      ) : (
+        <TextInput
+          style={[innerStyle.input, { color: Colors.secondary }]}
+          value={`₹ ${price || '0'}`}
+          editable={false}
+        />
+      )}
+    </View>
+  );
+});
+
 const ShowDetails = () => {
+  const [note, setNote] = useState('');
+  const [showPopup, setShowPopup] = useState(false);
+
   const route = useRoute();
   const navigation = useNavigation();
+  const dispatch = useDispatch();
 
   const { orderId, items } = route.params;
   const parsedItems = JSON.parse(items);
 
-  const dispatch = useDispatch();
   const order = useSelector(state =>
     state.storekeeperOrders.orders.find(order => order.orderId === orderId),
   );
 
   const isInProgress = order?.status === 'In Progress';
   const isDispatched = order?.status === 'Dispatched';
-  const isCompleted = order?.status === 'Completed';
-  const isCancelled = order?.status === 'Cancelled';
-  const isPending = !isCompleted && !isCancelled;
-
-  const [showPopup, setShowPopup] = useState(false);
+  const isDelivered = order?.status === 'Delivered';
+  const isRejected = order?.status === 'Rejected';
+  const isPending = !isDelivered && !isRejected;
 
   const [prices, setPrices] = useState(
     parsedItems.reduce((acc, item) => {
@@ -56,10 +96,7 @@ const ShowDetails = () => {
 
   const handlePriceChange = (id, value) => {
     const numericValue = value.replace(/[^0-9]/g, '');
-    setPrices(prev => ({
-      ...prev,
-      [id]: numericValue,
-    }));
+    setPrices(prev => ({ ...prev, [id]: numericValue }));
   };
 
   const handleReject = () => {
@@ -69,8 +106,8 @@ const ShowDetails = () => {
         text: 'Reject Order',
         onPress: () => {
           if (order) {
-            dispatch(updateOrderStatus({ orderId, newStatus: 'Cancelled' }));
-            navigation.navigate('StorekeeperDashboard', { tab: 'Cancelled' });
+            dispatch(updateOrderStatus({ orderId, newStatus: 'Rejected' }));
+            navigation.navigate('StorekeeperDashboard', { tab: 'Rejected' });
           } else {
             Alert.alert('Error', 'Order not found.');
           }
@@ -104,14 +141,14 @@ const ShowDetails = () => {
             if (order) {
               const pricedItems = parsedItems.map(item => {
                 const itemId = item.id || item.productId;
-                return {
-                  ...item,
-                  price: parseInt(prices[itemId]) || 0,
-                };
+                return { ...item, price: parseInt(prices[itemId]) || 0 };
               });
 
               dispatch(updateOrderPrices({ orderId, items: pricedItems }));
               dispatch(updateOrderStatus({ orderId, newStatus: 'Dispatched' }));
+              if (note.trim()) {
+                dispatch(updateOrderNote({ orderId, note: note.trim() }));
+              }
             } else {
               Alert.alert('Error', 'Order not found.');
             }
@@ -131,8 +168,8 @@ const ShowDetails = () => {
           text: 'Yes, Deliver',
           onPress: () => {
             if (order) {
-              dispatch(updateOrderStatus({ orderId, newStatus: 'Completed' }));
-              navigation.navigate('StorekeeperDashboard', { tab: 'Completed' });
+              dispatch(updateOrderStatus({ orderId, newStatus: 'Delivered' }));
+              navigation.navigate('StorekeeperDashboard', { tab: 'Delivered' });
             } else {
               Alert.alert('Error', 'Order not found.');
             }
@@ -143,99 +180,128 @@ const ShowDetails = () => {
   };
 
   return (
-    <View style={[styles.pageContainer, { flex: 1 }]}>
-      <BackButton title="Order Details" />
-      <FlatList
-        data={parsedItems}
-        keyExtractor={(item, index) =>
-          item.id || item.productId || index.toString()
-        }
-        contentContainerStyle={{
-          padding: 20,
-          paddingBottom: isPending ? 220 : 80,
-        }}
-        ListHeaderComponent={
-          <View>
-            <Text style={innerStyle.heading}>Delivery Address</Text>
-            <View style={innerStyle.AddressCard}>
-              <Text style={innerStyle.addressCardDetails}>
-                {order.customerName}
-              </Text>
-              <View style={innerStyle.rowBetween}>
-                <Text style={innerStyle.addressCardDetails}>
-                  {order.mobileNumber}
-                </Text>
-                {(isPending || isDispatched) && (
-                  <Mobile onPress={() => setShowPopup(true)} height={40} />
-                )}
-              </View>
-              <Text style={innerStyle.addressCardDetails}>{order.address}</Text>
-            </View>
-            <Text style={innerStyle.heading}>Order ID: #{orderId}</Text>
-          </View>
-        }
-        renderItem={({ item }) => {
-          const itemId = item.id || item.productId;
-          const itemTitle = item.title || item.productName;
-          const itemWeight = item.weight || 'N/A';
+    <View style={{ flex: 1 }}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={[styles.pageContainer, { flex: 1 }]}>
+          <BackButton title="Order Details" />
 
-          return (
-            <View style={innerStyle.card}>
-              <Image source={{ uri: item.image }} style={innerStyle.image} />
-              <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={innerStyle.title}>{itemTitle}</Text>
-                <Text style={innerStyle.text}>Weight: {itemWeight}</Text>
-              </View>
-
-              {isCancelled ? (
-                <Text style={innerStyle.rejectedText}>Rejected</Text>
-              ) : isCompleted || isDispatched ? (
-                <TextInput
-                  style={[innerStyle.input, { color: '#333' }]}
-                  value={`₹ ${prices[itemId] || 'N/A'}`}
-                  editable={false}
-                />
-              ) : (
-                <TextInput
-                  placeholder="Set Price"
-                  style={innerStyle.input}
-                  keyboardType="numeric"
-                  value={prices[itemId]?.toString()}
-                  maxLength={4}
-                  onChangeText={value => handlePriceChange(itemId, value)}
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+          >
+            <FlatList
+              data={parsedItems}
+              keyExtractor={(item, index) =>
+                item.id || item.productId || index.toString()
+              }
+              contentContainerStyle={{
+                padding: 20,
+              }}
+              showsVerticalScrollIndicator={false}
+              initialNumToRender={5}
+              maxToRenderPerBatch={8}
+              windowSize={10}
+              getItemLayout={(data, index) => ({
+                length: 115,
+                offset: 115 * index,
+                index,
+              })}
+              ListHeaderComponent={
+                <View>
+                  <Text style={innerStyle.heading}>Delivery Address</Text>
+                  <View style={innerStyle.AddressCard}>
+                    <Text style={innerStyle.addressCardDetails}>
+                      {order.customerName}
+                    </Text>
+                    <View style={innerStyle.rowBetween}>
+                      <Text style={innerStyle.addressCardDetails}>
+                        {order.mobileNumber}
+                      </Text>
+                      {(isPending || isDispatched) && (
+                        <Mobile
+                          onPress={() => setShowPopup(true)}
+                          height={40}
+                        />
+                      )}
+                    </View>
+                    <Text style={innerStyle.addressCardDetails}>
+                      {order.address}
+                    </Text>
+                  </View>
+                  <Text style={innerStyle.heading}>Order ID: #{orderId}</Text>
+                </View>
+              }
+              renderItem={({ item }) => (
+                <OrderItem
+                  item={item}
+                  price={prices[item.id || item.productId]}
+                  isEditable={!isDelivered && !isDispatched && !isRejected}
+                  onPriceChange={handlePriceChange}
                 />
               )}
+              ListFooterComponent={
+                isPending ? (
+                  <View style={{ marginTop: 10, marginHorizontal: 5 }}>
+                    <Text style={{ marginBottom: 5, fontWeight: 'bold' }}>
+                      Note for Customer
+                    </Text>
+                    <TextInput
+                      style={{
+                        height: 100,
+                        borderWidth: 1,
+                        borderColor: Colors.borderColor,
+                        borderRadius: 10,
+                        padding: 10,
+                        textAlignVertical: 'top',
+                        backgroundColor: Colors.bgClr,
+                      }}
+                      multiline
+                      placeholder="Write a note to the customer about this order"
+                      value={note}
+                      onChangeText={setNote}
+                    />
+                  </View>
+                ) : null
+              }
+            />
+          </KeyboardAvoidingView>
+
+          {(isInProgress || isDispatched) && (
+            <View style={innerStyle.fixedButtonWrapper}>
+              <View style={innerStyle.buttonContainer}>
+                {isInProgress && (
+                  <>
+                    <CustomButton
+                      title="Reject Order"
+                      onPress={handleReject}
+                      style={{ backgroundColor: Colors.reject, borderWidth: 0 }}
+                    />
+                    <CustomButton
+                      title="Dispatch Order"
+                      onPress={handleDispatch}
+                      style={{fontSize:Fonts.sizes.sm}}
+                    />
+                  </>
+                )}
+                {isDispatched && (
+                  <CustomButton
+                    title="Deliver Order"
+                    onPress={handleDeliver}
+                    style={{ backgroundColor: Colors.primary, borderWidth: 0 }}
+                  />
+                )}
+              </View>
             </View>
-          );
-        }}
-      />
+          )}
 
-      {isInProgress && (
-        <View style={innerStyle.buttonContainer}>
-          <CustomButton
-            title="Reject Order"
-            onPress={handleReject}
-            style={{ backgroundColor: 'red', borderWidth: 0 }}
-          />
-          <CustomButton title="Dispatch Order" onPress={handleDispatch} />
-        </View>
-      )}
-
-      {isDispatched && (
-        <View style={innerStyle.buttonContainer}>
-          <CustomButton
-            title="Deliver Order"
-            onPress={handleDeliver}
-            style={{ backgroundColor: Colors.primary, borderWidth: 0 }}
+          <ConnectPopup
+            visible={showPopup}
+            onClose={() => setShowPopup(false)}
+            phone={order?.mobileNumber || '9999999999'}
           />
         </View>
-      )}
-
-      <ConnectPopup
-        visible={showPopup}
-        onClose={() => setShowPopup(false)}
-        phone={order?.mobileNumber || '9999999999'}
-      />
+      </TouchableWithoutFeedback>
     </View>
   );
 };
@@ -263,7 +329,7 @@ const innerStyle = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.bgClr,
     padding: 15,
     borderRadius: 10,
     marginBottom: 15,
@@ -287,32 +353,44 @@ const innerStyle = StyleSheet.create({
   },
   text: {
     marginTop: 5,
-    color: '#555',
+    color: Colors.secondary,
   },
   input: {
     width: 80,
     height: 40,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: Colors.borderColor,
     borderRadius: 50,
     paddingHorizontal: 10,
-    textAlign: 'center',
+    textAlign: 'left',
     lineHeight: 20,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   rejectedText: {
-    color: 'red',
+    color: Colors.reject,
     fontWeight: 'bold',
     fontSize: Fonts.sizes.base,
     width: 80,
     textAlign: 'center',
   },
+  // fixedButtonWrapper: {
+  //   position: 'absolute',
+  //   bottom: 0,
+  //   left: 0,
+  //   right: 0,
+  //   zIndex: 100,
+  //   backgroundColor: '#fff',
+  //   borderTopWidth: 1,
+  //   borderColor: '#ddd',
+  //   paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+  // },
   buttonContainer: {
-    justifyContent: 'space-around',
     flexDirection: 'row',
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
-    zIndex: 10,
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    gap: 10,
   },
 });

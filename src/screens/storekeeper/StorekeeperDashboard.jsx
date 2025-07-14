@@ -32,7 +32,7 @@ const StorekeeperDashboard = () => {
   const route = useRoute();
   const tab = route?.params?.tab;
 
-  const statusMap = ['Pending', 'In Progress', 'Completed'];
+  const statusMap = ['Pending', 'In Progress', 'Delivered'];
   const orders = useSelector(state => state.storekeeperOrders.orders);
 
   useEffect(() => {
@@ -82,7 +82,7 @@ const StorekeeperDashboard = () => {
           text: 'Reject',
           style: 'destructive',
           onPress: () =>
-            dispatch(updateOrderStatus({ orderId, newStatus: 'Cancelled' })),
+            dispatch(updateOrderStatus({ orderId, newStatus: 'Rejected' })),
         },
       ],
       { cancelable: true },
@@ -98,7 +98,7 @@ const StorekeeperDashboard = () => {
         {
           text: 'Yes, Deliver',
           onPress: () =>
-            dispatch(updateOrderStatus({ orderId, newStatus: 'Completed' })),
+            dispatch(updateOrderStatus({ orderId, newStatus: 'Delivered' })),
         },
       ],
       { cancelable: true },
@@ -109,13 +109,13 @@ const StorekeeperDashboard = () => {
     <View style={styles.pageContainer}>
       <View style={innerStyle.topBar}>
         <TouchableOpacity onPress={() => setIsSideBarOpen(true)}>
-          <MaterialIcons name="menu" size={26} color="black" />
+          <MaterialIcons name="menu" size={26} color={Colors.secondary} />
         </TouchableOpacity>
         <Text style={[innerStyle.heading,textStyles.subheading]}>My Orders</Text>
         <TouchableOpacity
           onPress={() => safePush({ pathname: 'Notification' })}
         >
-          <FontAwesome5 name="bell" size={24} color="black" />
+          <FontAwesome5 name="bell" size={24} color={Colors.secondary} />
         </TouchableOpacity>
       </View>
 
@@ -130,11 +130,11 @@ const StorekeeperDashboard = () => {
             key={index}
             style={[
               innerStyle.statusButton,
-              formState === index && { backgroundColor: '#43484B' },
+              formState === index && { backgroundColor: Colors.secondaryText },
             ]}
             onPress={() => setFormState(index)}
           >
-            <Text style={formState === index && { color: 'white' }}>
+            <Text style={formState === index && { color: Colors.bgClr }}>
               {status}
             </Text>
           </Pressable>
@@ -175,7 +175,7 @@ const StorekeeperDashboard = () => {
                     {' ' + order.landmark}
                   </Text>
                 </Text>
-                {order.status !== 'Pending' && order.status !== 'Cancelled' && (
+                {order.status !== 'Pending' && order.status !== 'Rejected' && (
                   <Text style={innerStyle.orderDetailsHeading}>
                     Tracking
                     <Text style={innerStyle.orderDetails}>
@@ -198,7 +198,7 @@ const StorekeeperDashboard = () => {
                           ? 'red'
                           : order.status === 'In Progress'
                           ? 'orange'
-                          : order.status === 'Completed'
+                          : order.status === 'Delivered'
                           ? 'green'
                           : 'red',
                     },
@@ -218,8 +218,8 @@ const StorekeeperDashboard = () => {
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}
                 >
                   <Text style={innerStyle.orderDetails}>{order.date}</Text>
-                  {order.status !== 'Completed' &&
-                    order.status !== 'Cancelled' && (
+                  {order.status !== 'Delivered' &&
+                    order.status !== 'Rejected' && (
                       <Pressable
                         onPress={() =>
                           setPopupOrderId(prev =>
@@ -230,7 +230,7 @@ const StorekeeperDashboard = () => {
                         <Entypo
                           name="dots-three-vertical"
                           size={18}
-                          color="black"
+                          color={Colors.secondary}
                         />
                       </Pressable>
                     )}
@@ -258,7 +258,7 @@ const StorekeeperDashboard = () => {
                         }}
                       >
                         <Text style={innerStyle.popupText}>Call</Text>
-                        <FontAwesome5 name="phone" size={15} color="#000" />
+                        <FontAwesome5 name="phone" size={15} color={Colors.secondary}/>
                       </View>
                     </Pressable>
                     <Pressable
@@ -291,14 +291,14 @@ const StorekeeperDashboard = () => {
                   </View>
                 )}
 
-                {order.status !== 'Completed' &&
-                  order.status !== 'Cancelled' &&
+                {order.status !== 'Delivered' &&
+                  order.status !== 'Rejected' &&
                   order.status !== 'Dispatched' && (
                     <Pressable
                       style={innerStyle.showDetailsBtn}
                       onPress={() => handleReject(order.orderId)}
                     >
-                      <Text style={{ color: 'white', fontWeight: '800' }}>
+                      <Text style={{ color: Colors.bgClr, fontWeight: '800' }}>
                         Reject
                       </Text>
                     </Pressable>
@@ -312,7 +312,7 @@ const StorekeeperDashboard = () => {
                     ]}
                     onPress={() => handleDeliver(order.orderId)}
                   >
-                    <Text style={{ color: 'white', fontWeight: '800' }}>
+                    <Text style={{ color: Colors.bgClr, fontWeight: '800' }}>
                       Deliver
                     </Text>
                   </Pressable>
@@ -359,14 +359,14 @@ const innerStyle = StyleSheet.create({
   emptyStateText: {
     fontSize: Fonts.sizes.base,
     fontWeight: '600',
-    color: '#888',
+    color: Colors.secondaryText,
     textAlign: 'center',
   },
   orderCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     elevation: 3,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.bgClr,
     padding: 15,
     borderRadius: 20,
     marginBottom: 10,
@@ -375,7 +375,7 @@ const innerStyle = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 50,
-    backgroundColor: '#EF1B1B',
+    backgroundColor: Colors.reject,
   },
   orderText: {
     fontWeight: 'bold',
@@ -383,12 +383,12 @@ const innerStyle = StyleSheet.create({
     lineHeight: 30,
   },
   orderDetails: {
-    color: '#000',
+    color: Colors.secondary,
     fontWeight: '500',
   },
   orderDetailsHeading: {
     lineHeight: 30,
-    color: '#777E90',
+    color: Colors.secondaryText,
   },
   updatedStatus: {
     lineHeight: 30,
@@ -398,9 +398,9 @@ const innerStyle = StyleSheet.create({
     position: 'absolute',
     top: 20, // adjust to be just below the dot icon
     right: 0,
-    backgroundColor: 'white',
+    backgroundColor: Colors.bgClr,
     borderRadius: 8,
-    borderColor: '#ddd',
+    borderColor: Colors.borderColor,
     borderWidth: 1,
     elevation: 5,
     zIndex: 1000,
@@ -410,10 +410,10 @@ const innerStyle = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: Colors.borderColor,
   },
   popupText: {
     fontSize: Fonts.sizes.sm,
-    color: '#333',
+    color: Colors.secondary,
   },
 });

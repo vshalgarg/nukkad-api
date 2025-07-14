@@ -5,6 +5,7 @@ import {
   SafeAreaView,
   StyleSheet,
   Text,
+  Alert,
   View,
 } from 'react-native';
 import {
@@ -20,6 +21,8 @@ import BackButton from '../../components/BackButton';
 import { useAddress } from '../../contexts/addressContext';
 import styles from '../../styles/globalStyles';
 import Fonts from '../../styles/font';
+import Colors from '../../styles/colors';
+import { markAddressAsDefault } from '../../services/customer/addressService';
 
 const Address = () => {
   const {
@@ -30,6 +33,8 @@ const Address = () => {
     setSelectedAddressId,
     deleteAddress,
     setAddress,
+    markAsDefault,
+    syncAddressesFromServer,
   } = useAddress();
 
   const navigation = useNavigation();
@@ -37,9 +42,12 @@ const Address = () => {
   const fromCart = route.params?.fromCart === 'true';
   const hideDelete = fromCart;
 
-  const handleSelectAddress = id => {
-    setSelectedAddressId(id);
+  const handleSelectAddress = async id => {
+    setSelectedAddressId(String(id));
+    await AsyncStorage.setItem('selectedAddressId', String(id));
   };
+  
+  
 
   const handleAddAddress = () => {
     setMode('add');
@@ -54,76 +62,116 @@ const Address = () => {
   };
 
   const handleDeleteAddress = item => {
-    // Show confirmation alert
     Alert.alert(
       'Delete Address',
       'Are you sure you want to delete this address?',
       [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
+        { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
             const isDeletingDefault = item.id === selectedAddressId;
 
             deleteAddress(item.id);
 
-            // Select new default if needed
-            if (isDeletingDefault) {
-              const remainingAddresses = address.filter(a => a.id !== item.id);
-              if (remainingAddresses.length > 0) {
-                setSelectedAddressId(remainingAddresses[0].id);
-                AsyncStorage.setItem(
-                  'selectedAddressId',
-                  remainingAddresses[0].id,
-                );
-              } else {
-                setSelectedAddressId(null);
-                AsyncStorage.removeItem('selectedAddressId');
-              }
+            const remainingAddresses = address.filter(a => a.id !== item.id);
+            if (isDeletingDefault && remainingAddresses.length > 0) {
+              const fallback = remainingAddresses[0];
+              await handleSelectAddress(fallback.id);
+            } else if (remainingAddresses.length === 0) {
+              setSelectedAddressId(null);
+              await AsyncStorage.removeItem('selectedAddressId');
             }
           },
         },
       ],
     );
   };
-  
 
   useFocusEffect(
     useCallback(() => {
-      const fetchAddress = async () => {
-        const storedAddress = await AsyncStorage.getItem('address');
-        const storedSelectedId = await AsyncStorage.getItem(
-          'selectedAddressId',
-        );
+      const load = async () => {
+        try {
+          await syncAddressesFromServer();
 
-        if (storedAddress) setAddress(JSON.parse(storedAddress));
-        if (storedSelectedId) setSelectedAddressId(storedSelectedId);
+          const selectedAddress = await AsyncStorage.getItem('selectedAddressId');
+          console.log(selectedAddress)
+          if (selectedAddress) {
+            setSelectedAddressId(selectedAddress);
+          } else {
+            const storedList = await AsyncStorage.getItem('address');
+            const parsedList = storedList ? JSON.parse(storedList) : [];
+
+            const defaultAddr = parsedList.find(a => a.isDefault);
+            console.log("defaultAddr",defaultAddr)
+
+            if (defaultAddr) {
+              setSelectedAddressId(String(defaultAddr.id));
+              await AsyncStorage.setItem(
+                'selectedAddressId',
+                String(defaultAddr.id),
+              );
+            } else if (parsedList.length > 0) {
+              const first = parsedList[0];
+              setSelectedAddressId(String(first.id));
+              await AsyncStorage.setItem('selectedAddressId', String(first.id));
+            } else {
+              setSelectedAddressId(null);
+              await AsyncStorage.removeItem('selectedAddressId');
+            }
+          }
+
+          // ✅ Clear fromCart param after initial mount (to hide Change Address later)
+          if (route.params?.fromCart) {
+            navigation.setParams({ fromCart: undefined });
+          }
+        } catch (err) {
+          console.warn('⚠️ Failed to load default address:', err.message);
+        }
       };
 
-      fetchAddress();
+      load();
     }, []),
   );
+  
+  
 
+  console.log(
+    'Address List (sorted):',
+    [...address].sort((a, b) => b.id - a.id),
+  );
+
+  const handleMarkAsDefault = async item => {
+    try {
+      await markAsDefault(item.id); 
+      await syncAddressesFromServer();
+      await handleSelectAddress(item.id); 
+    } catch (error) {
+      console.error('Error marking address as default:', error);
+    }
+  };
+  
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={[styles.pageContainer, { flex: 1 }]}>
       <View style={[styles.pageContainer, { flex: 1 }]}>
         <BackButton title="Delivery Address" />
 
         <FlatList
-          data={address}
-          keyExtractor={item => item.id}
+          data={[...address].sort((a, b) => b.id - a.id)}
+          keyExtractor={item => item.id.toString()}
           renderItem={({ item }) => (
             <AddressCard
               item={item}
               onEdit={handleEditAddress}
               onDelete={handleDeleteAddress}
-              isSelected={item.id === selectedAddressId}
-              onSelect={() => handleSelectAddress(item.id)}
-              hideDelete={hideDelete}
+              onSelect={
+                fromCart ? () => handleSelectAddress(item.id) : undefined
+              }
+              onMarkDefault={() => handleMarkAsDefault(item)}
+              isSelected={String(item.id) === String(selectedAddressId)}
+              hideDelete={hideDelete || address.length === 1}
+              source={fromCart ? 'cart' : 'sidebar'}
             />
           )}
           contentContainerStyle={{
@@ -140,7 +188,11 @@ const Address = () => {
                 style={innerStyle.addButton}
                 onPress={handleAddAddress}
               >
-                <Ionicons name="add-circle-outline" size={24} color="#fff" />
+                <Ionicons
+                  name="add-circle-outline"
+                  size={24}
+                  color={Colors.bgClr}
+                />
                 <Text style={innerStyle.addButtonText}>Add Address</Text>
               </Pressable>
             </View>
@@ -150,7 +202,11 @@ const Address = () => {
         {address.length > 0 && (
           <View style={innerStyle.container}>
             <Pressable style={innerStyle.addButton} onPress={handleAddAddress}>
-              <Ionicons name="add-circle-outline" size={24} color="white" />
+              <Ionicons
+                name="add-circle-outline"
+                size={24}
+                color={Colors.bgClr}
+              />
               <Text style={innerStyle.addButtonText}>Add Address</Text>
             </Pressable>
           </View>
@@ -174,20 +230,20 @@ const innerStyle = StyleSheet.create({
   },
   emptyText: {
     fontSize: Fonts.sizes.base,
-    color: '#888',
+    color: Colors.secondaryText,
     marginBottom: 20,
     textAlign: 'center',
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#4CAF50',
+    backgroundColor: Colors.primary,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 50,
   },
   addButtonText: {
-    color: '#fff',
+    color: Colors.bgClr,
     fontSize: Fonts.sizes.base,
     fontWeight: '500',
     marginLeft: 8,

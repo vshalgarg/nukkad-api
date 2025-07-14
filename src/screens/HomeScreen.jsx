@@ -20,7 +20,7 @@ export default function Index() {
     <View style={[styles.pageContainer,{justifyContent:"center",alignItems:"center"}]} >
       <Grocery style={{ marginBottom: 30 }} />
 
-      <Text style={[styles.pageHeading,textStyles.heading]}>Select User Type</Text>
+      <Text style={[styles.pageHeading,textStyles.heading,{marginBottom:20}]}>Select User Type</Text>
 
       <View
         style={{

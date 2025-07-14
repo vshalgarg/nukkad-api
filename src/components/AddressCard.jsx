@@ -12,24 +12,20 @@ const AddressCard = ({
   onEdit,
   onDelete,
   onSelect,
+  onMarkDefault,
   isSelected,
-  actionType = 'edit',
   hideDelete = false,
+  source = 'sidebar', // "cart" | "sidebar"
 }) => {
   const { safePush } = useSafeRouter();
-  const handleChangeAddress = () => {
-    safePush({
-      name: 'Address',
-      params: { fromCart: 'true' },
-    });
-    
-  };
 
   return (
     <Pressable
-      onPress={onSelect}
+      onPress={source === 'cart' ? onSelect : undefined}
       style={[styles.card, isSelected && styles.selectedCard]}
     >
+      
+
       <View style={styles.contentContainer}>
         <View style={styles.infoContainer}>
           {item.name && (
@@ -39,17 +35,11 @@ const AddressCard = ({
           )}
 
           <View style={styles.addressLines}>
-            {[item.address1, item.address2, item.landmark]
-              .filter(Boolean)
-              .map((line, index) => (
-                <Text
-                  key={index}
-                  style={styles.secondaryText}
-                  numberOfLines={1}
-                >
-                  {line},
-                </Text>
-              ))}
+            <Text style={styles.secondaryText}>
+              {[item.address1, item.address2, item.landmark]
+                .filter(Boolean)
+                .join(', ')}
+            </Text>
           </View>
 
           <Text style={styles.cityLine} numberOfLines={1}>
@@ -58,40 +48,50 @@ const AddressCard = ({
         </View>
 
         <View style={styles.actionContainer}>
-          {actionType === 'edit' ? (
+          {/* === If from Cart: show "Change Address" button === */}
+          {source === 'cart' ? (
+            <Pressable style={styles.changeAddressBtn} onPress={onSelect}>
+              <Text style={styles.changeAddressText}>Change Address</Text>
+            </Pressable>
+          ) : (
             <View style={styles.btnContainer}>
-              {!hideDelete && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  width:"70"
+                }}
+              >
                 <Pressable
-                  style={[styles.editButton, styles.deleteButton]}
-                  onPress={() => onDelete(item)}
+                  style={[styles.editButton, styles.primaryButton]}
+                  onPress={() => onEdit(item)}
                 >
-                  <AntDesign name="delete" size={18} color="red" />
-                  <Text style={[styles.editText, { color: 'red' }]}>
-                    Delete
-                  </Text>
+                  <Ionicons
+                    name="create-outline"
+                    size={24}
+                    color={Colors.primary}
+                  />
+                </Pressable>
+
+                {!hideDelete && !item.isDefault && (
+                  <Pressable
+                    style={[styles.editButton, styles.deleteButton]}
+                    onPress={() => onDelete(item)}
+                  >
+                    <AntDesign name="delete" size={24} color={Colors.reject} />
+                  </Pressable>
+                )}
+              </View>
+
+              {!item.isDefault && (
+                <Pressable
+                  onPress={() => onMarkDefault?.(item.id)}
+                  style={styles.defaultBtn}
+                >
+                  <Text style={styles.defaultBtnText}>Mark as Default</Text>
                 </Pressable>
               )}
-              <Pressable
-                style={[styles.editButton, styles.primaryButton]}
-                onPress={() => onEdit(item)}
-              >
-                <Ionicons
-                  name="create-outline"
-                  size={18}
-                  color={Colors.primary}
-                />
-                <Text style={[styles.editText, { color: Colors.primary }]}>
-                  Edit
-                </Text>
-              </Pressable>
             </View>
-          ) : (
-            <Pressable
-              style={[styles.editButton, styles.primaryButton]}
-              onPress={handleChangeAddress}
-            >
-              <Text style={styles.editText}>Change Address</Text>
-            </Pressable>
           )}
         </View>
       </View>
@@ -103,11 +103,13 @@ const styles = StyleSheet.create({
   card: {
     marginTop: 16,
     borderRadius: 12,
-    backgroundColor: '#fff',
-    borderColor: '#ddd',
+    backgroundColor: Colors.bgClr,
+    borderColor: Colors.borderColor,
     borderWidth: 1,
     elevation: 2,
     padding: 14,
+    position: 'relative',
+    height:'110'
   },
   selectedCard: {
     borderColor: Colors.primary,
@@ -124,7 +126,7 @@ const styles = StyleSheet.create({
   nameText: {
     fontSize: Fonts.sizes.base,
     fontWeight: '700',
-    color: '#222',
+    color: Colors.secondary,
     marginBottom: 4,
   },
   addressLines: {
@@ -135,11 +137,11 @@ const styles = StyleSheet.create({
   },
   secondaryText: {
     fontSize: Fonts.sizes.sm,
-    color: '#555',
+    color: Colors.secondaryText,
   },
   cityLine: {
     fontSize: Fonts.sizes.sm,
-    color: '#444',
+    color: Colors.secondaryText,
     marginTop: 2,
   },
   actionContainer: {
@@ -148,7 +150,8 @@ const styles = StyleSheet.create({
   },
   btnContainer: {
     justifyContent: 'space-between',
-    gap: 10,
+    alignItems:"center",
+    gap: 5,
   },
   editButton: {
     flexDirection: 'row',
@@ -165,6 +168,46 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 6,
     color: Colors.primary,
+  },
+  defaultBtn: {
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginTop: 10,
+  },
+  defaultBtnText: {
+    color: Colors.primary,
+    fontSize: Fonts.sizes.sm,
+    fontWeight: '600',
+  },
+  defaultLabel: {
+    position: 'absolute',
+    top: -12,
+    right: 5,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 12,
+    zIndex: 2,
+  },
+  defaultLabelText: {
+    color: Colors.bgClr,
+    fontSize: Fonts.sizes.xs,
+    fontWeight: '600',
+  },
+  changeAddressBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: Colors.primary,
+    marginTop: 4,
+  },
+  changeAddressText: {
+    color: Colors.bgClr,
+    fontWeight: '600',
+    fontSize: Fonts.sizes.sm,
   },
 });
 

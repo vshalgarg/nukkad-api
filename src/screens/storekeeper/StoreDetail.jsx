@@ -5,18 +5,19 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import BackButton from '../../components/BackButton';
 import CustomButton from '../../components/CustomButton';
+import CustomInput from '../../components/CustomInput';
 import { useProfile } from '../../contexts/profileContext';
 import { useStorekeeperAddress } from '../../contexts/storekeeperAddressContext';
 import styles from '../../styles/globalStyles';
 import { showToast } from '../../utils/toastUtils';
 import Fonts from '../../styles/font';
+import Colors from '../../styles/colors';
 
 const StoreDetail = () => {
   const { profile, updateProfile } = useProfile();
@@ -69,26 +70,17 @@ const StoreDetail = () => {
     const pincodeRegex = /^[1-9][0-9]{5}$/;
 
     if (!alphanumericRegex.test(addressLine1)) {
-      showToast(
-        'error',
-        'Address Line 1 must contain only letters, numbers, commas, or hyphens.',
-      );
+      showToast('error', 'Address Line 1 must contain only valid characters.');
       return;
     }
 
     if (addressLine2 && !alphanumericRegex.test(addressLine2)) {
-      showToast(
-        'error',
-        'Address Line 2 must contain only letters, numbers, commas, or hyphens.',
-      );
+      showToast('error', 'Address Line 2 must contain only valid characters.');
       return;
     }
 
     if (!alphanumericRegex.test(landmark)) {
-      showToast(
-        'error',
-        'Landmark must contain only letters, numbers, commas, or hyphens.',
-      );
+      showToast('error', 'Landmark must contain only valid characters.');
       return;
     }
 
@@ -162,146 +154,136 @@ const StoreDetail = () => {
       >
         <ScrollView
           contentContainerStyle={{
-            paddingBottom: 30,
-            flexGrow: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
+            paddingTop: 20,
+            paddingHorizontal: 20,
+            paddingBottom: 40,
           }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={innerStyle.card}>
-            {!editing ? (
-              <>
-                <View style={innerStyle.infoBlock}>
-                  <View style={innerStyle.row}>
-                    <Text style={innerStyle.label}>Name:</Text>
-                    <Text style={innerStyle.value}>
-                      {storekeeperName || '—'}
-                    </Text>
-                  </View>
-                  <View style={innerStyle.row}>
-                    <Text style={innerStyle.label}>Store Name:</Text>
-                    <Text style={innerStyle.value}>{storeName || '—'}</Text>
-                  </View>
-                </View>
+          <Text style={innerStyle.subTitle}>Store Details</Text>
 
-                <Text style={innerStyle.subTitle}>Address</Text>
-                <Text style={innerStyle.addressText}>{renderAddress()}</Text>
-
-                <TouchableOpacity
-                  onPress={() => setEditing(true)}
-                  style={innerStyle.editButton}
-                >
-                  <Text style={innerStyle.editButtonText}>Edit</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <>
-                <View style={innerStyle.section}>
-                  <Text style={innerStyle.subTitle}>Store Info</Text>
-                  <View style={innerStyle.inputBlock}>
-                    <Text style={innerStyle.inputLabel}>Store Name</Text>
-                    <TextInput
-                      value={storeName}
-                      editable={false}
-                      style={innerStyle.textInput}
-                    />
-                  </View>
-                  <View style={innerStyle.inputBlock}>
-                    <Text style={innerStyle.inputLabel}>Storekeeper Name</Text>
-                    <TextInput
-                      value={storekeeperName}
-                      editable={false}
-                      style={innerStyle.textInput}
-                    />
-                  </View>
+          {!editing ? (
+            <>
+              <View style={innerStyle.infoBlock}>
+                <View style={innerStyle.row}>
+                  <Text style={innerStyle.label}>Name:</Text>
+                  <Text style={innerStyle.value}>{storekeeperName || '—'}</Text>
                 </View>
-
-                <View style={innerStyle.section}>
-                  <Text style={innerStyle.subTitle}>Change Address</Text>
-                  {[
-                    {
-                      label: 'Address Line 1',
-                      value: addressLine1,
-                      onChange: setAddressLine1,
-                      required: true,
-                      maxLength: 40,
-                    },
-                    {
-                      label: 'Address Line 2',
-                      value: addressLine2,
-                      onChange: setAddressLine2,
-                      maxLength: 40,
-                    },
-                    {
-                      label: 'Landmark',
-                      value: landmark,
-                      onChange: setLandmark,
-                      required: true,
-                      maxLength: 25,
-                    },
-                    {
-                      label: 'City',
-                      value: city,
-                      onChange: setCity,
-                      required: true,
-                      maxLength: 25,
-                    },
-                    {
-                      label: 'State',
-                      value: state,
-                      onChange: setState,
-                      required: true,
-                      maxLength: 25,
-                    },
-                    {
-                      label: 'Pincode',
-                      value: pincode,
-                      onChange: setPincode,
-                      required: true,
-                      keyboardType: 'number-pad',
-                      maxLength: 6,
-                    },
-                  ].map(
-                    (
-                      {
-                        label,
-                        value,
-                        onChange,
-                        required,
-                        keyboardType,
-                        maxLength,
-                      },
-                      idx,
-                    ) => (
-                      <View style={innerStyle.inputBlock} key={idx}>
-                        <Text style={innerStyle.inputLabel}>
-                          {label}{' '}
-                          {required && <Text style={{ color: 'red' }}>*</Text>}
-                        </Text>
-                        <TextInput
-                          value={value}
-                          onChangeText={onChange}
-                          style={innerStyle.textInput}
-                          keyboardType={keyboardType}
-                          maxLength={maxLength}
-                        />
-                      </View>
-                    ),
-                  )}
+                <View style={innerStyle.row}>
+                  <Text style={innerStyle.label}>Store Name:</Text>
+                  <Text style={innerStyle.value}>{storeName || '—'}</Text>
                 </View>
+              </View>
 
-                <View style={innerStyle.buttonRow}>
-                  <CustomButton
-                    title="Cancel"
-                    onPress={() => setEditing(false)}
-                  />
-                  <CustomButton title="Save" onPress={handleSave} />
+              <Text style={innerStyle.subTitle}>Address</Text>
+              <Text style={innerStyle.addressText}>{renderAddress()}</Text>
+
+              <TouchableOpacity
+                onPress={() => setEditing(true)}
+                style={innerStyle.editButton}
+              >
+                <Text style={innerStyle.editButtonText}>Edit</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <View style={innerStyle.section}>
+                <Text style={innerStyle.subTitle}>Store Info</Text>
+                <View style={innerStyle.inputBlock}>
+                  <Text style={innerStyle.inputLabel}>Store Name</Text>
+                  <CustomInput value={storeName} editable={false} />
                 </View>
-              </>
-            )}
-          </View>
+                <View style={innerStyle.inputBlock}>
+                  <Text style={innerStyle.inputLabel}>Storekeeper Name</Text>
+                  <CustomInput value={storekeeperName} editable={false} />
+                </View>
+              </View>
+
+              <View style={innerStyle.section}>
+                <Text style={innerStyle.subTitle}>Change Address</Text>
+                {[
+                  {
+                    label: 'Address Line 1',
+                    value: addressLine1,
+                    onChange: setAddressLine1,
+                    required: true,
+                    maxLength: 40,
+                  },
+                  {
+                    label: 'Address Line 2',
+                    value: addressLine2,
+                    onChange: setAddressLine2,
+                    maxLength: 40,
+                  },
+                  {
+                    label: 'Landmark',
+                    value: landmark,
+                    onChange: setLandmark,
+                    required: true,
+                    maxLength: 25,
+                  },
+                  {
+                    label: 'City',
+                    value: city,
+                    onChange: setCity,
+                    required: true,
+                    maxLength: 25,
+                  },
+                  {
+                    label: 'State',
+                    value: state,
+                    onChange: setState,
+                    required: true,
+                    maxLength: 25,
+                  },
+                  {
+                    label: 'Pincode',
+                    value: pincode,
+                    onChange: setPincode,
+                    required: true,
+                    keyboardType: 'number-pad',
+                    maxLength: 6,
+                  },
+                ].map(
+                  (
+                    {
+                      label,
+                      value,
+                      onChange,
+                      required,
+                      keyboardType,
+                      maxLength,
+                    },
+                    idx,
+                  ) => (
+                    <View style={innerStyle.inputBlock} key={idx}>
+                      <Text style={innerStyle.inputLabel}>
+                        {label}{' '}
+                        {required && (
+                          <Text style={{ color: Colors.reject }}>*</Text>
+                        )}
+                      </Text>
+                      <CustomInput
+                        value={value}
+                        onChangeText={onChange}
+                        keyboardType={keyboardType}
+                        maxLength={maxLength}
+                      />
+                    </View>
+                  ),
+                )}
+              </View>
+
+              <View style={innerStyle.buttonRow}>
+                <CustomButton
+                  title="Cancel"
+                  onPress={() => setEditing(false)}
+                />
+                <CustomButton title="Save" onPress={handleSave} />
+              </View>
+            </>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -311,84 +293,70 @@ const StoreDetail = () => {
 export default StoreDetail;
 
 const innerStyle = StyleSheet.create({
-  card: {
-    marginHorizontal: 20,
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
   subTitle: {
-    fontSize: Fonts.sizes.lg,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 10,
-    textAlign: 'center',
+    fontSize: Fonts.sizes.xl,
+    fontWeight: '700',
+    color: Colors.primary,
+    marginBottom: 16,
   },
   infoBlock: {
-    marginBottom: 16,
+    marginBottom: 24,
+    borderBottomWidth: 1,
+    borderColor: '#E5E7EB',
+    paddingBottom: 16,
   },
   row: {
     flexDirection: 'row',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   label: {
-    width: '40%',
     fontWeight: '600',
-    color: '#4b5563',
+    color: Colors.secondary,
+    fontSize: 15,
+    width: '40%',
   },
   value: {
+    color: Colors.secondary,
+    fontSize: 15,
     width: '60%',
-    color: '#1f2937',
+    textAlign: 'right',
   },
   addressText: {
-    color: '#1f2937',
+    color: Colors.secondary,
     marginBottom: 20,
+    fontSize: 15,
+    lineHeight: 22,
   },
   editButton: {
-    backgroundColor: '#2563eb',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 999,
-    alignSelf: 'center',
+    backgroundColor: Colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 30,
+    alignSelf: 'flex-start',
+    marginTop: 12,
   },
   editButtonText: {
-    color: 'white',
+    color: '#fff',
     fontWeight: '600',
+    fontSize: 16,
   },
   section: {
-    backgroundColor: '#f3f4f6',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    marginBottom: 20,
   },
   inputBlock: {
-    marginBottom: 12,
+    marginBottom: 16,
+    alignSelf:"center"
   },
   inputLabel: {
-    color: '#4b5563',
-    marginBottom: 4,
-  },
-  textInput: {
-    backgroundColor: 'white',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    color: '#1f2937',
+    color: Colors.secondary,
+    marginBottom: 6,
+    fontSize: 15,
+    fontWeight: '500',
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
-    marginTop: 20,
+    marginTop: 24,
   },
 });

@@ -1,64 +1,115 @@
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   FlatList,
-  Image,
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+
 import AddressCard from '../../components/AddressCard';
 import BackButton from '../../components/BackButton';
 import CustomButton from '../../components/CustomButton';
+import CartItem from '../../components/CartItem';
+
 import { useAddress } from '../../contexts/addressContext';
-import { useSafeRouter } from '../../hooks/useSafeRouter.js';
-import {
-  addOrder,
-  clearCart,
-  removeFromCart,
-  updateCartItemQuantity,
-} from '../../store/cartSlice';
+import { useSafeRouter } from '../../hooks/useSafeRouter';
+import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../../contexts/authContext';
+import { getCartItemsAPI } from '../../services/customer/cartService';
+import { useDispatch, useSelector } from 'react-redux';
+
 import Colors from '../../styles/colors';
 import styles from '../../styles/globalStyles';
-import { showToast } from '../../utils/toastUtils.js';
-import Fonts from '../../styles/font.js';
+import Fonts from '../../styles/font';
+import { showToast } from '../../utils/toastUtils';
+import { clearCart, setCartItems } from '../../store/cartSlice';
+import { placeOrder } from '../../services/customer/orderService';
 
 const ShoppingCart = () => {
-  const { address, selectedAddressId, setMode, setAddressData } = useAddress();
-  const dispatch = useDispatch();
+  const {
+    address,
+    selectedAddressId,
+    setMode,
+    setAddressData,
+  } = useAddress();
   const { safeReplace, safePush } = useSafeRouter();
+  const { token } = useAuth();
+  const navigation = useNavigation();
+
+  const dispatch = useDispatch();
 
   const cartItems = useSelector(state => state.cart.items);
+  const [loading, setLoading] = useState(true);
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+  // console.log("address",address[0])
+  // console.log(selectedAddressId)
+  // console.log(address?.isDefault)
+
+  const selectedAddress =
+  address.find(item => item.isDefault) ||
+    address.find(item => item.id === selectedAddressId);
+    // console.log(selectedAddress)
+
+  const fetchCartItems = async () => {
+    setLoading(true);
+    try {
+      const res = await getCartItemsAPI(token);
+      console.log('res+data', res);
+      const formattedItems = (res || []).map(item => ({
+        cartItemId: item.id,
+        selectedUnit: item.selectedUnit,
+        quantity: item.quantity,
+        product: {
+          id: item.itemId,
+          name: item.itemName,
+          image: item.imageUrls?.[0] || '',
+          amount: item.quantity,
+          selectedUnit: item.selectedUnit,
+          quantity: item.allUnits,
+        },
+      }));
+
+      setCartItems(formattedItems);
+      dispatch(setCartItems(formattedItems));
+    } catch (err) {
+      showToast('error', 'Failed to load cart items');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCartItems();
+  }, []);
+
   const totalCount = cartItems.reduce((total, item) => {
     const isPacket = item.product.selectedUnit?.toLowerCase() === 'pkt';
     return total + (isPacket ? parseInt(item.product.amount) || 0 : 1);
   }, 0);
 
-  const selectedAddress = address.find(item => item.id === selectedAddressId);
-  const [openDropdownId, setOpenDropdownId] = useState(null);
-
-  const handleAddAddress = () => {
+  const handleAddAddress = async () => {
     setMode('add');
     setAddressData(null);
     safePush('AddressForm');
   };
 
   const handleAddItems = () => {
-    safePush('ProductPage');
+    navigation.goBack();
   };
 
-  const handleCompleteOrder = () => {
+  const handleCompleteOrder = async() => {
     if (!selectedAddress) {
       showToast('error', 'Add address before checkout');
       return;
     }
+
     if (cartItems.length === 0) {
       showToast('error', 'Add items before checkout');
+      return;
     }
 
     const hasInvalidAmount = cartItems.some(item => {
@@ -76,18 +127,28 @@ const ShoppingCart = () => {
       0,
     );
 
-    const newOrder = {
-      id: Date.now().toString(),
-      items: cartItems,
-      address: selectedAddress,
-      date: new Date().toISOString(),
+  
+    const payload = {
       status: 'pending',
+      addressId: selectedAddress.id,
       totalItems: totalValidCount,
+      items: cartItems.map(item => ({
+        itemId: item.product.id,
+        selectedUnit: item.product.selectedUnit,
+        quantity: Number(item.product.amount),
+      })),
     };
+  
 
-    dispatch(addOrder(newOrder));
-    dispatch(clearCart());
-    safeReplace('PlaceOrder');
+    try {
+     const res=await placeOrder(payload,token)
+     console.log('✅ Order Placed:', res);
+      dispatch(clearCart());
+      safeReplace('PlaceOrder');
+    } catch (error) {
+      console.error('Error clearing cart after order:', error);
+      showToast('error', 'Failed to clear cart. Try again.');
+    }
   };
 
   const handleEditAddress = address => {
@@ -96,95 +157,14 @@ const ShoppingCart = () => {
     safePush('AddressForm');
   };
 
-  const renderCartItem = ({ item }) => {
-    const { product, selectedUnit } = item;
-    const amount = product.amount;
-
-    const handleAmountChange = text => {
-      const numericValue = parseFloat(text);
-      if (!isNaN(numericValue) && numericValue >= 0) {
-        dispatch(
-          updateCartItemQuantity({
-            productId: product.id,
-            amount: numericValue,
-          }),
-        );
-      } else if (text === '') {
-        dispatch(
-          updateCartItemQuantity({
-            productId: product.id,
-            amount: 0,
-          }),
-        );
-      }
-    };
-
-    const handleUnitSelect = unit => {
-      dispatch(
-        updateCartItemQuantity({
-          productId: product.id,
-          selectedUnit: unit,
-        }),
-      );
-      setOpenDropdownId(null);
-    };
-
-    const handleDelete = () => {
-      dispatch(removeFromCart({ productId: product.id }));
-    };
-
-    const isDropdownOpen = openDropdownId === product.id;
-
+  if (loading) {
     return (
-      <View style={innerStyle.cartItem}>
-        <Image source={{ uri: product.image }} style={innerStyle.image} />
-        <View style={innerStyle.itemInfoContainer}>
-          <Text style={innerStyle.name}>{product.title}</Text>
-          <View style={innerStyle.row}>
-            <TextInput
-              style={innerStyle.input}
-              value={amount !== undefined ? amount.toString() : ''}
-              keyboardType="numeric"
-              onChangeText={handleAmountChange}
-              placeholder="0"
-              maxLength={3}
-            />
-            <View style={{ marginLeft: 10 }}>
-              <Pressable
-                onPress={() =>
-                  setOpenDropdownId(isDropdownOpen ? null : product.id)
-                }
-                style={innerStyle.unitSelector}
-              >
-                <Text style={innerStyle.unitText}>
-                  {selectedUnit || 'Unit'}
-                </Text>
-                <AntDesign name={isDropdownOpen ? 'up' : 'down'} size={14} />
-              </Pressable>
-
-              {isDropdownOpen && (
-                <View style={innerStyle.dropdown}>
-                  {product.quantity.map(unit => (
-                    <Pressable
-                      key={unit}
-                      onPress={() => handleUnitSelect(unit)}
-                      style={innerStyle.dropdownItem}
-                    >
-                      <Text style={innerStyle.dropdownItemText}>{unit}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              )}
-            </View>
-          </View>
-        </View>
-
-        <TouchableOpacity onPress={handleDelete}>
-          <AntDesign name="delete" size={24} color="black" />
-        </TouchableOpacity>
+      <View style={styles.pageContainer}>
+        <BackButton title="Shopping Cart" />
+        <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
-  };
+  }
 
   if (cartItems.length === 0) {
     return (
@@ -195,7 +175,7 @@ const ShoppingCart = () => {
             Your cart is empty 🛒
           </Text>
           <TouchableOpacity
-            onPress={() => safePush('ProductPage')}
+            onPress={handleAddItems}
             style={innerStyle.browseBtn}
           >
             <Text style={innerStyle.browseBtnText}>Browse Grocery</Text>
@@ -209,7 +189,6 @@ const ShoppingCart = () => {
     <View style={[{ flex: 1 }, styles.pageContainer]}>
       <BackButton
         style={innerStyle.backButton}
-        backgroundColor="#eeeeee55"
         title={`Shopping Cart (${totalCount} ${
           totalCount > 1 ? 'items' : 'item'
         })`}
@@ -217,8 +196,14 @@ const ShoppingCart = () => {
 
       <FlatList
         data={cartItems}
-        keyExtractor={item => item.product.id}
-        renderItem={renderCartItem}
+        keyExtractor={item => item.cartItemId?.toString()}
+        renderItem={({ item }) => (
+          <CartItem
+            item={item}
+            openDropdownId={openDropdownId}
+            setOpenDropdownId={setOpenDropdownId}
+          />
+        )}
         contentContainerStyle={{ padding: Fonts.sizes.base }}
         ListHeaderComponent={
           <>
@@ -228,12 +213,18 @@ const ShoppingCart = () => {
                 item={selectedAddress}
                 onEdit={handleEditAddress}
                 isSelected={true}
-                actionType="change"
-                hideDelete={true}
+                source="cart" 
+                onSelect={() =>
+                  safePush({ name: 'Address', params: { fromCart: 'true' } })
+                }
               />
             ) : (
-              <Pressable style={innerStyle.button} onPress={handleAddAddress}>
-                <Ionicons name="add-circle-outline" size={24} color="black" />
+              <Pressable onPress={handleAddAddress}>
+                <Ionicons
+                  name="add-circle-outline"
+                  size={24}
+                  color={Colors.secondary}
+                />
                 <Text style={innerStyle.buttonText}>Add Address</Text>
               </Pressable>
             )}
@@ -265,23 +256,10 @@ const ShoppingCart = () => {
 export default ShoppingCart;
 
 const innerStyle = StyleSheet.create({
-  itemInfoContainer: {
-    flex: 1,
-    marginLeft: 10,
-    justifyContent: 'space-around',
-  },
   heading: {
     fontSize: Fonts.sizes.base,
     fontWeight: '800',
     marginBottom: 8,
-  },
-  button: {
-    marginTop: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
   },
   buttonText: {
     fontSize: Fonts.sizes.base,
@@ -294,98 +272,19 @@ const innerStyle = StyleSheet.create({
     fontWeight: '500',
     fontSize: Fonts.sizes.base,
   },
-  cartItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  image: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    resizeMode: 'cover',
-  },
-  name: {
-    fontSize: Fonts.sizes.base,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  input: {
-    width: 50,
-    height: 40,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    textAlign: 'center',
-    fontWeight: '800',
-  },
-  unitSelector: {
-    borderWidth: 1,
-    borderColor: '#bbb',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: 80,
-    height: 42,
-  },
-  unitText: {
-    fontSize: Fonts.sizes.sm,
-    fontWeight: '600',
-    color: '#444',
-    marginRight: 6,
-  },
-  dropdown: {
-    position: 'absolute',
-    top: 44,
-    width: 80,
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    zIndex: 100,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  dropdownItem: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  dropdownItemText: {
-    fontSize: Fonts.sizes.sm,
-    color: '#333',
-    fontWeight: '500',
-  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   browseBtn: {
-    backgroundColor: 'black',
+    backgroundColor: Colors.secondary,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 30,
   },
   browseBtnText: {
-    color: 'white',
+    color: Colors.bgClr,
     fontSize: Fonts.sizes.base,
     fontWeight: '600',
   },

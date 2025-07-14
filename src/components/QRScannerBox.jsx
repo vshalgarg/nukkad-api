@@ -1,4 +1,10 @@
-import { useEffect, useState } from 'react';
+import React, {
+  useEffect,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+} from 'react';
 import {
   PermissionsAndroid,
   Platform,
@@ -9,18 +15,30 @@ import {
 import { Camera } from 'react-native-camera-kit';
 import { showToast } from '../utils/toastUtils';
 import Fonts from '../styles/font';
+import Colors from '../styles/colors';
 
-export default function QRScannerBox({ onScan }) {
+const QRScannerBox = forwardRef(({ onScan }, ref) => {
   const [hasPermission, setHasPermission] = useState(Platform.OS === 'ios');
   const [scanned, setScanned] = useState(false);
-  
+
+  // 👇 create a ref to camera instance
+  const cameraRef = useRef();
+
+  // 👇 expose stopCamera to parent
+  useImperativeHandle(ref, () => ({
+    stopCamera: () => {
+      console.log('📷 stopCamera called');
+      // Optional — if the library supports stop/pause methods, use them
+      // cameraRef.current?.stop(); // only if API exists
+    },
+  }));
+
   useEffect(() => {
     if (scanned) {
       const timer = setTimeout(() => setScanned(false), 3000);
       return () => clearTimeout(timer);
     }
   }, [scanned]);
-  
 
   useEffect(() => {
     const requestCameraPermission = async () => {
@@ -73,15 +91,16 @@ export default function QRScannerBox({ onScan }) {
   return (
     <View style={styles.cameraBox}>
       <Camera
+        ref={cameraRef}
         style={StyleSheet.absoluteFillObject}
         scanBarcode={true}
         onReadCode={handleBarcodeScanned}
-        laserColor="blue"
-        frameColor="yellow"
       />
     </View>
   );
-}
+});
+
+export default QRScannerBox;
 
 const styles = StyleSheet.create({
   cameraBox: {
@@ -95,11 +114,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#fefefe',
+    backgroundColor: Colors.bgClr,
   },
   permissionText: {
     textAlign: 'center',
-    color: '#333',
+    color: Colors.secondaryText,
     fontSize: Fonts.sizes.base,
   },
 });

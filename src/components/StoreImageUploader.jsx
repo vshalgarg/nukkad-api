@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Image,
@@ -10,10 +10,13 @@ import {
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Colors from '../styles/colors';
 
 const MAX_IMAGES = 4;
 
 const StoreImageUploader = ({ images, setImages }) => {
+  const [picking, setPicking] = useState(false); // to prevent double picker open
+
   const requestGalleryPermission = async () => {
     if (Platform.OS !== 'android') return true;
 
@@ -31,7 +34,9 @@ const StoreImageUploader = ({ images, setImages }) => {
   };
 
   const pickImage = async () => {
-    if (images.length >= MAX_IMAGES) return;
+    if (picking || images.length >= MAX_IMAGES) return;
+
+    setPicking(true); // block further taps
 
     const hasPermission = await requestGalleryPermission();
     if (!hasPermission) {
@@ -39,6 +44,7 @@ const StoreImageUploader = ({ images, setImages }) => {
         'Permission Denied',
         'Gallery access is required to upload images.',
       );
+      setPicking(false);
       return;
     }
 
@@ -50,8 +56,11 @@ const StoreImageUploader = ({ images, setImages }) => {
     });
 
     if (result?.assets && result.assets.length > 0) {
-      setImages([...images, result.assets[0].uri]);
+      const selectedImage = result.assets[0];
+      setImages(prev => [...prev, selectedImage]); // Store full image object
     }
+
+    setPicking(false); // allow next tap
   };
 
   const removeImage = uri => {
@@ -60,7 +69,7 @@ const StoreImageUploader = ({ images, setImages }) => {
       {
         text: 'Remove',
         onPress: () => {
-          const updated = images.filter(img => img !== uri);
+          const updated = images.filter(img => img.uri !== uri);
           setImages(updated);
         },
       },
@@ -70,13 +79,13 @@ const StoreImageUploader = ({ images, setImages }) => {
   const renderBox = index => {
     if (index < images.length) {
       return (
-        <View style={styles.imageBox} key={images[index]}>
-          <Image source={{ uri: images[index] }} style={styles.image} />
+        <View style={styles.imageBox} key={images[index].uri}>
+          <Image source={{ uri: images[index].uri }} style={styles.image} />
           <TouchableOpacity
             style={styles.deleteIcon}
-            onPress={() => removeImage(images[index])}
+            onPress={() => removeImage(images[index].uri)}
           >
-            <Ionicons name="close-circle" size={20} color="red" />
+            <Ionicons name="close-circle" size={20} color={Colors.reject} />
           </TouchableOpacity>
         </View>
       );
@@ -84,10 +93,11 @@ const StoreImageUploader = ({ images, setImages }) => {
       return (
         <TouchableOpacity
           key={index}
-          style={styles.imageBox}
+          style={[styles.imageBox, picking && { opacity: 0.5 }]} // Optional: visual feedback
           onPress={pickImage}
+          disabled={picking}
         >
-          <Ionicons name="add" size={30} color="#888" />
+          <Ionicons name="add" size={30} color={Colors.secondary} />
         </TouchableOpacity>
       );
     }
@@ -111,7 +121,9 @@ const styles = StyleSheet.create({
   imageBox: {
     width: 70,
     height: 70,
-    backgroundColor: '#eee',
+    backgroundColor: Colors.bgClr,
+    borderWidth: 2,
+    borderColor: Colors.borderColor,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
@@ -127,7 +139,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 2,
     right: 2,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.bgClr,
     borderRadius: 10,
   },
 });

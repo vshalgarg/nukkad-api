@@ -1,92 +1,117 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createContext, useContext, useEffect, useState } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createContext, useContext, useEffect, useState } from 'react';
+import {
+  getAllAddresses,
+  addNewAddress,
+  updateExistingAddress,
+  deleteAddressFromServer,
+  markAddressAsDefault,
+} from '../services/customer/addressService';
 
 const AddressContext = createContext();
 
 export const AddressProvider = ({ children }) => {
-  const [mode, setMode] = useState("add");
-  const [addressData, setAddressData] = useState(null);
   const [address, setAddress] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [defaultAddress, setDefaultAddress] = useState(null);
+  const [mode, setMode] = useState('add');
+  const [addressData, setAddressData] = useState(null);
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const storedAddress = await AsyncStorage.getItem("address");
-        const storedSelectedId = await AsyncStorage.getItem(
-          "selectedAddressId"
-        );
-
-        if (storedAddress) setAddress(JSON.parse(storedAddress));
-        if (storedSelectedId) setSelectedAddressId(storedSelectedId);
-      } catch (err) {
-        console.warn("Error loading address data", err);
+    const load = async () => {
+      const stored = await AsyncStorage.getItem('address');
+      const storedId = await AsyncStorage.getItem('selectedAddressId');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setAddress(parsed);
+        const def = parsed.find(a => a.default);
+        if (def) setDefaultAddress(def);
       }
+      if (storedId) setSelectedAddressId(storedId);
     };
-    loadData();
+    load();
   }, []);
 
   useEffect(() => {
-    AsyncStorage.setItem("address", JSON.stringify(address));
+    AsyncStorage.setItem('address', JSON.stringify(address));
+    const def = address.find(a => a.default);
+    setDefaultAddress(def || null);
   }, [address]);
 
   useEffect(() => {
     if (selectedAddressId)
-      AsyncStorage.setItem("selectedAddressId", selectedAddressId);
+      AsyncStorage.setItem('selectedAddressId', String(selectedAddressId));
   }, [selectedAddressId]);
 
-  const addAddress = async (newAddress) => {
-    const updated = [...address, newAddress];
-    setAddress(updated);
-    setSelectedAddressId(newAddress.id);
-
-    await AsyncStorage.setItem("address", JSON.stringify(updated));
-    await AsyncStorage.setItem("selectedAddressId", newAddress.id);
-  };
-  
-
-  const updateAddress = async (updated) => {
-    const updatedList = address.map((addr) =>
-      addr.id === updated.id ? updated : addr
-    );
+  const addAddress = async data => {
+    const saved = await addNewAddress(data);
+    const updatedList = [saved, ...address];
     setAddress(updatedList);
-    await AsyncStorage.setItem("address", JSON.stringify(updatedList));
+    setSelectedAddressId(String(saved.id));
   };
 
-  const resetAddress = async () => {
-    setAddress([]);
-    await AsyncStorage.removeItem("address");
-    setSelectedAddressId(null);
-    await AsyncStorage.removeItem("selectedAddressId");
+  const updateAddress = async updated => {
+    const saved = await updateExistingAddress(updated.id, updated);
+    const updatedList = address.map(a => (a.id === saved.id ? saved : a));
+    setAddress(updatedList);
   };
 
-  const deleteAddress = async (id) => {
-    const updated = address.filter(addr => `${addr.id}` !== `${id}`);
-    setAddress(updated);
-    await AsyncStorage.setItem('address', JSON.stringify(updated));
+  const deleteAddress = async id => {
+    await deleteAddressFromServer(id);
+    const filtered = address.filter(a => a.id !== id);
+    setAddress(filtered);
 
-    if (`${id}` === `${selectedAddressId}`) {
+    if (String(id) === String(selectedAddressId)) {
       setSelectedAddressId(null);
       await AsyncStorage.removeItem('selectedAddressId');
     }
   };
-  
-  
+
+  const markAsDefault = async id => {
+    await markAddressAsDefault(id);
+    const updatedList = address.map(a => ({
+      ...a,
+      default: a.id === id,
+    }));
+    setAddress(updatedList);
+    setSelectedAddressId(String(id));
+  };
+
+  const syncAddressesFromServer = async () => {
+    const fresh = await getAllAddresses();
+    setAddress(fresh);
+    const def = fresh.find(a => a.default);
+    if (def) {
+      setDefaultAddress(def);
+      setSelectedAddressId(String(def.id));
+    }
+  };
+
+  const resetAddress = async () => {
+    setAddress([]);
+    setSelectedAddressId(null);
+    setDefaultAddress(null);
+    await AsyncStorage.removeItem('address');
+    await AsyncStorage.removeItem('selectedAddressId');
+  };
+
   return (
     <AddressContext.Provider
       value={{
+        address,
+        selectedAddressId,
+        setSelectedAddressId,
+        defaultAddress,
+        addAddress,
+        updateAddress,
+        deleteAddress,
+        markAsDefault,
+        syncAddressesFromServer,
+        resetAddress, 
         mode,
         setMode,
         addressData,
         setAddressData,
-        address,
-        setAddress,
-        addAddress,
-        updateAddress,
-        selectedAddressId,
-        setSelectedAddressId,
-        deleteAddress,
-        resetAddress,
       }}
     >
       {children}

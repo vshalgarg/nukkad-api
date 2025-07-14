@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { addToCart, clearCart } from "../../store/cartSlice";
 import { useSafeRouter } from "../../hooks/useSafeRouter";
 import Fonts from "../../styles/font";
+import Colors from "../../styles/colors";
 
 const CustomerOrderCard = ({ order, onPress, isExpanded, expandedView }) => {
   const {safePush}=useSafeRouter();
@@ -69,13 +70,13 @@ export default CustomerOrderCard;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.bgClr,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#ddd",
-    shadowColor: "#000",
+    borderColor: Colors.borderColor,
+    shadowColor: Colors.bgClr,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   date: {
-    color: "#666",
+    color: Colors.primary,
   },
   name: {
     marginBottom: 6,
@@ -100,13 +101,13 @@ const styles = StyleSheet.create({
     fontSize: Fonts.sizes.base,
   },
   repeat: {
-    color: "#2f9e44",
+    color: Colors.primary,
     fontWeight: "600",
   },
   expanded: {
     marginTop: 10,
     borderTopWidth: 1,
-    borderTopColor: "#eee",
+    borderTopColor: Colors.borderColor,
     paddingTop: 10,
   },
 });

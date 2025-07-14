@@ -17,6 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useStore } from '../contexts/storeContext';
 import SideBar from './sidebar/SideBar';
 import Fonts from '../styles/font';
+import Colors from '../styles/colors';
 
 const UserToolbar = ({
   hideCart = false,
@@ -24,8 +25,10 @@ const UserToolbar = ({
   hideMenu = false,
 }) => {
   const navigation = useNavigation();
+
   const { storeData } = useStore();
-  const shopName = storeData?.shopName || 'Select Store';
+
+  const storeName = storeData?.storeName || 'Select Store';
 
   const cartItems = useSelector(state => state.cart.items);
   const totalItems = cartItems.reduce((total, item) => {
@@ -53,19 +56,19 @@ const UserToolbar = ({
         <View style={styles.leftSection}>
           {!hideMenu && (
             <TouchableOpacity onPress={() => setIsSideBarOpen(true)}>
-              <MaterialIcons name="menu" size={24} color="black" />
+              <MaterialIcons name="menu" size={24} color={Colors.secondary} />
             </TouchableOpacity>
           )}
           <Pressable onPress={handleLocation} style={styles.location}>
-            <Entypo name="shop" size={24} color="black" />
-            <Text style={styles.shopName}>{shopName}</Text>
+            <Entypo name="shop" size={24} color={Colors.secondary}/>
+            <Text style={styles.storeName}>{storeName}</Text>
           </Pressable>
         </View>
 
         <View style={styles.rightSection}>
           {!hideCart && (
             <Pressable onPress={moveToCart} style={styles.iconWrapper}>
-              <SimpleLineIcons name="handbag" size={24} color="black" />
+              <SimpleLineIcons name="handbag" size={24} color={Colors.secondary} />
               {totalItems > 0 && (
                 <View style={styles.cartBadge}>
                   <Text style={styles.cartBadgeText}>
@@ -78,7 +81,7 @@ const UserToolbar = ({
 
           {!hideNotification && (
             <Pressable onPress={handleNotification}>
-              <Feather name="bell" size={24} color="black" />
+              <Feather name="bell" size={24} color={Colors.secondary} />
             </Pressable>
           )}
         </View>
@@ -112,7 +115,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 8,
   },
-  shopName: {
+  storeName: {
     fontSize: Fonts.sizes.base,
     fontWeight: '600',
     marginLeft: 5,
@@ -128,7 +131,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -6,
     right: -10,
-    backgroundColor: 'red',
+    backgroundColor: Colors.reject,
     borderRadius: 12,
     minWidth: 22,
     height: 22,
@@ -137,7 +140,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   cartBadgeText: {
-    color: 'white',
+    color: Colors.bgClr,
     fontSize: Fonts.sizes.xs,
     fontWeight: 'bold',
   },

@@ -4,14 +4,14 @@ const Fonts = {
     sm: 14,
     base: 16,
     lg: 18,
-    xl: 22,
-    xxl: 28,
+    xl: 20,
+    xxl: 24,
   },
   weights: {
     light: '300',
     normal: '400',
     medium: '500',
-    bold: '700',
+    bold: '600',
   },
   styles: {
     normal: 'normal',

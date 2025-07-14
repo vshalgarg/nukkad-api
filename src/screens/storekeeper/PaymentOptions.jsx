@@ -16,6 +16,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import BackButton from '../../components/BackButton';
 import styles from '../../styles/globalStyles';
 import Fonts from '../../styles/font';
+import Colors from '../../styles/colors';
 
 const PaymentOptions = () => {
   const [qrCodes, setQrCodes] = useState([]);
@@ -111,7 +112,7 @@ const PaymentOptions = () => {
                       placeholder="Enter name"
                     />
                     <TouchableOpacity onPress={() => setEditingIndex(null)}>
-                      <Ionicons name="checkmark" size={20} color="#4CAF50" />
+                      <Ionicons name="checkmark" size={20} color={Colors.primary}/>
                     </TouchableOpacity>
                   </>
                 ) : (
@@ -121,7 +122,7 @@ const PaymentOptions = () => {
                     </Text>
                     {qr?.uri && (
                       <TouchableOpacity onPress={() => setEditingIndex(index)}>
-                        <Feather name="edit" size={18} color="#333" />
+                        <Feather name="edit" size={18} color={Colors.secondary} />
                       </TouchableOpacity>
                     )}
                   </>
@@ -136,7 +137,7 @@ const PaymentOptions = () => {
                 />
               ) : (
                 <View style={innerStyle.qrPlaceholder}>
-                  <Ionicons name="qr-code" size={48} color="#bbb" />
+                  <Ionicons name="qr-code" size={48} color={Colors.secondary} />
                   <Text style={innerStyle.placeholderText}>No QR Selected</Text>
                 </View>
               )}
@@ -177,12 +178,12 @@ const innerStyle = StyleSheet.create({
   },
   qrCard: {
     marginBottom: 24,
-    backgroundColor: '#ffffff',
+    backgroundColor:Colors.bgClr,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    shadowColor: '#000',
+    borderColor: Colors.borderColor,
+    shadowColor: Colors.bgClr,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
@@ -191,9 +192,9 @@ const innerStyle = StyleSheet.create({
   },
 
   qrCardSelected: {
-    borderColor: '#388E3C',
-    backgroundColor: '#f1fff1',
-    shadowColor: '#4CAF50',
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primary,
+    shadowColor: Colors.borderColor,
     shadowOpacity: 0.2,
     elevation: 6,
     transform: [{ scale: 1.01 }],
@@ -208,14 +209,14 @@ const innerStyle = StyleSheet.create({
   qrLabel: {
     fontSize: Fonts.sizes.base,
     fontWeight: '600',
-    color: '#444',
+    color: Colors.secondary,
   },
   nameInput: {
     flex: 1,
     fontSize: Fonts.sizes.base,
     padding: 4,
     borderBottomWidth: 1,
-    borderColor: '#ccc',
+    borderColor: Colors.borderColor,
     marginRight: 10,
   },
   qrPlaceholder: {
@@ -225,15 +226,15 @@ const innerStyle = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'center',
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: Colors.borderColor,
     borderStyle: 'dashed',
     borderRadius: 12,
     marginBottom: 12,
-    backgroundColor: '#fafafa',
+    backgroundColor: Colors.bgClr,
   },
   placeholderText: {
     marginTop: 8,
-    color: '#aaa',
+    color: Colors.borderColor,
     fontSize: Fonts.sizes.sm,
   },
   qrImage: {
@@ -242,32 +243,32 @@ const innerStyle = StyleSheet.create({
     height: 200,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: Colors.borderColor,
     marginBottom: 12,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.bgClr,
   },
 
   uploadBtn: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: Colors.primary,
     paddingVertical: 10,
     borderRadius: 8,
     alignItems: 'center',
   },
   uploadBtnText: {
-    color: '#fff',
+    color: Colors.bgClr,
     fontSize: Fonts.sizes.base,
     fontWeight: '500',
   },
   clearBtn: {
     marginTop: 10,
     alignSelf: 'center',
-    backgroundColor: '#f44336',
+    backgroundColor: Colors.reject,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
   },
   clearBtnText: {
-    color: '#fff',
+    color: Colors.bgClr,
     fontSize: Fonts.sizes.sm,
     fontWeight: '600',
   },

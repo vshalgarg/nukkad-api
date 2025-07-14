@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import BackButton from '../../components/BackButton';
 import Fonts from '../../styles/font';
+import Colors from '../../styles/colors';
 
 const notifications = [
   {
@@ -56,21 +57,21 @@ export default Notification;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.bgClr,
   },
   listWrapper: {
     marginTop: 20,
     paddingHorizontal: 20,
   },
   card: {
-    backgroundColor: '#ffffff',
+    backgroundColor: Colors.bgClr,
     padding: 18,
     borderRadius: 12,
     marginBottom: 16,
     marginHorizontal: 3,
     marginTop: 1,
     elevation: 4,
-    shadowColor: '#000',
+    shadowColor:Colors.secondary,
     shadowOpacity: 0.15,
     shadowOffset: { width: 2, height: 4 },
     shadowRadius: 6,
@@ -79,10 +80,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: Fonts.sizes.lg,
     marginBottom: 6,
-    color: '#2a6f2a',
+    color: Colors.primary,
   },
   message: {
     fontSize: Fonts.sizes.sm,
-    color: '#3a3a3a',
+    color: Colors.secondaryText,
   },
 });
