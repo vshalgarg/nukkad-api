@@ -31,12 +31,12 @@ public class OrderService {
     private final CustomerRepository customerRepository;
     private final StorekeeperRepository storekeeperRepository;
     private final OrderItemRepository orderItemRepository;
-    private final CartProductRepository cartProductRepository;
+    private final CartItemRepository cartProductRepository;
 
 
     public OrderService(OrderRepository orderRepository, AddressRepository addressRepository, CustomerRepository customerRepository,
                         StorekeeperRepository storekeeperRepository, OrderItemRepository orderItemRepository,
-                        CartProductRepository cartProductRepository) {
+                        CartItemRepository cartProductRepository) {
         this.orderRepository = orderRepository;
         this.addressRepository = addressRepository;
         this.customerRepository = customerRepository;
@@ -79,7 +79,7 @@ public class OrderService {
             log.debug("[CREATE ORDER] Delivery address set: {}", deliveryAddress.getAddressLine1());
 
             // Fetch cart items
-            List<CartProductEntity> cartItems = cartProductRepository.findByCustomerId(customerId);
+            List<CartItemEntity> cartItems = cartProductRepository.findByCustomerId(customerId);
             log.debug("[CREATE ORDER] Found {} cart item(s) for customerId={}", cartItems.size(), customerId);
 
             // Convert cart items to order items

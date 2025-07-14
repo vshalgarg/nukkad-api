@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class UpdateCartProductResponseDto {
+public class UpdateCartItemResponseDTO {
     private String message;
 }

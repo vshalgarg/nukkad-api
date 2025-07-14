@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class CreateCartProductResponseDTO {
+public class CreateCartItemResponseDTO {
     private String message;
     private List<Long> itemIds;
 }

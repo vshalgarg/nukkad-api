@@ -1,6 +1,6 @@
 package com.code.monks.nukkad.dto.response;
 
-import com.code.monks.nukkad.entities.CartProductEntity;
+import com.code.monks.nukkad.entities.CartItemEntity;
 import com.code.monks.nukkad.entities.CategoryItemImageEntity;
 import com.code.monks.nukkad.entities.ItemEntity;
 import lombok.AllArgsConstructor;
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
-public class GetCartProductResponseDTO {
+public class GetCartItemResponseDTO {
 
     private Long id;
     private Long itemId;
@@ -24,7 +24,7 @@ public class GetCartProductResponseDTO {
     private List<String> imageUrls;
 
 
-    public static GetCartProductResponseDTO fromEntity(CartProductEntity entity) {
+    public static GetCartItemResponseDTO fromEntity(CartItemEntity entity) {
         ItemEntity item = entity.getItem();
 
         List<String> imageUrls = item.getImages()
@@ -38,7 +38,7 @@ public class GetCartProductResponseDTO {
                 .collect(Collectors.toList())
                 : List.of(); // return empty list if unit is null
 
-        return new GetCartProductResponseDTO(
+        return new GetCartItemResponseDTO(
                 entity.getId(),
                 item.getId(),
                 item.getName(),
