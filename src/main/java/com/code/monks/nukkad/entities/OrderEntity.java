@@ -1,10 +1,10 @@
 
 package com.code.monks.nukkad.entities;
 import com.code.monks.nukkad.converter.StatusConverter;
-import com.code.monks.nukkad.enums.Status;
+import com.code.monks.nukkad.enums.StatusEnum;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +12,9 @@ import java.util.List;
 @Entity
 @Table(name="orders")
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class  OrderEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,7 +33,7 @@ public class  OrderEntity extends BaseEntity {
     private StorekeeperEntity storeKeeper;
 
     @Convert(converter = StatusConverter.class)
-    private Status status;
+    private StatusEnum status;
 
     @Column(name = "store_keeper_note")
     private String note;

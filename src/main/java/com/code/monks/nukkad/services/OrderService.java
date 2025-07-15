@@ -3,16 +3,19 @@ package com.code.monks.nukkad.services;
 
 import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.request.DispatchOrderRequestDTO;
-import com.code.monks.nukkad.dto.request.OrderRequestDTO;
+import com.code.monks.nukkad.dto.request.PlaceOrderRequestDTO;
 import com.code.monks.nukkad.dto.request.UpdateOrderStatusRequestDTO;
 import com.code.monks.nukkad.dto.response.*;
 import com.code.monks.nukkad.entities.*;
+import com.code.monks.nukkad.enums.ResponseErrorCodes;
 import com.code.monks.nukkad.enums.RoleEnum;
-import com.code.monks.nukkad.enums.Status;
+import com.code.monks.nukkad.enums.StatusEnum;
 import com.code.monks.nukkad.exception.OrderNotFoundException;
+import com.code.monks.nukkad.exception.ResourceNotFoundException;
 import com.code.monks.nukkad.exception.UnauthorizedAccessException;
+import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.*;
-import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -20,101 +23,110 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import static com.code.monks.nukkad.enums.ResponseErrorCodes.UNHANDLED_EXCEPTION;
 
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class OrderService {
 
     private final OrderRepository orderRepository;
     private final AddressRepository addressRepository;
     private final CustomerRepository customerRepository;
+    private final CartItemRepository cartItemRepository;
     private final StorekeeperRepository storekeeperRepository;
-    private final OrderItemRepository orderItemRepository;
-    private final CartItemRepository cartProductRepository;
 
+    public PlaceOrderResponseDTO placeOrders(PlaceOrderRequestDTO requestDTO) {
 
-    public OrderService(OrderRepository orderRepository, AddressRepository addressRepository, CustomerRepository customerRepository,
-                        StorekeeperRepository storekeeperRepository, OrderItemRepository orderItemRepository,
-                        CartItemRepository cartProductRepository) {
-        this.orderRepository = orderRepository;
-        this.addressRepository = addressRepository;
-        this.customerRepository = customerRepository;
-        this.storekeeperRepository = storekeeperRepository;
-        this.orderItemRepository = orderItemRepository;
-        this.cartProductRepository = cartProductRepository;
-    }
+        /* ---------- 1.  High‑level trace ---------- */
+        log.info("[ORDER] Place‑order request: {}", requestDTO);
 
-    public PlaceOrderResponseDTO placeOrders(OrderRequestDTO requestDTO) {
-        log.info("[CREATE ORDER] Request received for customer. Payload: {}", requestDTO);
+        Long customerId = UserContextHolder.getUser().getId();
 
         try {
-            Long customerId = UserContextHolder.getUser().getId();
-            log.debug("[CREATE ORDER] Authenticated customer ID: {}", customerId);
-
-            // Convert DTO to entity
-            OrderEntity orderEntity = OrderRequestDTO.toEntity(requestDTO);
-            log.debug("[CREATE ORDER] Mapped OrderEntity: {}", orderEntity);
-
-            // Set timestamps
-            LocalDateTime now = LocalDateTime.now();
-            orderEntity.setCreatedAt(now);
-            orderEntity.setUpdatedAt(now);
-
-            // Fetch customer
+            /* ---------- 2.  Fetch & validate core entities ---------- */
             CustomerEntity customer = customerRepository.findById(customerId)
-                    .orElseThrow(() -> new EntityNotFoundException("Customer not found with ID: " + customerId));
-            orderEntity.setCustomer(customer);
-            log.debug("[CREATE ORDER] Customer found: {}", customer.getName());
+                    .orElseThrow(() -> {
+                        log.warn("[ORDER] Customer not found (id={})", customerId);
+                        return new ResourceNotFoundException(ResponseErrorCodes.CUSTOMER_NOT_FOUND);
+                    });
 
-            boolean isFirstOrder = orderRepository.countByCustomerId(customerId) == 0;
-            if (isFirstOrder) {
-                orderEntity.setStatus(Status.PENDING);
-                log.debug("[CREATE ORDER] First order for customer. Setting status to PENDING.");
+            StorekeeperEntity storekeeper = storekeeperRepository
+                    .findById(requestDTO.getStoreKeeperId())
+                    .orElseThrow(() -> {
+                        log.warn("[ORDER] Storekeeper not found (id={})", requestDTO.getStoreKeeperId());
+                        return new ResourceNotFoundException(ResponseErrorCodes.STOREKEEPER_NOT_FOUND);
+                    });
+
+            AddressEntity deliveryAddress = addressRepository
+                    .findById(requestDTO.getDeliveryAddressId())
+                    .orElseThrow(() -> {
+                        log.warn("[ORDER] Delivery address not found (id={})",
+                                requestDTO.getDeliveryAddressId());
+                        return new ResourceNotFoundException(ResponseErrorCodes.ADDRESS_NOT_FOUND);
+                    });
+
+            /* ---------- 3.  Prepare order shell ---------- */
+            OrderEntity order = OrderEntity.builder()
+                    .customer(customer)
+                    .storeKeeper(storekeeper)
+                    .deliveryAddress(deliveryAddress)
+                    .status(StatusEnum.PENDING)
+                    .build();
+
+            /* ---------- 4.  Pull cart items ---------- */
+            List<CartItemEntity> cartItems = Optional
+                    .ofNullable(cartItemRepository.findByCustomerId(customerId))
+                    .orElseGet(ArrayList::new);
+
+            if (cartItems.isEmpty()) {
+                log.warn("[ORDER] Cart empty — aborting (customerId={})", customerId);
+                throw new ResourceNotFoundException(ResponseErrorCodes.CART_EMPTY);
             }
-            // Fetch delivery address
-            AddressEntity deliveryAddress = addressRepository.findById(requestDTO.getDeliveryAddressId())
-                    .orElseThrow(() -> new EntityNotFoundException("Delivery address not found with ID: " + requestDTO.getDeliveryAddressId()));
-            orderEntity.setDeliveryAddress(deliveryAddress);
-            log.debug("[CREATE ORDER] Delivery address set: {}", deliveryAddress.getAddressLine1());
+            log.debug("[ORDER] {} cart item(s) fetched for customerId={}", cartItems.size(), customerId);
 
-            // Fetch cart items
-            List<CartItemEntity> cartItems = cartProductRepository.findByCustomerId(customerId);
-            log.debug("[CREATE ORDER] Found {} cart item(s) for customerId={}", cartItems.size(), customerId);
+            /* ---------- 5.  Convert cart → order items ---------- */
+            List<OrderItemEntity> orderItems = cartItems.stream()
+                    .map(ci -> {
+                        OrderItemEntity oi = new OrderItemEntity();
+                        oi.setItem(ci.getItem());
+                        oi.setItemName(ci.getItem().getName());
+                        oi.setQuantity(ci.getQuantity());
+                        oi.setUnit(ci.getUnit());
+                        oi.setOrders(order);
+                        log.debug("[ORDER]   → itemId={}, qty={}, unit={}",
+                                ci.getItem().getId(), ci.getQuantity(), ci.getUnit());
+                        return oi;
+                    })
+                    .toList();
 
-            // Convert cart items to order items
-            List<OrderItemEntity> orderItems = cartItems.stream().map(cartItem -> {
-                OrderItemEntity orderItem = new OrderItemEntity();
+            order.setOrderItems(orderItems);
 
-                orderItem.setItem(cartItem.getItem());
-                orderItem.setItemName(cartItem.getItem().getName());
-                orderItem.setQuantity(cartItem.getQuantity());
-                orderItem.setUnit(cartItem.getUnit());
-                orderItem.setOrders(orderEntity);
-                log.debug("[CREATE ORDER] Converted cart item to order item: itemId={}, quantity={}",
-                        cartItem.getItem().getId(), cartItem.getQuantity());
-                return orderItem;
-            }).toList();
+            // Persist & clean up
+            orderRepository.save(order);
+            log.info("[ORDER] Order saved (orderId={}, customerId={})",
+                    order.getId(), customerId);
 
-         orderEntity.setOrderItems(orderItems);
-            // Save order
-            orderRepository.save(orderEntity);
-            log.info("[CREATE ORDER] Order saved successfully with ID: {}", orderEntity.getId());
+            cartItemRepository.deleteAll(cartItems);
+            log.debug("[ORDER] Cart cleared ({} item[s]) for customerId={}",
+                    cartItems.size(), customerId);
 
-            // Clear the cart after order is placed
-            cartProductRepository.deleteAll(cartItems);
-            log.info("[CREATE ORDER] Cleared {} cart items for customerId={}", cartItems.size(), customerId);
+            /* ---------- 7.  Build response ---------- */
+            return new PlaceOrderResponseDTO("Order placed successfully");
 
-            // Return success response
-            PlaceOrderResponseDTO responseDTO = new PlaceOrderResponseDTO();
-            responseDTO.setMessage("Order placed successfully");
-            return responseDTO;
+        } catch (ResourceNotFoundException ex) {
+            /* Already logged above where thrown */
+            throw ex;
 
-        } catch (Exception e) {
-            log.error("[CREATE ORDER] Failed to create order for request: {}", requestDTO, e);
-            throw new RuntimeException("Failed to create order", e);
+        } catch (Exception ex) {
+            log.error("[ORDER] Unexpected failure while placing order (customerId={})", customerId, ex);
+            throw new UnhandledException(UNHANDLED_EXCEPTION, ex);
         }
     }
+
 
     public CancelOrderByStoreKeeperResponseDTO cancelOrderByStoreKeeper(Long id) {
         Long storekeeperId = UserContextHolder.getUser().getId();
@@ -124,13 +136,13 @@ public class OrderService {
             OrderEntity orderEntity = orderRepository.findById(id)
                     .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + id));
 
-            if (orderEntity.getStatus() == Status.PENDING) {
+            if (orderEntity.getStatus() == StatusEnum.PENDING) {
                 log.info("Order [{}] is PENDING. Proceeding with cancellation.", id);
-                orderEntity.setStatus(Status.CANCELLED);
+                orderEntity.setStatus(StatusEnum.CANCELLED);
 
-            } else if (orderEntity.getStatus() == Status.IN_PROGRESS) {
+            } else if (orderEntity.getStatus() == StatusEnum.IN_PROGRESS) {
                 log.info("Order [{}] is IN_PROGRESS. Proceeding with cancellation.", id);
-                orderEntity.setStatus(Status.CANCELLED);
+                orderEntity.setStatus(StatusEnum.CANCELLED);
 
             } else {
                 log.warn("Order [{}] is in status [{}] and cannot be cancelled", id, orderEntity.getStatus());
@@ -139,7 +151,7 @@ public class OrderService {
 
             OrderEntity updatedOrder = orderRepository.save(orderEntity);
             log.info("Order [{}] cancelled successfully by storekeeper [{}]", id, storekeeperId);
-            return  new CancelOrderByStoreKeeperResponseDTO("Order are cancelled successfully !!");
+            return new CancelOrderByStoreKeeperResponseDTO("Order are cancelled successfully !!");
 
         } catch (OrderNotFoundException e) {
             throw e;
@@ -153,12 +165,12 @@ public class OrderService {
     }
 
     public UpdateOrderStatusResponseDTO updateOrderStatus(long id, UpdateOrderStatusRequestDTO updateOrderStatusRequestDTO) {
-        Status newStatus = updateOrderStatusRequestDTO.getStatus();
-        log.info("Updating status for Order ID [{}] to [{}]", id, newStatus);
+        StatusEnum newOrderStatus = updateOrderStatusRequestDTO.getOrderStatus();
+        log.info("Updating status for Order ID [{}] to [{}]", id, newOrderStatus);
 
         try {
             // Validate input
-            if (newStatus == null) {
+            if (newOrderStatus == null) {
                 log.error("Status in request is null");
                 throw new IllegalArgumentException("Status cannot be null");
             }
@@ -167,27 +179,27 @@ public class OrderService {
             OrderEntity orderEntity = orderRepository.findById(id)
                     .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + id));
 
-            if (orderEntity.getStatus().equals(Status.CANCELLED)){
-                throw  new RuntimeException("");
+            if (orderEntity.getStatus().equals(StatusEnum.CANCELLED)) {
+                throw new RuntimeException("");
             }
             // Update status
-            orderEntity.setStatus(newStatus);
+            orderEntity.setStatus(newOrderStatus);
 
             OrderEntity updatedOrder = orderRepository.save(orderEntity);
 
-            log.info("Order status updated successfully to [{}] for ID [{}]", newStatus, id);
+            log.info("Order status updated successfully to [{}] for ID [{}]", newOrderStatus, id);
             return new UpdateOrderStatusResponseDTO("Status are updated successfully");
 
         } catch (OrderNotFoundException | IllegalArgumentException e) {
             throw e;
         } catch (Exception e) {
             log.error("Failed to update order status for ID [{}]", id, e);
-            throw new RuntimeException("Failed to update order status", e);
+            throw new UnhandledException(UNHANDLED_EXCEPTION, e);
         }
     }
 
     public List<GetUserHistoryByStatusAndDateResponseDTO> getUserHistoryByOptionalFilters(
-            Status status, LocalDate startDate, LocalDate endDate) {
+            StatusEnum status, LocalDate startDate, LocalDate endDate) {
 
         Long userId = UserContextHolder.getUser().getId();
         List<RoleEnum> roles = UserContextHolder.getUser().getRoles();
@@ -255,86 +267,67 @@ public class OrderService {
         return responseDTOs;
     }
 
-    public RepeatOrderResponseDTO repeatOrder(Long id)
-    {
-        log.info("Repeat Order with Id = {}",id);
-        OrderEntity existingOrder = orderRepository.findById(id)
-                .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + id));
-
-        Long customerId = UserContextHolder.getUser().getId();
-        if (!existingOrder.getCustomer().getId().equals(customerId)) {
-            throw new RuntimeException("You are not authorized to repeat this order.");
-        }
-
-        OrderEntity newOrder = new OrderEntity();
-        newOrder.setCustomer(existingOrder.getCustomer());
-        newOrder.setDeliveryAddress(existingOrder.getDeliveryAddress());
-        newOrder.setStoreKeeper(existingOrder.getStoreKeeper());
-        newOrder.setStatus(Status.PENDING);
-
-
-        List<OrderItemEntity> newItems = new ArrayList<>();
-        for (OrderItemEntity item : existingOrder.getOrderItems()) {
-            OrderItemEntity clonedItem = new OrderItemEntity();
-            clonedItem.setOrders(newOrder);
-            clonedItem.setItem(item.getItem());
-            clonedItem.setItemName(item.getItemName());
-            clonedItem.setQuantity(item.getQuantity());
-            clonedItem.setUnit(item.getUnit());
-            clonedItem.setPrice(item.getPrice());
-
-            newItems.add(clonedItem);
-        }
-        newOrder.setOrderItems(newItems);
-        orderRepository.save(newOrder);
-
-        log.info("New order repeated with ID={}", newOrder.getId());
-        return new RepeatOrderResponseDTO("Order repeated successfully. New Order ID: " + newOrder.getId());
-
-    }
 
     public DispatchOrderResponseDTO dispatchOrder(DispatchOrderRequestDTO request) {
         Long storekeeperId = UserContextHolder.getUser().getId();
-        log.info("[DISPATCH] Initiating dispatch for orderId={} by storekeeperId={}", request.getOrderId(), storekeeperId);
+        Long orderId = request.getOrderId();
+        log.info("[DISPATCH] Request received to dispatch orderId={} by storekeeperId={}", orderId, storekeeperId);
 
-        // Validate item list
-        if (request.getOrderItem() == null || request.getOrderItem().isEmpty()) {
-            log.warn("[DISPATCH] Item list is empty or null for orderId={}", request.getOrderId());
-            throw new IllegalArgumentException("Item list must not be null or empty.");
-        }
+        try {
+            // Validate item list
+            if (request.getOrderItem() == null || request.getOrderItem().isEmpty()) {
+                log.warn("[DISPATCH] Empty or null order item list for orderId={}", orderId);
+                throw new IllegalArgumentException("Order items list cannot be empty or null.");
+            }
 
-        // Fetch the order
-        OrderEntity order = orderRepository.findById(request.getOrderId())
-                .orElseThrow(() -> {
-                    log.warn("[DISPATCH] Order not found with ID={}", request.getOrderId());
-                    return new OrderNotFoundException("Order not found with ID: " + request.getOrderId());
-                });
-
-        // Validate ownership
-        if (!order.getStoreKeeper().getId().equals(storekeeperId)) {
-            log.error("[DISPATCH] Unauthorized attempt by storekeeperId={} for orderId={}", storekeeperId, order.getId());
-            throw new RuntimeException("You are not authorized to dispatch this order.");
-        }
-
-        // Update each item's price
-        for (OrderItemEntity orderItem : order.getOrderItems()) {
-            request.getOrderItem().stream()
-                    .filter(i -> i.getItemId().equals(orderItem.getItem().getId()))
-                    .findFirst()
-                    .ifPresent(i -> {
-                        log.info("[DISPATCH] Updating price for itemId={} to {}", i.getItemId(), i.getPrice());
-                        orderItem.setPrice(i.getPrice());
+            // Fetch order
+            OrderEntity order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> {
+                        log.warn("[DISPATCH] Order not found with ID={}", orderId);
+                        return new OrderNotFoundException("Order not found with ID: " + orderId);
                     });
+
+            // Check storekeeper access
+            if (!order.getStoreKeeper().getId().equals(storekeeperId)) {
+                log.error("[DISPATCH] Unauthorized dispatch attempt by storekeeperId={} for orderId={}", storekeeperId, orderId);
+                throw new UnauthorizedAccessException("Unauthorized to dispatch this order.");
+            }
+
+            // Update item prices
+            request.getOrderItem().forEach(requestedItem -> {
+                order.getOrderItems().stream()
+                        .filter(orderItem -> orderItem.getItem().getId().equals(requestedItem.getItemId()))
+                        .findFirst()
+                        .ifPresent(orderItem -> {
+                            log.debug("[DISPATCH] Updating price for itemId={} to {}", requestedItem.getItemId(), requestedItem.getPrice());
+                            orderItem.setPrice(requestedItem.getPrice());
+                        });
+            });
+
+            // Update status & note
+            order.setStatus(StatusEnum.DISPATCH);
+            order.setNote(request.getNote());
+
+            orderRepository.save(order);
+            log.info("[DISPATCH] Order ID={} dispatched successfully by storekeeperId={}", orderId, storekeeperId);
+
+            return new DispatchOrderResponseDTO("Order dispatched successfully.");
+
+        } catch (IllegalArgumentException e) {
+            log.warn("[DISPATCH] Invalid input for orderId={}: {}", orderId, e.getMessage());
+            throw e;
+
+        } catch (OrderNotFoundException e) {
+            log.warn("[DISPATCH] Order not found: {}", e.getMessage());
+            throw e;
+
+        } catch (UnauthorizedAccessException e) {
+            log.error("[DISPATCH] Authorization or validation failure for orderId={}", orderId, e);
+            throw e;
+
+        } catch (Exception e) {
+            log.error("[DISPATCH] Unexpected error while dispatching orderId={}", orderId, e);
+            throw new UnhandledException(UNHANDLED_EXCEPTION, e);
         }
-
-        // Set status and optional note
-        order.setStatus(Status.DISPATCH);
-        order.setNote(request.getNote());
-
-        // Save updated order
-        orderRepository.save(order);
-
-        log.info("[DISPATCH] Order ID={} dispatched successfully by storekeeperId={}", order.getId(), storekeeperId);
-        return new DispatchOrderResponseDTO("Order dispatched successfully.");
     }
 }

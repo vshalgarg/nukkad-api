@@ -1,7 +1,7 @@
 package com.code.monks.nukkad.dto.response;
 
 import com.code.monks.nukkad.entities.*;
-import com.code.monks.nukkad.enums.Status;
+import com.code.monks.nukkad.enums.StatusEnum;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -23,7 +23,7 @@ public class GetUserHistoryByStatusAndDateResponseDTO {
 
     private List<ItemDetailsDTO> items;
 
-    private Status status;
+    private StatusEnum status;
 
     public static GetUserHistoryByStatusAndDateResponseDTO fromEntity(OrderEntity order) {
         GetUserHistoryByStatusAndDateResponseDTO dto = new GetUserHistoryByStatusAndDateResponseDTO();
@@ -69,7 +69,7 @@ public class GetUserHistoryByStatusAndDateResponseDTO {
 
                 // Calculate price only for DISPATCH or DELIVERED
                 double price = 0.0;
-                if (order.getStatus() == Status.DISPATCH || order.getStatus() == Status.DELIVERED) {
+                if (order.getStatus() == StatusEnum.DISPATCH || order.getStatus() == StatusEnum.DELIVERED) {
                     String baseUnit = rawUnit != null ? rawUnit.toUpperCase() : "";
                     price = switch (baseUnit) {
                         case "KG" -> 40.0;
