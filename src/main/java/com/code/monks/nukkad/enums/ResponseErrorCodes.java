@@ -6,11 +6,11 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ResponseErrorCodes {
+	CART_EMPTY(1028,"Cart is empty.So , you can not place order"),
+	SUBMIT_RATING_EXCEPTION(1027,"Unable to submit rating at this time. Please try again later."),
 	DUPLICATE_STOREKEEPER_PROFILE_FOUND_EXCEPTION(1026,"Storekeeper profile is already exists"),
 	DUPLICATE_CUSTOMER_PROFILE_FOUND_EXCEPTION(1025,"Customer profile is already exists"),
 	DUPLICATE_EMAIL_FOUND_EXCEPTION(1024,"Email is already exists"),
-	ITEM_NOT_FOUND_WITH_GIVEN_UNIT(1023,"Item not found in cart with given unit"),
-	CART_NOT_FOUND(1022,"Cart not found for customer id"),
 	EXTERNAL_API_CALL_FAILED(502,"External API call failed"),
 	EXTERNAL_SERVICE_ERROR(502,"External service exception occur"),
 	DEFAULT_QR_CODE_CAN_NOT_BE_DELETE(1003,"Cannot delete default QR code"),
@@ -19,7 +19,6 @@ public enum ResponseErrorCodes {
 	ADDRESS_NOT_FOUND(1006,"Address not found."),
 	DEFAULT_ADDRESS_CAN_NOT_BE_CHANGE(1007,"Default address can not be change."),
 	DEFAULT_ADDRESS_CAN_NOT_BE_DELETE(1008,"Default address can not be delete"),
-	CART_ITEM_NOT_FOUND(1009," Item not found in cart with itemId: "),
 	STOREKEEPER_NOT_FOUND(1010,"Storekeeper not found with id: "),
 	CUSTOMER_NOT_FOUND(1011,"Customer not found with id: "),
 	CATEGORY_NOT_FOUND(1012,"Category not found with id: "),

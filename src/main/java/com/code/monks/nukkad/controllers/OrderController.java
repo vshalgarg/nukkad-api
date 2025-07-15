@@ -2,7 +2,7 @@
 package com.code.monks.nukkad.controllers;
 
 import com.code.monks.nukkad.dto.request.DispatchOrderRequestDTO;
-import com.code.monks.nukkad.dto.request.OrderRequestDTO;
+import com.code.monks.nukkad.dto.request.PlaceOrderRequestDTO;
 import com.code.monks.nukkad.dto.request.UpdateOrderStatusRequestDTO;
 import com.code.monks.nukkad.dto.response.*;
 import com.code.monks.nukkad.services.OrderService;
@@ -24,7 +24,7 @@ public class OrderController {
     private OrderService orderService;
 
     @PostMapping(PLACE_ORDER )
-    public ResponseEntity<PlaceOrderResponseDTO> placeOrder(@RequestBody OrderRequestDTO requestDTO) {
+    public ResponseEntity<PlaceOrderResponseDTO> placeOrder(@RequestBody PlaceOrderRequestDTO requestDTO) {
         PlaceOrderResponseDTO response = orderService.placeOrders(requestDTO);
         return ResponseEntity.ok(response);
     }
@@ -47,19 +47,13 @@ public class OrderController {
             @RequestBody UpdateOrderStatusRequestDTO requestDTO
     )
     {
-        log.info("Updating orderId={} to status={}", id, requestDTO.getStatus());
+        log.info("Updating orderId={} to status={}", id, requestDTO.getOrderStatus());
 
         UpdateOrderStatusResponseDTO responseDTO = orderService.updateOrderStatus(id, requestDTO);
 
         return ResponseEntity.ok(responseDTO);
     }
 
-    @PostMapping(REPEAT_ORDER)
-    public ResponseEntity<RepeatOrderResponseDTO> repeatOrder(@PathVariable Long id)
-    {
-        RepeatOrderResponseDTO response = orderService.repeatOrder(id);
-        return ResponseEntity.ok(response);
-    }
 
     @PostMapping(DISPATCH_ORDER)
     public ResponseEntity<DispatchOrderResponseDTO> dispatchOrder(@RequestBody DispatchOrderRequestDTO request) {

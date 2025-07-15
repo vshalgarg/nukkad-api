@@ -1,8 +1,7 @@
 package com.code.monks.nukkad.repositories;
 
 import com.code.monks.nukkad.entities.OrderEntity;
-import com.code.monks.nukkad.enums.Status;
-import org.springframework.beans.PropertyValues;
+import com.code.monks.nukkad.enums.StatusEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,7 +12,7 @@ import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<OrderEntity,Long> {
 
-    List<OrderEntity> findByStatus(Status status); // Correct
+    List<OrderEntity> findByStatus(StatusEnum status); // Correct
 
 //    List<OrderEntity> findByOrderById();  // Ascending order
 
@@ -24,7 +23,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity,Long> {
     List<OrderEntity> findByStoreKeeperId(Long storeKeeperId);
 
 
-    List<OrderEntity> findByStatusAndCreatedAtBetween(Status status, LocalDateTime startOfDay, LocalDateTime endOfDay);
+    List<OrderEntity> findByStatusAndCreatedAtBetween(StatusEnum status, LocalDateTime startOfDay, LocalDateTime endOfDay);
 
     Long countByCustomerId(Long customerId);
 
@@ -37,7 +36,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity,Long> {
             "AND (:end IS NULL OR o.createdAt <= :end)")
     List<OrderEntity> findCustomerOrdersWithOptionalFilters(
             @Param("customerId") Long customerId,
-            @Param("status") Status status,
+            @Param("status") StatusEnum status,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
 
@@ -49,7 +48,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity,Long> {
             "AND (:end IS NULL OR o.createdAt <= :end)")
     List<OrderEntity> findStorekeeperOrdersWithOptionalFilters(
             @Param("storekeeperId") Long storekeeperId,
-            @Param("status") Status status,
+            @Param("status") StatusEnum status,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
 

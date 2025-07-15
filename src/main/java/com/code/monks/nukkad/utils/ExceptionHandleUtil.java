@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 @Component
 @RequiredArgsConstructor
-public class ExceptionHandleUtil {
+public class  ExceptionHandleUtil {
 
     private final StorekeeperRepository storekeeperRepository;
 
@@ -42,6 +42,4 @@ public class ExceptionHandleUtil {
         String joined = String.join(", ", fields);
         return "These " + joined + " & " + last + " already exist.";
     }
-
-
 }

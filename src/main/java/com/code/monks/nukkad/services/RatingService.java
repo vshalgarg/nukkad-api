@@ -7,8 +7,8 @@ import com.code.monks.nukkad.dto.response.CreateRatingResponseDTO;
 import com.code.monks.nukkad.entities.CustomerEntity;
 import com.code.monks.nukkad.entities.RatingEntity;
 import com.code.monks.nukkad.entities.StorekeeperEntity;
-import com.code.monks.nukkad.enums.ResponseErrorCodes;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
+import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.CustomerRepository;
 import com.code.monks.nukkad.repositories.RatingRepository;
 import com.code.monks.nukkad.repositories.StorekeeperRepository;
@@ -16,46 +16,55 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RatingService
-{
+public class RatingService {
+
     private final RatingRepository ratingRepository;
     private final CustomerRepository customerRepository;
     private final StorekeeperRepository storekeeperRepository;
 
-    public CreateRatingResponseDTO createRating(CreateRatingRequestDTO dto)
-    {
-        log.info("[Create Rating] Received request:{}", dto);
+    public CreateRatingResponseDTO createRating(CreateRatingRequestDTO dto) {
+        log.info("[CREATE RATING] Request received: {}", dto);
+
         Long customerId = UserContextHolder.getUser().getId();
+        log.debug("[CREATE RATING] Authenticated customer ID: {}", customerId);
 
+        // Validate Customer
         CustomerEntity customerEntity = customerRepository.findById(customerId)
-                .orElseThrow(()->
-                {
-                    log.error("[CREATE RATING] Customer not found with Id:{}",customerId);
-
-                    return new ResourceNotFoundException(ResponseErrorCodes.CUSTOMER_NOT_FOUND,customerId);
+                .orElseThrow(() -> {
+                    log.error("[CREATE RATING] Customer not found. ID: {}", customerId);
+                    return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
                 });
 
-        StorekeeperEntity storekeeperEntity =storekeeperRepository.findById(dto.getStoreKeeperId())
-                .orElseThrow(()->
-                {
-                    log.error("[CREATE RATING] StoreKeeper not found with id:{}",dto.getStoreKeeperId());
-
-                    return new ResourceNotFoundException(ResponseErrorCodes.STOREKEEPER_NOT_FOUND, dto.getStoreKeeperId());
+        // Validate Storekeeper
+        Long storekeeperId = dto.getStoreKeeperId();
+        StorekeeperEntity storekeeperEntity = storekeeperRepository.findById(storekeeperId)
+                .orElseThrow(() -> {
+                    log.error("[CREATE RATING] Storekeeper not found. ID: {}", storekeeperId);
+                    return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, storekeeperId);
                 });
 
-        RatingEntity ratingEntity = new RatingEntity();
-        ratingEntity.setCustomer(customerEntity);
-        ratingEntity.setStorekeeper(storekeeperEntity);
-        ratingEntity.setReview(dto.getReview());
-        ratingEntity.setRating(dto.getRating());
+        // Save Rating
+        try {
+            RatingEntity ratingEntity = new RatingEntity();
+            ratingEntity.setCustomer(customerEntity);
+            ratingEntity.setStorekeeper(storekeeperEntity);
+            ratingEntity.setReview(dto.getReview());
+            ratingEntity.setRating(dto.getRating());
 
-        RatingEntity saved = ratingRepository.save(ratingEntity);
+            RatingEntity savedRating = ratingRepository.save(ratingEntity);
+            log.info("[CREATE RATING] Rating saved successfully. Rating ID: {}", savedRating.getId());
 
-        log.info("[CREATE RATING] Rating successfully saved with ID: {}", saved.getId());
-
-        return new CreateRatingResponseDTO("Review submitted successfully!");
+            return new CreateRatingResponseDTO("Review submitted successfully!");
+        } catch (Exception e) {
+            log.error("[CREATE RATING] Failed to save rating for customer ID: {} and storekeeper ID: {}",
+                    customerId, storekeeperId, e);
+            throw new UnhandledException(SUBMIT_RATING_EXCEPTION,e);
+        }
     }
 }
+
