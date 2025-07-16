@@ -42,8 +42,8 @@ public class UrlConstants {
  public static class OTP{
 
 	 public static final String BASE = CONTEXT +  "/api/otp";
-	 public static final String SEND_LOGIN_OTP = "/v1/send/login";
-	 public static final String VERIFY_LOGIN_OTP ="/v1/verify/login";
+	 public static final String SEND_LOGIN_OTP = "/v1/otp/send/login";
+	 public static final String VERIFY_LOGIN_OTP ="/v1/otp/verify/login";
 	 public static final String SEND_DELETE_OTP = "/V1/send/delete";
 	 public static final String VERIFY_DELETE_OTP = "/V1/verify/delete";
  }

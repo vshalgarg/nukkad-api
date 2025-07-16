@@ -219,40 +219,14 @@ public class OrderService {
 
         if (roles.contains(RoleEnum.CUSTOMER)) {
             log.info("[ORDER FILTER] Fetching orders for CUSTOMER with userId={}", userId);
-            orders = orderRepository.findCustomerOrdersWithOptionalFilters(userId, status, start, end);
+            orders = orderRepository.findCustomerOrdersWithFilters(userId, status, start, end, minPrice, maxPrice);
         } else if (roles.contains(RoleEnum.STOREKEEPER)) {
             log.info("[ORDER FILTER] Fetching orders for STOREKEEPER with userId={}", userId);
-            orders = orderRepository.findStorekeeperOrdersWithOptionalFilters(userId, status, start, end);
+            orders = orderRepository.findStorekeeperOrdersWithFilters(userId, status, start, end, minPrice, maxPrice);
         } else {
             log.error("[ORDER FILTER] Unauthorized role access for userId={}", userId);
             throw new UnauthorizedAccessException("User role not authorized to access order history.");
         }
-
-        orders = orders.stream()
-                .filter(order -> {
-                    // ✅ Allow only DELIVERY or DISPATCH in general
-                    if (!(order.getStatus() == StatusEnum.DISPATCH || order.getStatus() == StatusEnum.DELIVERED)) {
-                        return false;
-                    }
-
-                    // ✅ Apply price filter only for DISPATCH or DELIVERY orders
-                    if ((minPrice != null || maxPrice != null)
-                            && !(order.getStatus() == StatusEnum.DISPATCH || order.getStatus() == StatusEnum.DELIVERED)) {
-                        return false;
-                    }
-
-                    // ✅ Compute total price
-                    double totalPrice = order.getOrderItems().stream()
-                            .filter(item -> item.getPrice() > 0)
-                            .mapToDouble(item -> item.getPrice() * item.getQuantity())
-                            .sum();
-
-                    return (minPrice == null || totalPrice >= minPrice) &&
-                            (maxPrice == null || totalPrice <= maxPrice);
-                })
-                .toList();
-
-
 
         if (orders.isEmpty()) {
             log.warn("[ORDER FILTER] No orders found for userId={} with applied filters", userId);
@@ -263,9 +237,6 @@ public class OrderService {
                 .map(GetUserHistoryByStatusAndDateResponseDTO::fromEntity)
                 .toList();
     }
-
-
-
 
     public List<GetOrderByStoreKeeperResponseDTO> getOrdersByStorekeeper() {
 

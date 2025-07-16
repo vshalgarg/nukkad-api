@@ -17,30 +17,56 @@ public interface OrderRepository extends JpaRepository<OrderEntity,Long> {
 
     List<OrderEntity> findByStoreKeeperId(Long storeKeeperId);
 
-    @Query("SELECT o FROM OrderEntity o " +
-            "WHERE o.customer.id = :customerId " +
-            "AND (:status IS NULL OR o.status = :status) " +
-            "AND (:start IS NULL OR o.createdAt >= :start) " +
-            "AND (:end IS NULL OR o.createdAt <= :end) ")
-
-    List<OrderEntity> findCustomerOrdersWithOptionalFilters(
+    @Query("""
+SELECT o FROM OrderEntity o
+JOIN o.orderItems oi
+WHERE o.customer.id = :customerId
+  AND (
+      (:status IS NOT NULL AND o.status = :status)
+      OR (:status IS NULL AND (:minPrice IS NOT NULL OR :maxPrice IS NOT NULL) AND 
+         (o.status = com.code.monks.nukkad.enums.StatusEnum.DISPATCH OR o.status = com.code.monks.nukkad.enums.StatusEnum.DELIVERED))
+      OR (:status IS NULL AND :minPrice IS NULL AND :maxPrice IS NULL)
+  )
+  AND (:start IS NULL OR o.createdAt >= :start)
+  AND (:end IS NULL OR o.createdAt <= :end)
+GROUP BY o.id
+HAVING 
+  (:minPrice IS NULL OR SUM(oi.price * oi.quantity) >= :minPrice) AND
+  (:maxPrice IS NULL OR SUM(oi.price * oi.quantity) <= :maxPrice)
+""")
+    List<OrderEntity> findCustomerOrdersWithFilters(
             @Param("customerId") Long customerId,
             @Param("status") StatusEnum status,
             @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end);
+            @Param("end") LocalDateTime end,
+            @Param("minPrice") Double minPrice,
+            @Param("maxPrice") Double maxPrice
+    );
 
-
-
-    @Query("SELECT o FROM OrderEntity o " +
-            "WHERE o.storeKeeper.id = :storekeeperId " +
-            "AND (:status IS NULL OR o.status = :status) " +
-            "AND (:start IS NULL OR o.createdAt >= :start) " +
-            "AND (:end IS NULL OR o.createdAt <= :end)")
-    List<OrderEntity> findStorekeeperOrdersWithOptionalFilters(
+    @Query("""
+SELECT o FROM OrderEntity o
+JOIN o.orderItems oi
+WHERE o.storeKeeper.id = :storekeeperId
+  AND (
+      (:status IS NOT NULL AND o.status = :status)
+      OR (:status IS NULL AND (:minPrice IS NOT NULL OR :maxPrice IS NOT NULL) AND (o.status = com.code.monks.nukkad.enums.StatusEnum.DISPATCH OR o.status = com.code.monks.nukkad.enums.StatusEnum.DELIVERED))
+      OR (:status IS NULL AND :minPrice IS NULL AND :maxPrice IS NULL)
+  )
+  AND (:start IS NULL OR o.createdAt >= :start)
+  AND (:end IS NULL OR o.createdAt <= :end)
+GROUP BY o.id
+HAVING 
+  (:minPrice IS NULL OR SUM(oi.price * oi.quantity) >= :minPrice) AND
+  (:maxPrice IS NULL OR SUM(oi.price * oi.quantity) <= :maxPrice)
+""")
+    List<OrderEntity> findStorekeeperOrdersWithFilters(
             @Param("storekeeperId") Long storekeeperId,
             @Param("status") StatusEnum status,
             @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end);
+            @Param("end") LocalDateTime end,
+            @Param("minPrice") Double minPrice,
+            @Param("maxPrice") Double maxPrice
+    );
 
 
 
