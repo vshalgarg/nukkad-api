@@ -58,7 +58,7 @@ public class OrderService {
                     .findById(requestDTO.getStoreKeeperId())
                     .orElseThrow(() -> {
                         log.warn("[ORDER] Storekeeper not found (id={})", requestDTO.getStoreKeeperId());
-                        return new ResourceNotFoundException(ResponseErrorCodes.STOREKEEPER_NOT_FOUND);
+                        return new ResourceNotFoundException(ResponseErrorCodes.STOREKEEPER_NOT_FOUND,requestDTO.getStoreKeeperId());
                     });
 
             AddressEntity deliveryAddress = addressRepository
@@ -199,13 +199,13 @@ public class OrderService {
     }
 
     public List<GetUserHistoryByStatusAndDateResponseDTO> getUserHistoryByOptionalFilters(
-            StatusEnum status, LocalDate startDate, LocalDate endDate) {
+            StatusEnum status, LocalDate startDate, LocalDate endDate, Double minPrice, Double maxPrice) {
 
         Long userId = UserContextHolder.getUser().getId();
         List<RoleEnum> roles = UserContextHolder.getUser().getRoles();
 
-        log.info("[ORDER FILTER] Request by userId={}, Roles={}, Status={}, StartDate={}, EndDate={}",
-                userId, roles, status, startDate, endDate);
+        log.info("[ORDER FILTER] Request by userId={}, Roles={}, Status={}, StartDate={}, EndDate={}, MinPrice={}, MaxPrice={}",
+                userId, roles, status, startDate, endDate, minPrice, maxPrice);
 
         if (roles == null || roles.isEmpty()) {
             log.warn("[ORDER FILTER] User has no roles assigned.");
@@ -214,8 +214,6 @@ public class OrderService {
 
         LocalDateTime start = (startDate != null) ? startDate.atStartOfDay() : null;
         LocalDateTime end = (endDate != null) ? endDate.atTime(23, 59, 59) : null;
-
-        log.info("[ORDER FILTER] Converted StartDateTime={}, EndDateTime={}", start, end);
 
         List<OrderEntity> orders;
 
@@ -230,21 +228,43 @@ public class OrderService {
             throw new UnauthorizedAccessException("User role not authorized to access order history.");
         }
 
-        if (orders.isEmpty()) {
-            log.warn("[ORDER FILTER] No orders found for userId={} with filters: Status={}, Start={}, End={}",
-                    userId, status, start, end);
-            throw new OrderNotFoundException("No orders found with given filters.");
-        }
+        orders = orders.stream()
+                .filter(order -> {
+                    // ✅ Allow only DELIVERY or DISPATCH in general
+                    if (!(order.getStatus() == StatusEnum.DISPATCH || order.getStatus() == StatusEnum.DELIVERED)) {
+                        return false;
+                    }
 
-        log.info("[ORDER FILTER] {} orders found for userId={}", orders.size(), userId);
-        for (OrderEntity order : orders) {
-            log.info("[ORDER FILTER] OrderId={}, CreatedAt={}", order.getId(), order.getCreatedAt());
+                    // ✅ Apply price filter only for DISPATCH or DELIVERY orders
+                    if ((minPrice != null || maxPrice != null)
+                            && !(order.getStatus() == StatusEnum.DISPATCH || order.getStatus() == StatusEnum.DELIVERED)) {
+                        return false;
+                    }
+
+                    // ✅ Compute total price
+                    double totalPrice = order.getOrderItems().stream()
+                            .filter(item -> item.getPrice() > 0)
+                            .mapToDouble(item -> item.getPrice() * item.getQuantity())
+                            .sum();
+
+                    return (minPrice == null || totalPrice >= minPrice) &&
+                            (maxPrice == null || totalPrice <= maxPrice);
+                })
+                .toList();
+
+
+
+        if (orders.isEmpty()) {
+            log.warn("[ORDER FILTER] No orders found for userId={} with applied filters", userId);
+            throw new OrderNotFoundException("No orders found with given filters.");
         }
 
         return orders.stream()
                 .map(GetUserHistoryByStatusAndDateResponseDTO::fromEntity)
                 .toList();
     }
+
+
 
 
     public List<GetOrderByStoreKeeperResponseDTO> getOrdersByStorekeeper() {

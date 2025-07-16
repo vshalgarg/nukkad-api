@@ -48,12 +48,15 @@ public class MyOrderController
     public ResponseEntity<List<GetUserHistoryByStatusAndDateResponseDTO>> getHistory(
             @RequestParam(required = false) StatusEnum status,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice) {
 
         List<GetUserHistoryByStatusAndDateResponseDTO> response =
-                orderService.getUserHistoryByOptionalFilters(status, startDate, endDate);
+                orderService.getUserHistoryByOptionalFilters(status, startDate, endDate, minPrice, maxPrice);
         return ResponseEntity.ok(response);
     }
+
 
 
 }

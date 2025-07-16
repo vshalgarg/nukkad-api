@@ -35,8 +35,6 @@ public class CustomerService {
 	private final AddressRepository addressRepository;
 	private final StorekeeperRepository storekeeperRepository;
 
-
-
 	public CreateCustomerResponseDTO createCustomer(CreateCustomerRequestDTO dto) {
 		if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.CUSTOMER)) {
 			log.warn("[CREATE CUSTOMER] Access denied: User role does not include CUSTOMER");
