@@ -11,5 +11,6 @@ public interface StorekeeperRepository extends JpaRepository<StorekeeperEntity, 
     boolean existsByGstNum(String gstNum);
     boolean existsByMobileNumber(String mobileNumber);
     boolean existsByStoreQrId(String storeQrId);
+    boolean existsByAddressLine1(String addressLine1);
     Optional<StorekeeperEntity> findByStoreQrId(String storeQrId);
 }
