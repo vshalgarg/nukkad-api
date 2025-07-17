@@ -58,7 +58,7 @@ public class OrderService {
                     .findById(requestDTO.getStoreKeeperId())
                     .orElseThrow(() -> {
                         log.warn("[ORDER] Storekeeper not found (id={})", requestDTO.getStoreKeeperId());
-                        return new ResourceNotFoundException(ResponseErrorCodes.STOREKEEPER_NOT_FOUND);
+                        return new ResourceNotFoundException(ResponseErrorCodes.STOREKEEPER_NOT_FOUND,requestDTO.getStoreKeeperId());
                     });
 
             AddressEntity deliveryAddress = addressRepository
@@ -199,13 +199,13 @@ public class OrderService {
     }
 
     public List<GetUserHistoryByStatusAndDateResponseDTO> getUserHistoryByOptionalFilters(
-            StatusEnum status, LocalDate startDate, LocalDate endDate) {
+            StatusEnum status, LocalDate startDate, LocalDate endDate, Double minPrice, Double maxPrice) {
 
         Long userId = UserContextHolder.getUser().getId();
         List<RoleEnum> roles = UserContextHolder.getUser().getRoles();
 
-        log.info("[ORDER FILTER] Request by userId={}, Roles={}, Status={}, StartDate={}, EndDate={}",
-                userId, roles, status, startDate, endDate);
+        log.info("[ORDER FILTER] Request by userId={}, Roles={}, Status={}, StartDate={}, EndDate={}, MinPrice={}, MaxPrice={}",
+                userId, roles, status, startDate, endDate, minPrice, maxPrice);
 
         if (roles == null || roles.isEmpty()) {
             log.warn("[ORDER FILTER] User has no roles assigned.");
@@ -215,37 +215,28 @@ public class OrderService {
         LocalDateTime start = (startDate != null) ? startDate.atStartOfDay() : null;
         LocalDateTime end = (endDate != null) ? endDate.atTime(23, 59, 59) : null;
 
-        log.info("[ORDER FILTER] Converted StartDateTime={}, EndDateTime={}", start, end);
-
         List<OrderEntity> orders;
 
         if (roles.contains(RoleEnum.CUSTOMER)) {
             log.info("[ORDER FILTER] Fetching orders for CUSTOMER with userId={}", userId);
-            orders = orderRepository.findCustomerOrdersWithOptionalFilters(userId, status, start, end);
+            orders = orderRepository.findCustomerOrdersWithFilters(userId, status, start, end, minPrice, maxPrice);
         } else if (roles.contains(RoleEnum.STOREKEEPER)) {
             log.info("[ORDER FILTER] Fetching orders for STOREKEEPER with userId={}", userId);
-            orders = orderRepository.findStorekeeperOrdersWithOptionalFilters(userId, status, start, end);
+            orders = orderRepository.findStorekeeperOrdersWithFilters(userId, status, start, end, minPrice, maxPrice);
         } else {
             log.error("[ORDER FILTER] Unauthorized role access for userId={}", userId);
             throw new UnauthorizedAccessException("User role not authorized to access order history.");
         }
 
         if (orders.isEmpty()) {
-            log.warn("[ORDER FILTER] No orders found for userId={} with filters: Status={}, Start={}, End={}",
-                    userId, status, start, end);
+            log.warn("[ORDER FILTER] No orders found for userId={} with applied filters", userId);
             throw new OrderNotFoundException("No orders found with given filters.");
-        }
-
-        log.info("[ORDER FILTER] {} orders found for userId={}", orders.size(), userId);
-        for (OrderEntity order : orders) {
-            log.info("[ORDER FILTER] OrderId={}, CreatedAt={}", order.getId(), order.getCreatedAt());
         }
 
         return orders.stream()
                 .map(GetUserHistoryByStatusAndDateResponseDTO::fromEntity)
                 .toList();
     }
-
 
     public List<GetOrderByStoreKeeperResponseDTO> getOrdersByStorekeeper() {
 

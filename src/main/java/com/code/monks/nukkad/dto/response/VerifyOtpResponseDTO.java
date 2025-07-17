@@ -12,4 +12,5 @@ public class VerifyOtpResponseDTO {
     private String mobileNumber;
     private List<String> roles;
     private String token;
+    private int firstTimeLogin;
 }
