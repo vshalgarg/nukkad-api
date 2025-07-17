@@ -67,7 +67,4 @@ HAVING
             @Param("minPrice") Double minPrice,
             @Param("maxPrice") Double maxPrice
     );
-
-
-
 }

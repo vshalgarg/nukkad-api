@@ -38,8 +38,10 @@ public class AuthFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path.equals("/nukkad/api/otp/v1/otp/send/login") || path.equals("/nukkad/api/otp/v1/otp/verify/login");
+        log.info("[AUTH FILTER] request.getRequestURI() = {}", path);
+        return path.contains("/otp/v1/otp/send/login") || path.contains("/otp/v1/otp/verify/login");
     }
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

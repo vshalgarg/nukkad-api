@@ -27,6 +27,9 @@ public class  ExceptionHandleUtil {
         if (storekeeperRepository.existsByStoreQrId(entity.getStoreQrId())) {
             conflictingFields.add("store QR ID");
         }
+        if (storekeeperRepository.existsByAddressLine1(entity.getAddressLine1())) {
+            conflictingFields.add("address line 1");
+        }
 
         if (!conflictingFields.isEmpty()) {
             String message = formatConflictMessage(conflictingFields);

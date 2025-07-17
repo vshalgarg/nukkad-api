@@ -73,7 +73,7 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(DuplicateResourceException.class)
 	public ResponseEntity<ErrorResponse> handleDuplicateResourceErrors(DuplicateResourceException ex) {
-		ErrorResponse error = new ErrorResponse(ex.getError().getMessage(), LocalDateTime.now(), ex.getError().getResponseCode());
+		ErrorResponse error = new ErrorResponse(ex.getMessage(), LocalDateTime.now(), ex.getError().getResponseCode());
 		return new ResponseEntity<>(error, HttpStatus.OK);
 	}
 
