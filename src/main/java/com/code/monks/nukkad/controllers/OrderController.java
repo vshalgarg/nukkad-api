@@ -30,17 +30,6 @@ public class OrderController {
     }
 
 
-    @PostMapping(ORDER.CANCELLED_ORDER_BY_STOREKEEPER)
-    public ResponseEntity<CancelOrderByStoreKeeperResponseDTO> cancelOrderByStoreKeeper(
-            @PathVariable Long id)
-    {
-        log.info("Request to cancel orderId={}", id);
-
-        CancelOrderByStoreKeeperResponseDTO responseDTO = orderService.cancelOrderByStoreKeeper(id);
-
-        return ResponseEntity.ok(responseDTO);
-    }
-
     @PatchMapping(UPDATE_STATUS)
     public ResponseEntity<UpdateOrderStatusResponseDTO> updateOrderStatus(
             @PathVariable Long id,

@@ -17,7 +17,6 @@ public enum ResponseErrorCodes {
 	QR_CODE_LIMIT(1004,"Only 3 QR codes are allowed per storekeeper."),
 	QR_CODE_NOT_FOUND(1005,"QR code not found. "),
 	ADDRESS_NOT_FOUND(1006,"Address not found."),
-	DEFAULT_ADDRESS_CAN_NOT_BE_CHANGE(1007,"Default address can not be change."),
 	DEFAULT_ADDRESS_CAN_NOT_BE_DELETE(1008,"Default address can not be delete"),
 	STOREKEEPER_NOT_FOUND(1010,"Storekeeper not found with id: "),
 	CUSTOMER_NOT_FOUND(1011,"Customer not found with id: "),

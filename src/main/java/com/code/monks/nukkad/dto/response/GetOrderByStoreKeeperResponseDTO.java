@@ -73,6 +73,16 @@ public class GetOrderByStoreKeeperResponseDTO {
                 itemDTO.setQuantity(orderItem.getQuantity());
                 itemDTO.setPrice(orderItem.getPrice()); // direct from orderItem
 
+                List<String> imageUrls = new ArrayList<>();
+                if (itemEntity.getImages() != null) {
+                    for (CategoryItemImageEntity image : itemEntity.getImages()) {
+                        if (image.getImageUrl() != null && !image.getImageUrl().isBlank()) {
+                            imageUrls.add(image.getImageUrl());
+                        }
+                    }
+                }
+                itemDTO.setImageUrls(imageUrls);
+
                 itemList.add(itemDTO);
             }
         }

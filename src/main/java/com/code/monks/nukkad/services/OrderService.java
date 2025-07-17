@@ -118,7 +118,6 @@ public class OrderService {
             return new PlaceOrderResponseDTO("Order placed successfully");
 
         } catch (ResourceNotFoundException ex) {
-            /* Already logged above where thrown */
             throw ex;
 
         } catch (Exception ex) {
@@ -127,42 +126,6 @@ public class OrderService {
         }
     }
 
-
-    public CancelOrderByStoreKeeperResponseDTO cancelOrderByStoreKeeper(Long id) {
-        Long storekeeperId = UserContextHolder.getUser().getId();
-
-        log.info("StoreKeeper [{}] requested to cancel order Id:{}", storekeeperId, id);
-        try {
-            OrderEntity orderEntity = orderRepository.findById(id)
-                    .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + id));
-
-            if (orderEntity.getStatus() == StatusEnum.PENDING) {
-                log.info("Order [{}] is PENDING. Proceeding with cancellation.", id);
-                orderEntity.setStatus(StatusEnum.CANCELLED);
-
-            } else if (orderEntity.getStatus() == StatusEnum.IN_PROGRESS) {
-                log.info("Order [{}] is IN_PROGRESS. Proceeding with cancellation.", id);
-                orderEntity.setStatus(StatusEnum.CANCELLED);
-
-            } else {
-                log.warn("Order [{}] is in status [{}] and cannot be cancelled", id, orderEntity.getStatus());
-                throw new IllegalArgumentException("Only PENDING or IN_PROGRESS orders can be cancelled by storeKeeper");
-            }
-
-            OrderEntity updatedOrder = orderRepository.save(orderEntity);
-            log.info("Order [{}] cancelled successfully by storekeeper [{}]", id, storekeeperId);
-            return new CancelOrderByStoreKeeperResponseDTO("Order are cancelled successfully !!");
-
-        } catch (OrderNotFoundException e) {
-            throw e;
-        } catch (IllegalArgumentException e) {
-            log.error("Invalid cancellation attempt: {}", e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            log.error("Failed to cancel order [{}] by storekeeper [{}]", id, storekeeperId, e);
-            throw new RuntimeException("Failed to cancel order", e);
-        }
-    }
 
     public UpdateOrderStatusResponseDTO updateOrderStatus(long id, UpdateOrderStatusRequestDTO updateOrderStatusRequestDTO) {
         StatusEnum newOrderStatus = updateOrderStatusRequestDTO.getOrderStatus();
