@@ -13,5 +13,5 @@ public class DispatchOrderRequestDTO
 {
     private Long orderId;
     private List<DispatchItemDTO> orderItem;
-    private String note;
+    private String storeKeeperNote;
 }

@@ -67,18 +67,11 @@ public class GetUserHistoryByStatusAndDateResponseDTO {
 
                 itemDto.setQuantity(orderItem.getQuantity());
 
-                // Calculate price only for DISPATCH or DELIVERED
-                double price = 0.0;
                 if (order.getStatus() == StatusEnum.DISPATCH || order.getStatus() == StatusEnum.DELIVERED) {
-                    String baseUnit = rawUnit != null ? rawUnit.toUpperCase() : "";
-                    price = switch (baseUnit) {
-                        case "KG" -> 40.0;
-                        case "PKT" -> 15.0;
-                        case "LTR" -> 25.0;
-                        default -> 0.0;
-                    };
+                    itemDto.setPrice(orderItem.getPrice());
+                } else {
+                    itemDto.setPrice(0.0);
                 }
-                itemDto.setPrice(price);
 
                 itemList.add(itemDto);
             }

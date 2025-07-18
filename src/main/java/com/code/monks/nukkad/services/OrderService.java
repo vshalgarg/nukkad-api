@@ -141,10 +141,10 @@ public class OrderService {
             // Fetch existing order
             OrderEntity orderEntity = orderRepository.findById(id)
                     .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + id));
-
-            if (orderEntity.getStatus().equals(StatusEnum.CANCELLED)) {
-                throw new RuntimeException("");
-            }
+//
+//            if (orderEntity.getStatus().equals(StatusEnum.CANCELLED)) {
+//                throw new RuntimeException("");
+//            }
             // Update status
             orderEntity.setStatus(newOrderStatus);
 
@@ -260,7 +260,7 @@ public class OrderService {
 
             // Update status & note
             order.setStatus(StatusEnum.DISPATCH);
-            order.setNote(request.getNote());
+            order.setStoreKeeperNote(request.getStoreKeeperNote());
 
             orderRepository.save(order);
             log.info("[DISPATCH] Order ID={} dispatched successfully by storekeeperId={}", orderId, storekeeperId);

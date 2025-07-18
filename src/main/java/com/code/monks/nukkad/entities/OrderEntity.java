@@ -36,7 +36,7 @@ public class  OrderEntity extends BaseEntity {
     private StatusEnum status;
 
     @Column(name = "store_keeper_note")
-    private String note;
+    private String storeKeeperNote;
 
     @OneToMany(mappedBy = "orders", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItemEntity> orderItems = new ArrayList<>();
