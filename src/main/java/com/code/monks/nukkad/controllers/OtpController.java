@@ -3,6 +3,7 @@ package com.code.monks.nukkad.controllers;
 import com.code.monks.nukkad.dto.request.SendOtpRequestDTO;
 import com.code.monks.nukkad.dto.request.VerifyRequestDTO;
 import com.code.monks.nukkad.dto.response.SendOtpResponseDTO;
+import com.code.monks.nukkad.dto.response.VerifyDeleteOtpResponseDTO;
 import com.code.monks.nukkad.dto.response.VerifyOtpResponseDTO;
 import com.code.monks.nukkad.services.OtpService;
 import jakarta.validation.Valid;
@@ -41,18 +42,18 @@ public class OtpController {
 		return ResponseEntity.ok(response);
 	}
 
-//	@PostMapping(OTP.SEND_DELETE_OTP)
-//	public ResponseEntity<SendOtpResponseDTO> sendDeleteOtp(@Valid @RequestBody SendOtpRequestDTO request) {
-//		log.info("[SEND DELETE OTP] Request received for mobile: {}", request.getMobileNumber());
-//		SendOtpResponseDTO response = otpService.sendDeleteOtp(request);
-//		return ResponseEntity.ok(response);
-//	}
-//
-//	@PostMapping(OTP.VERIFY_DELETE_OTP)
-//	public ResponseEntity<VerifyOtpResponseDTO> verifyDeleteOtp(@RequestBody VerifyRequestDTO request) {
-//		log.info("[VERIFY DELETE OTP] Request received for mobile: {}", request.getMobileNumber());
-//		VerifyOtpResponseDTO response = otpService.verifyDeleteOtp(request);
-//		return ResponseEntity.ok(response);
-//	}
+	@PostMapping(OTP.SEND_DELETE_OTP)
+	public ResponseEntity<SendOtpResponseDTO> sendDeleteOtp(@Valid @RequestBody SendOtpRequestDTO request) {
+		log.info("[SEND DELETE OTP] Request received for mobile: {}", request.getMobileNumber());
+		SendOtpResponseDTO response = otpService.sendDeleteOtp(request);
+		return ResponseEntity.ok(response);
+	}
+
+	@PostMapping(OTP.VERIFY_DELETE_OTP)
+	public ResponseEntity<VerifyDeleteOtpResponseDTO> verifyDeleteOtp(@RequestBody VerifyRequestDTO request) {
+		log.info("[VERIFY DELETE OTP] Request received for mobile: {}", request.getMobileNumber());
+		VerifyDeleteOtpResponseDTO response = otpService.verifyDeleteOtp(request);
+		return ResponseEntity.ok(response);
+	}
 
 }

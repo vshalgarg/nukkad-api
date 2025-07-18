@@ -27,7 +27,7 @@ public class GetOrderByStoreKeeperResponseDTO {
 
     private List<ItemDetailsDTO> items;
 
-    private StatusEnum status;
+    private StatusEnum orderStatus;
     private String storeKeeperNote;
 
     public static GetOrderByStoreKeeperResponseDTO toEntity(OrderEntity entity ) {
@@ -56,7 +56,7 @@ public class GetOrderByStoreKeeperResponseDTO {
             responseDTO.setStoreKeeperId(entity.getStoreKeeper().getId());
         }
 
-        responseDTO.setStatus(entity.getStatus());
+        responseDTO.setOrderStatus(entity.getStatus());
         responseDTO.setStoreKeeperNote(entity.getNote());
 
         // Items from OrderItemEntity
@@ -73,7 +73,7 @@ public class GetOrderByStoreKeeperResponseDTO {
                 itemDTO.setQuantity(orderItem.getQuantity());
                 itemDTO.setPrice(orderItem.getPrice()); // direct from orderItem
 
-                List<String> imageUrls = new ArrayList<>();
+                List<String> imageUrls = new ArrayList<>();  
                 if (itemEntity.getImages() != null) {
                     for (CategoryItemImageEntity image : itemEntity.getImages()) {
                         if (image.getImageUrl() != null && !image.getImageUrl().isBlank()) {
