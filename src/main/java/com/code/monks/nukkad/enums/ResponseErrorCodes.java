@@ -6,6 +6,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ResponseErrorCodes {
+	ORDER_NOT_FOUND(1031,"Order not found: "),
+	ADDRESS_CUSTOMER_MISMATCH(1030,"Address is not match with customer"),
+	STOREKEEPER_CUSTOMER_MISMATCH(1029,"Storekeeper is not associate with customer"),
 	CART_EMPTY(1028,"Cart is empty.So , you can not place order"),
 	SUBMIT_RATING_EXCEPTION(1027,"Unable to submit rating at this time. Please try again later."),
 	DUPLICATE_STOREKEEPER_PROFILE_FOUND_EXCEPTION(1026,"Storekeeper profile is already exists"),

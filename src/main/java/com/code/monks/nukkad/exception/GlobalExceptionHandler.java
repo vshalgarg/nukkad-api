@@ -18,6 +18,12 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+	@ExceptionHandler(InvalidRequestException.class)
+	public ResponseEntity<ErrorResponse> handleInvalidRequestException(InvalidRequestException ex){
+		ErrorResponse error = new ErrorResponse(ex.getMessage(), LocalDateTime.now(),ex.getError().getResponseCode());
+		return new ResponseEntity<>(error,HttpStatus.OK);
+	}
+
 	@ExceptionHandler(DefaultQrCodeNotUpdatedException.class)
 	public ResponseEntity<ErrorResponse> handleDefaultQrCodeNotUpdateAllowed(DefaultQrCodeNotUpdatedException ex){
 		ErrorResponse error = new ErrorResponse(ex.getMessage(), LocalDateTime.now(),ex.getError().getResponseCode());
@@ -91,13 +97,9 @@ public class GlobalExceptionHandler {
 	}
 
 	@ExceptionHandler(OrderNotFoundException.class)
-	public ResponseEntity<ErrorResponse> handleOrderNotFound(OrderNotFoundException exception) {
-		ErrorResponse response = new ErrorResponse();
-		response.setMessage("Order Not Found"); // keep message clean
-		response.setTimestamp(LocalDateTime.now()); // set actual timestamp
-		response.setResponseCode(400); // HTTP 400
-
-		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+	public ResponseEntity<ErrorResponse> handleOrderNotFoundException(OrderNotFoundException ex) {
+		ErrorResponse error = new ErrorResponse(ex.getMessage(), LocalDateTime.now(), ex.getError().getResponseCode());
+		return new ResponseEntity<>(error, HttpStatus.OK);
 	}
 
 

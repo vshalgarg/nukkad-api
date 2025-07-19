@@ -32,6 +32,9 @@ public class StorekeeperEntity extends UserEntity{
 	@Column(name = "mobile_number")
 	private String mobileNumber;
 
+	@Column(name = "contact_number")
+	private String contactNumber;
+
 	@Column(name = "gst_in")
 	private String gstNum;
 
