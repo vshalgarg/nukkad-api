@@ -17,6 +17,7 @@ public class CreateStorekeeperResponseDTO {
     private String name;
     private String storeName;
     private String mobileNumber;
+    private String contactNumber;
     private String gstIn;
     private String addressLine1;
     private String addressLine2;
@@ -35,6 +36,7 @@ public class CreateStorekeeperResponseDTO {
         dto.setName(entity.getName());
         dto.setStoreName(entity.getStoreName());
         dto.setMobileNumber(entity.getMobileNumber());
+        dto.setContactNumber(entity.getContactNumber());
         dto.setGstIn(entity.getGstNum());
         dto.setAddressLine1(entity.getAddressLine1());
         dto.setAddressLine2(entity.getAddressLine2());

@@ -72,10 +72,8 @@ public static class ADDRESS{
 		public static final String BASE =CONTEXT +"/api/orders";
 		public static final String PLACE_ORDER = "/v1/placeOrder";
 		public static final String GET_ORDER_BY_STOREKEEPER ="/v1/order/orderByStoreKeeper";
-		public static final String CANCELLED_ORDER_BY_STOREKEEPER ="/v1/order/cancel/{id}";
 		public static final String UPDATE_STATUS = "/v1/order/updateByStatus/{id}";
 		public static final String ORDER_HISTORY ="/v1/order/history";
-		public static final String REPEAT_ORDER ="v1/order/repeatOrder/{id}";
 		public static final String DISPATCH_ORDER ="/v1/order/dispatchOrder";
 	}
 

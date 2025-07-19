@@ -3,6 +3,7 @@ package com.code.monks.nukkad.dto.request;
 import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.enums.RoleEnum;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,6 +20,10 @@ public class CreateStorekeeperRequestDTO {
 
 	@NotBlank(message = "Store name is mandatory")
     private String storeName;
+
+	@NotBlank(message = "Contact Number is Mandatory")
+	@Pattern(regexp = "^[0-9]{10}$", message = "Contact Number must be a 10-digit number")
+	private String contactNumber;
 
 	@NotBlank(message = "GST_IN is mandatory")
 	private String gstNum;
@@ -46,6 +51,7 @@ public class CreateStorekeeperRequestDTO {
 
 		storekeeper.setName(dto.getName());
 		storekeeper.setStoreName(dto.getStoreName());
+		storekeeper.setContactNumber(dto.getContactNumber());
 		storekeeper.setGstNum(dto.getGstNum());
 		storekeeper.setAddressLine1(dto.getAddressLine1());
 		storekeeper.setAddressLine2(dto.getAddressLine2());

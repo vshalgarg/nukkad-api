@@ -25,6 +25,7 @@ public class GetStorekeeperProfileResponseDTO {
     private String state;
     private String pincode;
     private String mobileNumber;
+    private String contactNumber;
     private String storeQrId;
     private List<String> imageUrls;
 
@@ -40,6 +41,7 @@ public class GetStorekeeperProfileResponseDTO {
                 .state(entity.getState())
                 .pincode(entity.getPincode())
                 .mobileNumber(entity.getMobileNumber())
+                .contactNumber(entity.getContactNumber())
                 .storeQrId(entity.getStoreQrId())
                 .imageUrls(
                         entity.getImages() != null ?

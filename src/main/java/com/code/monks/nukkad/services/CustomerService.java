@@ -18,6 +18,7 @@ import com.code.monks.nukkad.repositories.StorekeeperRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import com.code.monks.nukkad.utils.ExceptionHandleUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,6 +35,7 @@ public class CustomerService {
 	private final CustomerRepository customerRepository;
 	private final AddressRepository addressRepository;
 	private final StorekeeperRepository storekeeperRepository;
+	private final ExceptionHandleUtil exceptionHandleUtil;
 
 	public CreateCustomerResponseDTO createCustomer(CreateCustomerRequestDTO dto) {
 		if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.CUSTOMER)) {
@@ -55,6 +57,7 @@ public class CustomerService {
 		customer.setId(customerId);
 		customer.setMobileNumber(mobileNumber);
 
+		exceptionHandleUtil.validateCustomerUniqueFields(customer);
 		try {
 			// Save customer
 			CustomerEntity saved = customerRepository.save(customer);
@@ -71,12 +74,11 @@ public class CustomerService {
 			responseDTO.setAddressId(savedAddress.getId());
 			return responseDTO;
 
-		} catch (DataIntegrityViolationException e) {
+		} catch (Exception e) {
 			log.error("[CREATE CUSTOMER] Data integrity violation while creating customer", e);
-			throw new DuplicateResourceException(DUPLICATE_EMAIL_FOUND_EXCEPTION,e);
+			throw new UnhandledException(UNHANDLED_EXCEPTION,e);
 		}
 	}
-
 
 
 	public UpdateCustomerResponseDTO updateCustomer(UpdateCustomerRequestDTO dto) {

@@ -1,21 +1,25 @@
 package com.code.monks.nukkad.utils;
 
+import com.code.monks.nukkad.entities.CustomerEntity;
 import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.enums.ResponseErrorCodes;
 import com.code.monks.nukkad.exception.DuplicateResourceException;
+import com.code.monks.nukkad.repositories.CustomerRepository;
 import com.code.monks.nukkad.repositories.StorekeeperRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+
 @Component
 @RequiredArgsConstructor
-public class  ExceptionHandleUtil {
+public class ExceptionHandleUtil {
 
     private final StorekeeperRepository storekeeperRepository;
+    private final CustomerRepository customerRepository;
 
-    public void validateUniqueFields(StorekeeperEntity entity) {
+    public void validateStorekeeperUniqueFields(StorekeeperEntity entity) {
         List<String> conflictingFields = new ArrayList<>();
 
         if (storekeeperRepository.existsByGstNum(entity.getGstNum())) {
@@ -29,6 +33,22 @@ public class  ExceptionHandleUtil {
         }
         if (storekeeperRepository.existsByAddressLine1(entity.getAddressLine1())) {
             conflictingFields.add("address line 1");
+        }
+
+        if (!conflictingFields.isEmpty()) {
+            String message = formatConflictMessage(conflictingFields);
+            throw new DuplicateResourceException(ResponseErrorCodes.DUPLICATE_RESOURCE_EXCEPTION, message);
+        }
+    }
+
+    public void validateCustomerUniqueFields(CustomerEntity entity) {
+        List<String> conflictingFields = new ArrayList<>();
+
+        if (customerRepository.existsByMobileNumber(entity.getMobileNumber())) {
+            conflictingFields.add("mobile number");
+        }
+        if (customerRepository.existsByEmail(entity.getEmail())) {
+            conflictingFields.add("email");
         }
 
         if (!conflictingFields.isEmpty()) {

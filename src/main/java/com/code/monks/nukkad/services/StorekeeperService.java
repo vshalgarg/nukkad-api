@@ -60,7 +60,7 @@ public class StorekeeperService {
         storekeeper.setMobileNumber(mobileNumber);
 
         // Validate for unique fields (email, gst, etc.)
-        exceptionHandleUtil.validateUniqueFields(storekeeper);
+        exceptionHandleUtil.validateStorekeeperUniqueFields(storekeeper);
 
         StorekeeperEntity saved;
         try {
@@ -116,6 +116,7 @@ public class StorekeeperService {
         try {
             storekeeper.setName(dto.getName());
             storekeeper.setStoreName(dto.getStoreName());
+            storekeeper.setContactNumber(dto.getContactNumber());
             storekeeper.setGstNum(dto.getGstNum());
             storekeeper.setAddressLine1(dto.getAddressLine1());
             storekeeper.setAddressLine2(dto.getAddressLine2());
@@ -195,7 +196,6 @@ public class StorekeeperService {
             throw new UnhandledException(UNHANDLED_EXCEPTION, e);
         }
     }
-
 
 
     private String generateUniqueStoreQrId(String mobileNumber) {

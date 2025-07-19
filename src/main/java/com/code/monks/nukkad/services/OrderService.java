@@ -10,10 +10,7 @@ import com.code.monks.nukkad.entities.*;
 import com.code.monks.nukkad.enums.ResponseErrorCodes;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.enums.StatusEnum;
-import com.code.monks.nukkad.exception.OrderNotFoundException;
-import com.code.monks.nukkad.exception.ResourceNotFoundException;
-import com.code.monks.nukkad.exception.UnauthorizedAccessException;
-import com.code.monks.nukkad.exception.UnhandledException;
+import com.code.monks.nukkad.exception.*;
 import com.code.monks.nukkad.repositories.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.code.monks.nukkad.enums.ResponseErrorCodes.ORDER_NOT_FOUND;
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.UNHANDLED_EXCEPTION;
 
 
@@ -41,35 +39,46 @@ public class OrderService {
 
     public PlaceOrderResponseDTO placeOrders(PlaceOrderRequestDTO requestDTO) {
 
-        /* ---------- 1.  High‑level trace ---------- */
         log.info("[ORDER] Place‑order request: {}", requestDTO);
 
         Long customerId = UserContextHolder.getUser().getId();
 
         try {
-            /* ---------- 2.  Fetch & validate core entities ---------- */
+            // Step 1: Validate Customer
             CustomerEntity customer = customerRepository.findById(customerId)
                     .orElseThrow(() -> {
                         log.warn("[ORDER] Customer not found (id={})", customerId);
                         return new ResourceNotFoundException(ResponseErrorCodes.CUSTOMER_NOT_FOUND);
                     });
 
-            StorekeeperEntity storekeeper = storekeeperRepository
-                    .findById(requestDTO.getStoreKeeperId())
+            // Step 2: Validate Storekeeper
+            StorekeeperEntity storekeeper = storekeeperRepository.findById(requestDTO.getStoreKeeperId())
                     .orElseThrow(() -> {
                         log.warn("[ORDER] Storekeeper not found (id={})", requestDTO.getStoreKeeperId());
-                        return new ResourceNotFoundException(ResponseErrorCodes.STOREKEEPER_NOT_FOUND,requestDTO.getStoreKeeperId());
+                        return new ResourceNotFoundException(ResponseErrorCodes.STOREKEEPER_NOT_FOUND, requestDTO.getStoreKeeperId());
                     });
 
-            AddressEntity deliveryAddress = addressRepository
-                    .findById(requestDTO.getDeliveryAddressId())
+            //  Validate Storekeeper belongs to Customer
+            if (customer.getStorekeepers() == null ||
+                    customer.getStorekeepers().stream().noneMatch(sk -> sk.getId().equals(storekeeper.getId()))) {
+                log.warn("[ORDER] Storekeeper mismatch: customerId={}, storekeeperId={}", customerId, storekeeper.getId());
+                throw new InvalidRequestException(ResponseErrorCodes.STOREKEEPER_CUSTOMER_MISMATCH);
+            }
+
+            // Step 3: Validate Delivery Address
+            AddressEntity deliveryAddress = addressRepository.findById(requestDTO.getDeliveryAddressId())
                     .orElseThrow(() -> {
-                        log.warn("[ORDER] Delivery address not found (id={})",
-                                requestDTO.getDeliveryAddressId());
+                        log.warn("[ORDER] Delivery address not found (id={})", requestDTO.getDeliveryAddressId());
                         return new ResourceNotFoundException(ResponseErrorCodes.ADDRESS_NOT_FOUND);
                     });
 
-            /* ---------- 3.  Prepare order shell ---------- */
+            //  Validate Address belongs to Customer
+            if (!deliveryAddress.getCustomerId().equals(customerId)) {
+                log.warn("[ORDER] Address mismatch: customerId={}, addressId={}", customerId, deliveryAddress.getId());
+                throw new InvalidRequestException(ResponseErrorCodes.ADDRESS_CUSTOMER_MISMATCH);
+            }
+
+            // Step 4: Prepare new Order
             OrderEntity order = OrderEntity.builder()
                     .customer(customer)
                     .storeKeeper(storekeeper)
@@ -77,7 +86,7 @@ public class OrderService {
                     .status(StatusEnum.PENDING)
                     .build();
 
-            /* ---------- 4.  Pull cart items ---------- */
+            // Step 5: Fetch Cart Items
             List<CartItemEntity> cartItems = Optional
                     .ofNullable(cartItemRepository.findByCustomerId(customerId))
                     .orElseGet(ArrayList::new);
@@ -86,9 +95,10 @@ public class OrderService {
                 log.warn("[ORDER] Cart empty — aborting (customerId={})", customerId);
                 throw new ResourceNotFoundException(ResponseErrorCodes.CART_EMPTY);
             }
+
             log.debug("[ORDER] {} cart item(s) fetched for customerId={}", cartItems.size(), customerId);
 
-            /* ---------- 5.  Convert cart → order items ---------- */
+            // Step 6: Convert to Order Items
             List<OrderItemEntity> orderItems = cartItems.stream()
                     .map(ci -> {
                         OrderItemEntity oi = new OrderItemEntity();
@@ -97,27 +107,24 @@ public class OrderService {
                         oi.setQuantity(ci.getQuantity());
                         oi.setUnit(ci.getUnit());
                         oi.setOrders(order);
-                        log.debug("[ORDER]   → itemId={}, qty={}, unit={}",
-                                ci.getItem().getId(), ci.getQuantity(), ci.getUnit());
+                        log.debug("[ORDER]   → itemId={}, qty={}, unit={}", ci.getItem().getId(), ci.getQuantity(), ci.getUnit());
                         return oi;
                     })
                     .toList();
 
             order.setOrderItems(orderItems);
 
-            // Persist & clean up
+            // Step 7: Persist order and cleanup cart
             orderRepository.save(order);
-            log.info("[ORDER] Order saved (orderId={}, customerId={})",
-                    order.getId(), customerId);
+            log.info("[ORDER] Order saved (orderId={}, customerId={})", order.getId(), customerId);
 
             cartItemRepository.deleteAll(cartItems);
-            log.debug("[ORDER] Cart cleared ({} item[s]) for customerId={}",
-                    cartItems.size(), customerId);
+            log.debug("[ORDER] Cart cleared ({} item[s]) for customerId={}", cartItems.size(), customerId);
 
-            /* ---------- 7.  Build response ---------- */
+            // Step 8: Return response
             return new PlaceOrderResponseDTO("Order placed successfully");
 
-        } catch (ResourceNotFoundException ex) {
+        } catch (ResourceNotFoundException | InvalidRequestException ex) {
             throw ex;
 
         } catch (Exception ex) {
@@ -140,11 +147,8 @@ public class OrderService {
 
             // Fetch existing order
             OrderEntity orderEntity = orderRepository.findById(id)
-                    .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + id));
-//
-//            if (orderEntity.getStatus().equals(StatusEnum.CANCELLED)) {
-//                throw new RuntimeException("");
-//            }
+                    .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND));
+
             // Update status
             orderEntity.setStatus(newOrderStatus);
 
@@ -191,11 +195,6 @@ public class OrderService {
             throw new UnauthorizedAccessException("User role not authorized to access order history.");
         }
 
-        if (orders.isEmpty()) {
-            log.warn("[ORDER FILTER] No orders found for userId={} with applied filters", userId);
-            throw new OrderNotFoundException("No orders found with given filters.");
-        }
-
         return orders.stream()
                 .map(GetUserHistoryByStatusAndDateResponseDTO::fromEntity)
                 .toList();
@@ -208,10 +207,6 @@ public class OrderService {
 
         List<OrderEntity> orders = orderRepository.findByStoreKeeperId(storekeeperId);
 
-        if (orders.isEmpty()) {
-            log.warn("[STOREKEEPER ORDERS] No orders found for storeKeeperId={}", storekeeperId);
-            throw new OrderNotFoundException("No orders found for StoreKeeper ID: " + storekeeperId);
-        }
 
         List<GetOrderByStoreKeeperResponseDTO> responseDTOs = orders.stream()
                 .map(GetOrderByStoreKeeperResponseDTO::toEntity)
@@ -238,7 +233,7 @@ public class OrderService {
             OrderEntity order = orderRepository.findById(orderId)
                     .orElseThrow(() -> {
                         log.warn("[DISPATCH] Order not found with ID={}", orderId);
-                        return new OrderNotFoundException("Order not found with ID: " + orderId);
+                        return new OrderNotFoundException(ORDER_NOT_FOUND );
                     });
 
             // Check storekeeper access

@@ -1,12 +1,14 @@
 package com.code.monks.nukkad.exception;
 
-public class OrderNotFoundException  extends RuntimeException
-{
+import com.code.monks.nukkad.enums.ResponseErrorCodes;
+import lombok.Getter;
 
-    public OrderNotFoundException(String status)
+@Getter
+public class OrderNotFoundException  extends RuntimeException {
+    private final ResponseErrorCodes error;
+    public OrderNotFoundException(ResponseErrorCodes error)
     {
-      super(status);
+      super(error.getMessage());
+      this.error = error;
     }
-
-
 }
