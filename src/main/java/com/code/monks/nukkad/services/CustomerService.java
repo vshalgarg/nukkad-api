@@ -201,7 +201,7 @@ public class CustomerService {
 							.name(storekeeper.getName())
 							.storeName(storekeeper.getStoreName())
 							.mobileNumber(storekeeper.getMobileNumber())
-							.gstIn(storekeeper.getGstNum())
+							.gstNum(storekeeper.getGstNum())
 							.addressLine1(storekeeper.getAddressLine1())
 							.addressLine2(storekeeper.getAddressLine2())
 							.landmark(storekeeper.getLandmark())
