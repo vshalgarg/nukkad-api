@@ -24,6 +24,7 @@ public class GetStorekeeperProfileResponseDTO {
     private String city;
     private String state;
     private String pincode;
+    private String landmark;
     private String mobileNumber;
     private String contactNumber;
     private String storeQrId;
@@ -40,6 +41,7 @@ public class GetStorekeeperProfileResponseDTO {
                 .city(entity.getCity())
                 .state(entity.getState())
                 .pincode(entity.getPincode())
+                .landmark(entity.getLandmark())
                 .mobileNumber(entity.getMobileNumber())
                 .contactNumber(entity.getContactNumber())
                 .storeQrId(entity.getStoreQrId())
