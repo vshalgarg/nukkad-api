@@ -23,14 +23,14 @@ public class GetUserHistoryByStatusAndDateResponseDTO {
 
     private List<ItemDetailsDTO> items;
 
-    private StatusEnum status;
+    private StatusEnum orderStatus;
 
     public static GetUserHistoryByStatusAndDateResponseDTO fromEntity(OrderEntity order) {
         GetUserHistoryByStatusAndDateResponseDTO dto = new GetUserHistoryByStatusAndDateResponseDTO();
 
         dto.setOrderId(order.getId());
         dto.setOrderDate(order.getCreatedAt());
-        dto.setStatus(order.getStatus());
+        dto.setOrderStatus(order.getStatus());
 
         // Customer Info
         if (order.getCustomer() != null) {

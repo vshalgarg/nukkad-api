@@ -41,19 +41,19 @@ public class OtpController {
 		log.info("[VERIFY OTP] Verification result for mobile {}:", request.getMobileNumber());
 		return ResponseEntity.ok(response);
 	}
-
-	@PostMapping(OTP.SEND_DELETE_OTP)
-	public ResponseEntity<SendOtpResponseDTO> sendDeleteOtp(@Valid @RequestBody SendOtpRequestDTO request) {
-		log.info("[SEND DELETE OTP] Request received for mobile: {}", request.getMobileNumber());
-		SendOtpResponseDTO response = otpService.sendDeleteOtp(request);
-		return ResponseEntity.ok(response);
-	}
-
-	@PostMapping(OTP.VERIFY_DELETE_OTP)
-	public ResponseEntity<VerifyDeleteOtpResponseDTO> verifyDeleteOtp(@RequestBody VerifyRequestDTO request) {
-		log.info("[VERIFY DELETE OTP] Request received for mobile: {}", request.getMobileNumber());
-		VerifyDeleteOtpResponseDTO response = otpService.verifyDeleteOtp(request);
-		return ResponseEntity.ok(response);
-	}
+//
+//	@PostMapping(OTP.SEND_DELETE_OTP)
+//	public ResponseEntity<SendOtpResponseDTO> sendDeleteOtp(@Valid @RequestBody SendOtpRequestDTO request) {
+//		log.info("[SEND DELETE OTP] Request received for mobile: {}", request.getMobileNumber());
+//		SendOtpResponseDTO response = otpService.sendDeleteOtp(request);
+//		return ResponseEntity.ok(response);
+//	}
+//
+//	@PostMapping(OTP.VERIFY_DELETE_OTP)
+//	public ResponseEntity<VerifyDeleteOtpResponseDTO> verifyDeleteOtp(@RequestBody VerifyRequestDTO request) {
+//		log.info("[VERIFY DELETE OTP] Request received for mobile: {}", request.getMobileNumber());
+//		VerifyDeleteOtpResponseDTO response = otpService.verifyDeleteOtp(request);
+//		return ResponseEntity.ok(response);
+//	}
 
 }

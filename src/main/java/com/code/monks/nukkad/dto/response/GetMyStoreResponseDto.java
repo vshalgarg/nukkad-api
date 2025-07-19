@@ -12,7 +12,7 @@ public class GetMyStoreResponseDto {
     private String name;
     private String storeName;
     private String mobileNumber;
-    private String gstIn;
+    private String gstNum;
     private String addressLine1;
     private String addressLine2;
     private String landmark;

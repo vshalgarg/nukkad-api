@@ -12,6 +12,7 @@ public class UpdateAddressRequestDTO {
     private String city;
     private String state;
     private String pincode;
+    private String mobileNumber;
 
     public static void updateEntity(AddressEntity address, UpdateAddressRequestDTO dto) {
         address.setAddressLine1(dto.getAddressLine1());
@@ -20,6 +21,7 @@ public class UpdateAddressRequestDTO {
         address.setCity(dto.getCity());
         address.setState(dto.getState());
         address.setPincode(dto.getPincode());
+        address.setMobileNumber(dto.getMobileNumber());
     }
 
 }

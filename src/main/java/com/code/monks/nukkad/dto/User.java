@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class User {
+public class  User {
     private Long id;
     private String mobileNumber;
     private List<RoleEnum> roles = new ArrayList<>();
