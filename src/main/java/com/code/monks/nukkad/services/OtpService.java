@@ -68,24 +68,24 @@ public class OtpService {
 	}
 
 
-
-	public SendOtpResponseDTO sendDeleteOtp(SendOtpRequestDTO sendOtpRequestDTO) {
-		String mobileNumber = sendOtpRequestDTO.getMobileNumber();
-		log.info("[SEND DELETE OTP] Sending delete OTP to mobile: {}", mobileNumber);
-
-		AuthSendOtpResponseDTO authResponse = authRestClient.callOtpResponse(sendOtpRequestDTO);
-		return new SendOtpResponseDTO(authResponse.getMessage());
-	}
-
-	public VerifyDeleteOtpResponseDTO verifyDeleteOtp(VerifyRequestDTO verifyRequestDTO) {
-		String mobileNumber = verifyRequestDTO.getMobileNumber();
-		String otp = verifyRequestDTO.getOtp();
-		log.info("[VERIFY DELETE OTP] Verifying OTP for mobile: {}, OTP: {}", mobileNumber, otp);
-
-		AuthVerifyOtpResponseDTO authResponse = authRestClient.callVerifyOtpResponse(verifyRequestDTO);
-
-		return new VerifyDeleteOtpResponseDTO("Account has been deactivated.");
-	}
+//
+//	public SendOtpResponseDTO sendDeleteOtp(SendOtpRequestDTO sendOtpRequestDTO) {
+//		String mobileNumber = sendOtpRequestDTO.getMobileNumber();
+//		log.info("[SEND DELETE OTP] Sending delete OTP to mobile: {}", mobileNumber);
+//
+//		AuthSendOtpResponseDTO authResponse = authRestClient.callOtpResponse(sendOtpRequestDTO);
+//		return new SendOtpResponseDTO(authResponse.getMessage());
+//	}
+//
+//	public VerifyDeleteOtpResponseDTO verifyDeleteOtp(VerifyRequestDTO verifyRequestDTO) {
+//		String mobileNumber = verifyRequestDTO.getMobileNumber();
+//		String otp = verifyRequestDTO.getOtp();
+//		log.info("[VERIFY DELETE OTP] Verifying OTP for mobile: {}, OTP: {}", mobileNumber, otp);
+//
+//		AuthVerifyOtpResponseDTO authResponse = authRestClient.callVerifyOtpResponse(verifyRequestDTO);
+//
+//		return new VerifyDeleteOtpResponseDTO("Account has been deactivated.");
+//	}
 
 }
 

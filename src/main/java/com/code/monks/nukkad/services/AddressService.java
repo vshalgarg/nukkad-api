@@ -179,7 +179,7 @@ public class AddressService {
             addressRepository.delete(address);
             log.info("[DELETE ADDRESS] Address deleted successfully. addressId={}, customerId={}", addressId, customerId);
 
-        } catch (ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException  | AccessDeniedException e) {
             throw e;
         } catch (Exception e) {
             log.error("[DELETE ADDRESS] Unexpected error occurred while deleting address. addressId={}, customerId={}", addressId, customerId, e);

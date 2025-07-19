@@ -18,7 +18,7 @@ public class GetStorekeeperProfileResponseDTO {
     private Long id;
     private String name;
     private String storeName;
-    private String gstIn;
+    private String gstNum;
     private String addressLine1;
     private String addressLine2;
     private String city;
@@ -34,7 +34,7 @@ public class GetStorekeeperProfileResponseDTO {
                 .id(entity.getId())
                 .name(entity.getName())
                 .storeName(entity.getStoreName())
-                .gstIn(entity.getGstNum())
+                .gstNum(entity.getGstNum())
                 .addressLine1(entity.getAddressLine1())
                 .addressLine2(entity.getAddressLine2())
                 .city(entity.getCity())
