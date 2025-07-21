@@ -2,9 +2,11 @@ package com.code.monks.nukkad.client;
 
 import com.code.monks.nukkad.auth.request.AuthSendOtpRequestDTO;
 import com.code.monks.nukkad.auth.request.AuthTokenRequestDto;
+import com.code.monks.nukkad.auth.request.AuthUserAccountDeactivateRequestDTO;
 import com.code.monks.nukkad.auth.request.AuthVerifyOtpRequestDTO;
 import com.code.monks.nukkad.auth.response.AuthSendOtpResponseDTO;
 import com.code.monks.nukkad.auth.response.AuthTokenResponseDto;
+import com.code.monks.nukkad.auth.response.AuthUserAccountDeactivateResponseDTO;
 import com.code.monks.nukkad.auth.response.AuthVerifyOtpResponseDTO;
 import com.code.monks.nukkad.dto.User;
 import com.code.monks.nukkad.dto.request.SendOtpRequestDTO;
@@ -14,6 +16,7 @@ import com.code.monks.nukkad.exception.ExternalServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -43,6 +46,9 @@ public class AuthRestClient {
 	@Value("${auth.otpVerify.url}")
 	private String verifyOtpUrl;
 
+	@Value("${auth.userAccountDeactivate.url}")
+	private String userAccountDeactivateUrl;
+
 	@Autowired
 	public AuthRestClient(GenericRestClient genericRestClient) {
 		this.genericRestClient = genericRestClient;
@@ -59,7 +65,7 @@ public class AuthRestClient {
 		log.info("[OTP SEND] Initiating OTP send request to: {} for mobile: {}", url, otpRequest.getMobileNumber());
 
 		try {
-			AuthSendOtpResponseDTO response = genericRestClient.postForEntity(url, authDto, headers, AuthSendOtpResponseDTO.class);
+			AuthSendOtpResponseDTO response = genericRestClient.postForEntity(url, authDto, headers, AuthSendOtpResponseDTO.class,HttpMethod.POST);
 			log.info("[OTP SEND] Successfully sent OTP to mobile: {}", otpRequest.getMobileNumber());
 			return response;
 		} catch (Exception ex) {
@@ -78,11 +84,11 @@ public class AuthRestClient {
 
 	try {
 		AuthVerifyOtpResponseDTO response = genericRestClient.postForEntity(
-				url, authDto, headers, AuthVerifyOtpResponseDTO.class
+				url, authDto, headers, AuthVerifyOtpResponseDTO.class,HttpMethod.POST
 		);
 
 		if (response.getUserId() == null || response.getToken() == null) {
-			String rawResponse = genericRestClient.postForEntity(url, authDto, headers, String.class);
+			String rawResponse = genericRestClient.postForEntity(url, authDto, headers, String.class,HttpMethod.POST);
 			String message = rawResponse.replaceAll(".*\"message\"\\s*:\\s*\"([^\"]+)\".*", "$1");
 			String code = rawResponse.replaceAll(".*\"responseCode\"\\s*:\\s*(\\d+).*", "$1");
 
@@ -99,13 +105,32 @@ public class AuthRestClient {
 	}
 }
 
+	public AuthUserAccountDeactivateResponseDTO callUserAccountDeactivateResponse(String mobileNumber) {
+		String url = authHost + userAccountDeactivateUrl;
+		log.info("[AUTH SERVICE] Calling deactivation endpoint: {}", url);
+
+		AuthUserAccountDeactivateRequestDTO authDto = new AuthUserAccountDeactivateRequestDTO(mobileNumber);
+		log.info("[AUTH SERVICE] Request payload: {}", authDto);
+
+		Map<String, String> headers = new HashMap<>();
+		updateHeadersForClientNameAndSecret(headers);
+		log.info("[AUTH SERVICE] Request headers: {}", headers);
+
+		AuthUserAccountDeactivateResponseDTO response = genericRestClient.postForEntity(
+				url, authDto, headers, AuthUserAccountDeactivateResponseDTO.class, HttpMethod.PUT);
+
+		log.info("[AUTH SERVICE] Response received: {}", response);
+		return response;
+	}
+
+
 	public User validateToken(AuthTokenRequestDto authDto) {
 		String url = authHost + validateUrl;
 		Map<String, String> headers = new HashMap<>();
 		updateHeadersForClientNameAndSecret(headers);
 
 		try {
-			AuthTokenResponseDto authResponse = genericRestClient.postForEntity(url, authDto, headers, AuthTokenResponseDto.class);
+			AuthTokenResponseDto authResponse = genericRestClient.postForEntity(url, authDto, headers, AuthTokenResponseDto.class,HttpMethod.POST);
 
 			if (authResponse == null || authResponse.getUserId() == null) {
 				throw new ExternalServiceException("Token validation failed or empty response.");

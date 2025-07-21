@@ -28,7 +28,7 @@ public class GenericRestClient {
 		this.restTemplate = restTemplate;
 	}
 
-	public <T, R> R postForEntity(String url, T requestBody, Map<String, String> headers, Class<R> responseType) {
+	public <T, R> R postForEntity(String url, T requestBody, Map<String, String> headers, Class<R> responseType, HttpMethod method) {
 		try {
 			HttpHeaders reqHeaders = new HttpHeaders();
 			reqHeaders.setContentType(MediaType.APPLICATION_JSON);
@@ -36,7 +36,6 @@ public class GenericRestClient {
 				headers.forEach(reqHeaders::add);
 			}
 
-			HttpMethod method = url.toLowerCase().contains("change_pass") ? HttpMethod.PUT : HttpMethod.POST;
 
 			log.info("Calling external API | method: {} | url: {}", method, url);
 
@@ -44,6 +43,7 @@ public class GenericRestClient {
 			ResponseEntity<String> response = restTemplate.exchange(url, method, requestEntity, String.class);
 
 			String responseBody = response.getBody();
+
 			if (responseBody == null || responseBody.trim().isEmpty()) {
 				log.warn("Empty response from external service: {}", url);
 				throw new ExternalServiceException(EXTERNAL_SERVICE_ERROR, "Empty response body");
