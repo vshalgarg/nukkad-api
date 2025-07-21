@@ -1,12 +1,14 @@
 package com.code.monks.nukkad.services;
 
 import com.code.monks.nukkad.auth.response.AuthSendOtpResponseDTO;
+import com.code.monks.nukkad.auth.response.AuthUserAccountDeactivateResponseDTO;
 import com.code.monks.nukkad.auth.response.AuthVerifyOtpResponseDTO;
 import com.code.monks.nukkad.client.AuthRestClient;
+import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.request.SendOtpRequestDTO;
 import com.code.monks.nukkad.dto.request.VerifyRequestDTO;
 import com.code.monks.nukkad.dto.response.SendOtpResponseDTO;
-import com.code.monks.nukkad.dto.response.VerifyDeleteOtpResponseDTO;
+import com.code.monks.nukkad.dto.response.UserAccountDeactivateResponseDTO;
 import com.code.monks.nukkad.dto.response.VerifyOtpResponseDTO;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.repositories.CustomerRepository;
@@ -46,7 +48,7 @@ public class OtpService {
 
 		Long userId = authResponse.getUserId();
 		List<String> roles = authResponse.getRoles();
-
+        log.info("roles : {}",roles);
 		boolean firstTimeLogin = false;
 
 		if (roles.contains(RoleEnum.CUSTOMER.name())) {
@@ -63,29 +65,24 @@ public class OtpService {
 				authResponse.getUsername(),
 				roles,
 				authResponse.getToken(),
+				authResponse.getStatus(),
 				code
 		);
 	}
 
+	public UserAccountDeactivateResponseDTO deactivateAccount() {
+		String mobileNumber = UserContextHolder.getUser().getMobileNumber();
+		log.info("[DEACTIVATE ACCOUNT] Request received to deactivate account for mobile number: {}", mobileNumber);
 
-//
-//	public SendOtpResponseDTO sendDeleteOtp(SendOtpRequestDTO sendOtpRequestDTO) {
-//		String mobileNumber = sendOtpRequestDTO.getMobileNumber();
-//		log.info("[SEND DELETE OTP] Sending delete OTP to mobile: {}", mobileNumber);
-//
-//		AuthSendOtpResponseDTO authResponse = authRestClient.callOtpResponse(sendOtpRequestDTO);
-//		return new SendOtpResponseDTO(authResponse.getMessage());
-//	}
-//
-//	public VerifyDeleteOtpResponseDTO verifyDeleteOtp(VerifyRequestDTO verifyRequestDTO) {
-//		String mobileNumber = verifyRequestDTO.getMobileNumber();
-//		String otp = verifyRequestDTO.getOtp();
-//		log.info("[VERIFY DELETE OTP] Verifying OTP for mobile: {}, OTP: {}", mobileNumber, otp);
-//
-//		AuthVerifyOtpResponseDTO authResponse = authRestClient.callVerifyOtpResponse(verifyRequestDTO);
-//
-//		return new VerifyDeleteOtpResponseDTO("Account has been deactivated.");
-//	}
+		AuthUserAccountDeactivateResponseDTO authResponse = authRestClient.callUserAccountDeactivateResponse(mobileNumber);
+		log.info("[DEACTIVATE ACCOUNT] Response from Auth Service: {}", authResponse);
+
+		String message = authResponse.getMessage();
+		log.info("[DEACTIVATE ACCOUNT] Deactivation message: {}", message);
+
+		return new UserAccountDeactivateResponseDTO(message);
+	}
+
 
 }
 

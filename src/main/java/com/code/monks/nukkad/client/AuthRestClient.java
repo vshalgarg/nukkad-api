@@ -2,9 +2,11 @@ package com.code.monks.nukkad.client;
 
 import com.code.monks.nukkad.auth.request.AuthSendOtpRequestDTO;
 import com.code.monks.nukkad.auth.request.AuthTokenRequestDto;
+import com.code.monks.nukkad.auth.request.AuthUserAccountDeactivateRequestDTO;
 import com.code.monks.nukkad.auth.request.AuthVerifyOtpRequestDTO;
 import com.code.monks.nukkad.auth.response.AuthSendOtpResponseDTO;
 import com.code.monks.nukkad.auth.response.AuthTokenResponseDto;
+import com.code.monks.nukkad.auth.response.AuthUserAccountDeactivateResponseDTO;
 import com.code.monks.nukkad.auth.response.AuthVerifyOtpResponseDTO;
 import com.code.monks.nukkad.dto.User;
 import com.code.monks.nukkad.dto.request.SendOtpRequestDTO;
@@ -42,6 +44,9 @@ public class AuthRestClient {
 
 	@Value("${auth.otpVerify.url}")
 	private String verifyOtpUrl;
+
+	@Value("${auth.userAccountDeactivate.url}")
+	private String userAccountDeactivateUrl;
 
 	@Autowired
 	public AuthRestClient(GenericRestClient genericRestClient) {
@@ -98,6 +103,25 @@ public class AuthRestClient {
 		throw ex;
 	}
 }
+
+	public AuthUserAccountDeactivateResponseDTO callUserAccountDeactivateResponse(String mobileNumber) {
+		String url = authHost + userAccountDeactivateUrl;
+		log.info("[AUTH SERVICE] Calling deactivation endpoint: {}", url);
+
+		AuthUserAccountDeactivateRequestDTO authDto = new AuthUserAccountDeactivateRequestDTO(mobileNumber);
+		log.info("[AUTH SERVICE] Request payload: {}", authDto);
+
+		Map<String, String> headers = new HashMap<>();
+		updateHeadersForClientNameAndSecret(headers);
+		log.info("[AUTH SERVICE] Request headers: {}", headers);
+
+		AuthUserAccountDeactivateResponseDTO response = genericRestClient.postForEntity(
+				url, authDto, headers, AuthUserAccountDeactivateResponseDTO.class);
+
+		log.info("[AUTH SERVICE] Response received: {}", response);
+		return response;
+	}
+
 
 	public User validateToken(AuthTokenRequestDto authDto) {
 		String url = authHost + validateUrl;

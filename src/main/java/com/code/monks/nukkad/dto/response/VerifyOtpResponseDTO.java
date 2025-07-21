@@ -1,5 +1,6 @@
 package com.code.monks.nukkad.dto.response;
 
+import com.code.monks.nukkad.enums.AuthUserStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -12,5 +13,6 @@ public class VerifyOtpResponseDTO {
     private String mobileNumber;
     private List<String> roles;
     private String token;
+    private AuthUserStatusEnum status;
     private int firstTimeLogin;
 }
