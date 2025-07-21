@@ -16,6 +16,7 @@ import com.code.monks.nukkad.exception.ExternalServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -64,7 +65,7 @@ public class AuthRestClient {
 		log.info("[OTP SEND] Initiating OTP send request to: {} for mobile: {}", url, otpRequest.getMobileNumber());
 
 		try {
-			AuthSendOtpResponseDTO response = genericRestClient.postForEntity(url, authDto, headers, AuthSendOtpResponseDTO.class);
+			AuthSendOtpResponseDTO response = genericRestClient.postForEntity(url, authDto, headers, AuthSendOtpResponseDTO.class,HttpMethod.POST);
 			log.info("[OTP SEND] Successfully sent OTP to mobile: {}", otpRequest.getMobileNumber());
 			return response;
 		} catch (Exception ex) {
@@ -83,11 +84,11 @@ public class AuthRestClient {
 
 	try {
 		AuthVerifyOtpResponseDTO response = genericRestClient.postForEntity(
-				url, authDto, headers, AuthVerifyOtpResponseDTO.class
+				url, authDto, headers, AuthVerifyOtpResponseDTO.class,HttpMethod.POST
 		);
 
 		if (response.getUserId() == null || response.getToken() == null) {
-			String rawResponse = genericRestClient.postForEntity(url, authDto, headers, String.class);
+			String rawResponse = genericRestClient.postForEntity(url, authDto, headers, String.class,HttpMethod.POST);
 			String message = rawResponse.replaceAll(".*\"message\"\\s*:\\s*\"([^\"]+)\".*", "$1");
 			String code = rawResponse.replaceAll(".*\"responseCode\"\\s*:\\s*(\\d+).*", "$1");
 
@@ -116,7 +117,7 @@ public class AuthRestClient {
 		log.info("[AUTH SERVICE] Request headers: {}", headers);
 
 		AuthUserAccountDeactivateResponseDTO response = genericRestClient.postForEntity(
-				url, authDto, headers, AuthUserAccountDeactivateResponseDTO.class);
+				url, authDto, headers, AuthUserAccountDeactivateResponseDTO.class, HttpMethod.PUT);
 
 		log.info("[AUTH SERVICE] Response received: {}", response);
 		return response;
@@ -129,7 +130,7 @@ public class AuthRestClient {
 		updateHeadersForClientNameAndSecret(headers);
 
 		try {
-			AuthTokenResponseDto authResponse = genericRestClient.postForEntity(url, authDto, headers, AuthTokenResponseDto.class);
+			AuthTokenResponseDto authResponse = genericRestClient.postForEntity(url, authDto, headers, AuthTokenResponseDto.class,HttpMethod.POST);
 
 			if (authResponse == null || authResponse.getUserId() == null) {
 				throw new ExternalServiceException("Token validation failed or empty response.");
