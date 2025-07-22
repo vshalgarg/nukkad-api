@@ -9,9 +9,12 @@ import com.code.monks.nukkad.dto.response.UpdateCategoryResponseDTO;
 import com.code.monks.nukkad.services.CategoryService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+
 
 import java.util.List;
 
@@ -43,13 +46,20 @@ public class CategoryController {
 	}
 
 
+
 	@GetMapping(CATEGORY.GET_ALL)
-	public ResponseEntity<List<GetAllCategoryResponseDTO>> getAllCategories() {
-		log.info("[GET ALL CATEGORIES] Fetching all categories.");
-		List<GetAllCategoryResponseDTO> categories = categoryService.getAllCategories();
-		log.info("[GET ALL CATEGORIES] Total categories found: {}", categories.size());
+	public ResponseEntity<Page<GetAllCategoryResponseDTO>> getAllCategories(
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int size,
+			@RequestParam(defaultValue = "name") String sortBy,
+			@RequestParam(defaultValue = "true") boolean isAsc
+	) {
+		log.info("[GET ALL CATEGORIES] Fetching categories with page={}, size={}, sortBy={}, isAsc={}", page, size, sortBy, isAsc);
+		Page<GetAllCategoryResponseDTO> categories = categoryService.getAllCategories(page, size, sortBy, isAsc);
+		log.info("[GET ALL CATEGORIES] Total categories fetched: {}", categories.getTotalElements());
 		return ResponseEntity.ok(categories);
 	}
+
 	@GetMapping(GET_BY_ID)
 	public ResponseEntity<CreateCategoryResponseDTO> getCategoryById(@PathVariable Long id) {
 		log.info("[GET CATEGORY BY ID] Fetching category with id: {}", id);

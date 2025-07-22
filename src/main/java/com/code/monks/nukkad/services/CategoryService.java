@@ -18,11 +18,13 @@ import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.CategoryRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
@@ -129,27 +131,30 @@ public class   CategoryService {
 
 
 
-	public List<GetAllCategoryResponseDTO> getAllCategories() {
-		log.info("[CATEGORY FETCH ALL] Fetching all categories from the database");
+	public org.springframework.data.domain.Page<GetAllCategoryResponseDTO> getAllCategories(int page, int size, String sortBy, boolean isAsc) {
+		log.info("[CATEGORY FETCH ALL] Fetching all categories from DB with pagination: page={}, size={}, sortBy={}, asc={}", page, size, sortBy, isAsc);
 
 		try {
-			List<CategoryEntity> categories = categoryRepository.findAll();
+			Sort sort = isAsc ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+			Pageable pageable = PageRequest.of(page, size, sort);
 
-			if (CollectionUtils.isEmpty(categories)) {
-				log.warn("[CATEGORY FETCH ALL] No categories found in the database.");
-				return Collections.emptyList();
+			org.springframework.data.domain.Page<CategoryEntity> categoryPage = categoryRepository.findAll(pageable);
+
+			if (categoryPage.isEmpty()) {
+				log.warn("[CATEGORY FETCH ALL] No categories found.");
+				return Page.empty(pageable);
 			}
 
-			log.info("[CATEGORY FETCH ALL] Total categories found: {}", categories.size());
-			return categories.stream()
-					.map(GetAllCategoryResponseDTO::fromEntity)
-					.toList();
+			log.info("[CATEGORY FETCH ALL] Total categories found: {}", categoryPage.getTotalElements());
+
+			return categoryPage.map(GetAllCategoryResponseDTO::fromEntity);
 
 		} catch (Exception e) {
-			log.error("[CATEGORY FETCH ALL] Unexpected error occurred while fetching categories: {}", e.getMessage(), e);
-			throw new UnhandledException(UNHANDLED_EXCEPTION,e);
+			log.error("[CATEGORY FETCH ALL] Error occurred: {}", e.getMessage(), e);
+			throw new UnhandledException(UNHANDLED_EXCEPTION, e);
 		}
 	}
+
 
 
 	public CreateCategoryResponseDTO getById(Long id) {
