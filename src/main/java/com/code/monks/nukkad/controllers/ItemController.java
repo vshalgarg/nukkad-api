@@ -7,11 +7,14 @@ import com.code.monks.nukkad.services.ItemService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 import static com.code.monks.nukkad.constants.UrlConstants.ITEM;
 import static com.code.monks.nukkad.constants.UrlConstants.ITEM.GET_BY_CATEGORY;
@@ -32,12 +35,16 @@ public class ItemController {
 	}
 
 	@GetMapping(ITEM.GET_ALL)
-	public ResponseEntity<List<GetAllItemResponseDTO>> getAllItems() {
-		log.info("[GET ALL ITEMS] Fetching all items.");
-		List<GetAllItemResponseDTO> items = itemService.getAllItems();
-		log.info("[GET ALL ITEMS] Total items found: {}", items.size());
+	public ResponseEntity<Page<GetAllItemResponseDTO>> getAllItems(
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int size,
+			@RequestParam(defaultValue = "id") String sortBy
+	) {
+		log.info("[GET ALL ITEMS] Fetching items with pagination and sorting.");
+		Page<GetAllItemResponseDTO> items = itemService.getAllItems(page, size, sortBy);
 		return ResponseEntity.ok(items);
 	}
+
 
 	@GetMapping(ITEM.GET_BY_ID)
 	public ResponseEntity<CreateItemResponseDTO> getItemById(@PathVariable Long id) {
@@ -58,11 +65,16 @@ public class ItemController {
 	}
 
 	@GetMapping(GET_BY_CATEGORY)
-	public ResponseEntity<GetItemsByCategoryResponseDTO> getItemsByCategory(@PathVariable Long categoryId) {
-		log.info("Getting items for categoryId={}", categoryId);
+	public ResponseEntity<GetItemsByCategoryResponseDTO> getItemsByCategory(
+			@PathVariable Long categoryId,
+			@PageableDefault(page = 0, size = 10)
+			@SortDefault.SortDefaults({
+					@SortDefault(sort = "name", direction = Sort.Direction.ASC)
+			}) Pageable pageable
+	) {
+		log.info("Getting items for categoryId={} with pageable={}", categoryId, pageable);
 
-		GetItemsByCategoryResponseDTO response = itemService.getItemsByCategory(categoryId);
-
+		GetItemsByCategoryResponseDTO response = itemService.getItemsByCategory(categoryId, pageable);
 		return ResponseEntity.ok(response);
 	}
 

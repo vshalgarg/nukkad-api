@@ -16,6 +16,10 @@ import com.code.monks.nukkad.repositories.CategoryRepository;
 import com.code.monks.nukkad.repositories.ItemRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -103,34 +107,34 @@ public class ItemService {
 
 
 
-	public List<GetAllItemResponseDTO> getAllItems() {
+	public Page<GetAllItemResponseDTO> getAllItems(int page, int size, String sortBy) {
 		User admin = UserContextHolder.getRequiredUser();
 		if (!admin.getRoles().contains(RoleEnum.ADMIN)) {
 			log.warn("[ITEM FETCH ALL] Access denied: User role does not include ADMIN (userId={})", admin.getId());
 			throw new AccessDeniedException(ACCESS_DENIED_FOR_ADMIN_EXCEPTION);
 		}
 
-		log.info("[ITEM FETCH ALL] Fetching all items from the database");
+		log.info("[ITEM FETCH ALL] Fetching items from DB with pagination - page: {}, size: {}, sortBy: {}", page, size, sortBy);
 
 		try {
-			List<ItemEntity> items = itemRepository.findAll();
+			Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+			Page<ItemEntity> itemPage = itemRepository.findAll(pageable);
 
-			if (items == null || items.isEmpty()) {
-				log.warn("[ITEM FETCH ALL] No items found in the database.");
-				return Collections.emptyList();
+			if (itemPage.isEmpty()) {
+				log.warn("[ITEM FETCH ALL] No items found in DB.");
+				return Page.empty();
 			}
 
-			log.info("[ITEM FETCH ALL] Found {} item(s)", items.size());
+			log.info("[ITEM FETCH ALL] Found {} item(s)", itemPage.getTotalElements());
 
-			return items.stream()
-					.map(GetAllItemResponseDTO::fromEntity)
-					.collect(Collectors.toList());
+			return itemPage.map(GetAllItemResponseDTO::fromEntity);
 
 		} catch (Exception e) {
 			log.error("[ITEM FETCH ALL] Unexpected error while fetching items", e);
 			throw new UnhandledException(UNHANDLED_EXCEPTION, e);
 		}
 	}
+
 
 
 	public CreateItemResponseDTO getItemById(Long id) {
@@ -197,50 +201,48 @@ public class ItemService {
 		}
 	}
 
-	public GetItemsByCategoryResponseDTO getItemsByCategory(Long categoryId) {
+	public GetItemsByCategoryResponseDTO getItemsByCategory(Long categoryId, Pageable pageable) {
 		User user = UserContextHolder.getRequiredUser();
-
 		log.info("[ITEM FETCH BY CATEGORY] Request received by userId={} for categoryId={}", user.getId(), categoryId);
 
-		if (!user.getRoles().contains(RoleEnum.CUSTOMER)) {
-			log.warn("[ITEM FETCH BY CATEGORY] Access denied: Role '{}' is not authorized", user.getRoles());
-			throw new AccessDeniedException(ACCESS_DENIED_FOR_STOREKEEPER_EXCEPTION);
-		}
-
 		try {
-			CategoryEntity category = categoryRepository.findById(categoryId)
+			// Check if user is CUSTOMER
+			if (!user.getRoles().contains(RoleEnum.CUSTOMER)) {
+				log.warn("[ACCESS DENIED] UserId={} with roles={} is not allowed to access items by category",
+						user.getId(), user.getRoles());
+				throw new AccessDeniedException(ACCESS_DENIED_FOR_STOREKEEPER_EXCEPTION);
+			}
+
+			// Validate category
+			categoryRepository.findById(categoryId)
 					.orElseThrow(() -> {
-						log.warn("[ITEM FETCH BY CATEGORY] Category not found for ID={}", categoryId);
+						log.warn("[CATEGORY NOT FOUND] categoryId={} not found", categoryId);
 						return new ResourceNotFoundException(CATEGORY_NOT_FOUND, categoryId);
 					});
 
-			List<ItemEntity> items = category.getItems();
-			if (items == null || items.isEmpty()) {
-				log.warn("[ITEM FETCH BY CATEGORY] No items found for categoryId={}", categoryId);
-				return GetItemsByCategoryResponseDTO.builder()
-						.message("No items found for this category")
-						.items(Collections.emptyList())
-						.build();
-			}
+			// Fetch paginated items
+			Page<ItemEntity> itemsPage = itemRepository.findItemsByCategoryId(categoryId, pageable);
 
-			List<GetAllItemResponseDTO> dtoList = items.stream()
+			List<GetAllItemResponseDTO> dtoList = itemsPage.getContent().stream()
 					.map(GetAllItemResponseDTO::fromEntity)
 					.collect(Collectors.toList());
 
-			log.info("[ITEM FETCH BY CATEGORY] {} item(s) found for categoryId={}", dtoList.size(), categoryId);
+			log.info("[ITEMS FETCHED SUCCESSFULLY] categoryId={}, totalItems={}, pageNumber={}, pageSize={}",
+					categoryId, dtoList.size(), itemsPage.getNumber(), itemsPage.getSize());
 
 			return GetItemsByCategoryResponseDTO.builder()
 					.message("Items fetched successfully for category")
 					.items(dtoList)
 					.build();
 
-		} catch (ResourceNotFoundException ex) {
+		} catch (AccessDeniedException | ResourceNotFoundException ex) {
 			throw ex;
-		} catch (Exception e) {
-			log.error("[ITEM FETCH BY CATEGORY] Unexpected error while fetching items for categoryId={}", categoryId, e);
-			throw new UnhandledException(UNHANDLED_EXCEPTION, e);
+		} catch (Exception ex) {
+			log.error("[ITEM FETCH ERROR] categoryId={}, error={}", categoryId, ex.getMessage(), ex);
+			throw new UnhandledException(UNHANDLED_EXCEPTION, ex);
 		}
 	}
+
 
 }
 

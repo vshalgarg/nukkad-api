@@ -10,6 +10,8 @@ import com.code.monks.nukkad.repositories.CategoryRepository;
 import com.code.monks.nukkad.repositories.ItemRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -34,16 +36,15 @@ public class SearchService {
         }
 
         try {
-            List<CategoryEntity> dbCategories = categoryRepository.findAllByNameContainingIgnoreCase(keyword);
-            List<ItemEntity> dbItems = itemRepository.findByNameContainingIgnoreCase(keyword);
+            Pageable pageable = Pageable.unpaged(); // Use Pageable.of(page, size) if you want actual pagination
+            Page<CategoryEntity> categoryPage = categoryRepository.findAllByNameContainingIgnoreCase(keyword, pageable);
+            Page<ItemEntity> itemPage = itemRepository.findByNameContainingIgnoreCase(keyword, pageable);
 
-            log.debug("Found {} categories and {} items for keyword '{}'", dbCategories.size(), dbItems.size(), keyword);
-
-            List<CreateCategoryResponseDTO> categoryDTOs = dbCategories.stream()
+            List<CreateCategoryResponseDTO> categoryDTOs = categoryPage.getContent().stream()
                     .map(CreateCategoryResponseDTO::fromEntity)
                     .toList();
 
-            List<CreateItemResponseDTO> itemDTOs = dbItems.stream()
+            List<CreateItemResponseDTO> itemDTOs = itemPage.getContent().stream()
                     .map(CreateItemResponseDTO::fromEntity)
                     .toList();
 
