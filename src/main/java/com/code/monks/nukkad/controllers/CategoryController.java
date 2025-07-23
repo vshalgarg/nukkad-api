@@ -13,11 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.data.domain.Page;
-
-
-import java.util.List;
-
 import static com.code.monks.nukkad.constants.UrlConstants.CATEGORY;
 import static com.code.monks.nukkad.constants.UrlConstants.CATEGORY.GET_BY_ID;
 

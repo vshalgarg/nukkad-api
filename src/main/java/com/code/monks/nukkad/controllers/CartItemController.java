@@ -2,19 +2,14 @@ package com.code.monks.nukkad.controllers;
 
 import com.code.monks.nukkad.dto.request.CreateCartItemRequestDTO;
 import com.code.monks.nukkad.dto.request.UpdateCartItemRequestDTO;
-import com.code.monks.nukkad.dto.response.CreateCartItemResponseDTO;
-import com.code.monks.nukkad.dto.response.GetCartItemResponseDTO;
-import com.code.monks.nukkad.dto.response.RemoveCartItemResponseDTO;
-import com.code.monks.nukkad.dto.response.UpdateCartItemResponseDTO;
+import com.code.monks.nukkad.dto.response.*;
 import com.code.monks.nukkad.services.CartItemService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-
 import static com.code.monks.nukkad.constants.UrlConstants.CART_ITEM;
 
 @Slf4j
@@ -55,6 +50,13 @@ public class CartItemController {
         log.info("Updating cart item: {}", dto);
         UpdateCartItemResponseDTO updated = cartItemService.updateCartItem(dto);
         return ResponseEntity.ok(updated);
+    }
+
+
+    @DeleteMapping(CART_ITEM.CLEAR_CART_FOR_CUSTOMER_BEFORE_REPEAT_ORDER)
+    public ResponseEntity<ClearCartResponseDTO> clearCart() {
+        ClearCartResponseDTO response = cartItemService.clearCartForCustomer();
+        return ResponseEntity.ok(response);
     }
 
 

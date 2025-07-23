@@ -3,10 +3,7 @@ package com.code.monks.nukkad.services;
 import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.request.CreateCartItemRequestDTO;
 import com.code.monks.nukkad.dto.request.UpdateCartItemRequestDTO;
-import com.code.monks.nukkad.dto.response.CreateCartItemResponseDTO;
-import com.code.monks.nukkad.dto.response.GetCartItemResponseDTO;
-import com.code.monks.nukkad.dto.response.RemoveCartItemResponseDTO;
-import com.code.monks.nukkad.dto.response.UpdateCartItemResponseDTO;
+import com.code.monks.nukkad.dto.response.*;
 import com.code.monks.nukkad.entities.CartEntity;
 import com.code.monks.nukkad.entities.CartItemEntity;
 import com.code.monks.nukkad.entities.CustomerEntity;
@@ -233,5 +230,23 @@ public class CartItemService {
         }
     }
 
+
+    public ClearCartResponseDTO clearCartForCustomer() {
+        Long customerId = UserContextHolder.getRequiredUser().getId();
+        log.info("[CART CLEAR] Request received to clear cart for customerId={}", customerId);
+
+        List<CartItemEntity> cartItems = cartItemRepository.findByCustomerId(customerId);
+
+        if (cartItems.isEmpty()) {
+            log.warn("[CART CLEAR] No cart items found for customerId={}", customerId);
+            throw new ResourceNotFoundException(NO_ITEM_FOUND_IN_CART_FOR_CUSTOMER,customerId);
+        }
+
+        cartItemRepository.deleteByCustomerId(customerId);
+        log.info("[CART CLEAR] Cart cleared successfully for customerId={}", customerId);
+
+        return new ClearCartResponseDTO("Cart cleared successfully.",List.of());
     }
+
+}
 

@@ -1,4 +1,4 @@
-package com.code.monks.hrms.controller;
+package com.code.monks.nukkad.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
