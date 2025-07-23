@@ -239,13 +239,13 @@ public class CartItemService {
 
         if (cartItems.isEmpty()) {
             log.warn("[CART CLEAR] No cart items found for customerId={}", customerId);
-            throw new ResourceNotFoundException(NO_ITEM_FOUND_IN_CART_FOR_CUSTOMER,customerId);
+            throw new ResourceNotFoundException(NO_ITEM_FOUND_IN_CART_FOR_CUSTOMER, customerId);
         }
 
-        cartItemRepository.deleteByCustomerId(customerId);
-        log.info("[CART CLEAR] Cart cleared successfully for customerId={}", customerId);
+        cartItemRepository.deleteAll(cartItems);
 
-        return new ClearCartResponseDTO("Cart cleared successfully.",List.of());
+        log.info("[CART CLEAR] Cart cleared successfully for customerId={}", customerId);
+        return new ClearCartResponseDTO("Cart cleared successfully.", List.of());
     }
 
 }
