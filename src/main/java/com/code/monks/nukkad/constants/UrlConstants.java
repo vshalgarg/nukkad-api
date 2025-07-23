@@ -83,6 +83,7 @@ public static class ADDRESS{
 		public static final String GET_CART_ITEM_FOR_CUSTOMER = "/v1/get";
 		public static final String DELETE_CART_ITEM_BY_ID = "/v1/deleteItem/{id}";
 		public static final String UPDATE_QUANTITY_AND_UNIT_OF_ITEM = "/v1/item/update";
+		public static final String CLEAR_CART_FOR_CUSTOMER_BEFORE_REPEAT_ORDER = "/v1/clear/cart";
 	}
 
 	public static class SEARCH{
