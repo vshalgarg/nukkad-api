@@ -34,5 +34,5 @@ public class OrderItemEntity extends  BaseEntity{
     private String unit;
 
     @Column(name = "price")
-    private double price;
+    private Double price;
 }

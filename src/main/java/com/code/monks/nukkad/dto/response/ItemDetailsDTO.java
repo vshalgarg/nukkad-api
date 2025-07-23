@@ -1,5 +1,6 @@
 package com.code.monks.nukkad.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,7 @@ public class ItemDetailsDTO {
   private String itemName;
   private String unit;
   private int quantity;
-  private double price;
+  private Double price;
   private List<String> imageUrls;
 }
 
