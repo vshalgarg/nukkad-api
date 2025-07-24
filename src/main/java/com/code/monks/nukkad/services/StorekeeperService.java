@@ -114,6 +114,7 @@ public class StorekeeperService {
                 });
 
         try {
+            // Update fields from DTO
             storekeeper.setName(dto.getName());
             storekeeper.setStoreName(dto.getStoreName());
             storekeeper.setContactNumber(dto.getContactNumber());
@@ -124,8 +125,12 @@ public class StorekeeperService {
             storekeeper.setState(dto.getState());
             storekeeper.setPincode(dto.getPincode());
 
+            // Validate unique fields (e.g. GST, address line 1)
+            exceptionHandleUtil.validateStorekeeperUniqueFields(storekeeper);
+
             List<String> imageUrls = new ArrayList<>();
 
+            // Handle new images
             if (newImages != null && newImages.length > 0) {
                 try {
                     List<StorekeeperImageEntity> existingImages = storekeeperImageRepository.findByStorekeeperId(storekeeperId);
@@ -147,7 +152,7 @@ public class StorekeeperService {
                     log.info("[UPDATE STOREKEEPER] Stored {} new image(s) for storekeeperId={}", imageUrls.size(), storekeeperId);
                 } catch (Exception e) {
                     log.error("[UPDATE STOREKEEPER] Error while storing new images", e);
-                    throw new UnhandledException(UNHANDLED_EXCEPTION,e);
+                    throw new UnhandledException(UNHANDLED_EXCEPTION, e);
                 }
             } else {
                 imageUrls = storekeeper.getImages().stream()
@@ -161,11 +166,15 @@ public class StorekeeperService {
 
             return CreateStorekeeperResponseDTO.fromEntity(updated, imageUrls);
 
+        } catch (DuplicateResourceException e) {
+            log.warn("[UPDATE STOREKEEPER] Duplicate field(s) found: {}", e.getMessage());
+            throw e;
         } catch (Exception e) {
             log.error("[UPDATE STOREKEEPER] Unexpected error occurred while updating storekeeper", e);
-            throw new UnhandledException(UNHANDLED_EXCEPTION,e);
+            throw new UnhandledException(UNHANDLED_EXCEPTION, e);
         }
     }
+
 
 
     public GetStorekeeperProfileResponseDTO getStorekeeperProfile() {
