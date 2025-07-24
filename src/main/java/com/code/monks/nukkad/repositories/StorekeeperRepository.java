@@ -8,8 +8,10 @@ import java.util.Optional;
 
 @Repository
 public interface StorekeeperRepository extends JpaRepository<StorekeeperEntity, Long> {
-    boolean existsByGstNum(String gstNum);
+
     boolean existsByStoreQrId(String storeQrId);
-    boolean existsByAddressLine1(String addressLine1);
+    Optional<StorekeeperEntity> findByGstNum(String gstNum);
+    Optional<StorekeeperEntity> findByAddressLine1(String addressLine1);
     Optional<StorekeeperEntity> findByStoreQrId(String storeQrId);
+
 }

@@ -4,9 +4,11 @@ import com.code.monks.nukkad.entities.CustomerEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface CustomerRepository extends JpaRepository<CustomerEntity,Long> {
 
-    boolean existsByMobileNumber(String mobileNumber);
-    boolean existsByEmail(String email);
+    Optional<CustomerEntity> findByMobileNumber(String mobileNumber);
+    Optional<CustomerEntity> findByEmail(String email);
 }

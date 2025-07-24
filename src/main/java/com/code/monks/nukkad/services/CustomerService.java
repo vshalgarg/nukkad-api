@@ -98,6 +98,8 @@ public class CustomerService {
 
 		customer = UpdateCustomerRequestDTO.updateEntity(customer, dto);
 
+		exceptionHandleUtil.validateCustomerUniqueFields(customer);
+
 		try {
 			// Save customer
 			CustomerEntity updated = customerRepository.save(customer);
