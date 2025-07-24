@@ -12,18 +12,14 @@ import java.util.List;
 public class GetUserHistoryByStatusAndDateResponseDTO {
     private Long orderId;
     private LocalDateTime orderDate;
-
     private String customerName;
-
     private Long deliveryAddressId;
     private String address;
-
     private Long storeKeeperId;
     private String storeName;
-
     private List<ItemDetailsDTO> items;
-
     private StatusEnum orderStatus;
+    private String storeKeeperNote;
 
     public static GetUserHistoryByStatusAndDateResponseDTO fromEntity(OrderEntity order) {
         GetUserHistoryByStatusAndDateResponseDTO dto = new GetUserHistoryByStatusAndDateResponseDTO();
@@ -47,6 +43,7 @@ public class GetUserHistoryByStatusAndDateResponseDTO {
         if (order.getStoreKeeper() != null) {
             dto.setStoreKeeperId(order.getStoreKeeper().getId());
             dto.setStoreName(order.getStoreKeeper().getStoreName());
+            dto.setStoreKeeperNote(order.getStoreKeeperNote());
         }
 
         // Order Items
