@@ -34,7 +34,6 @@ public enum ResponseErrorCodes {
 	ADDRESS_CUSTOMER_MISMATCH(1025,"Address is not match with customer"),
 	ORDER_NOT_FOUND(1026,"Order not found: "),
 	NO_ITEM_FOUND_IN_CART_FOR_CUSTOMER(1027,"No item found in cart for customer id : ");
-
 	private int responseCode;
 
 	private String message;
