@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -22,11 +23,13 @@ public class ExceptionHandleUtil {
     public void validateStorekeeperUniqueFields(StorekeeperEntity entity) {
         List<String> conflictingFields = new ArrayList<>();
 
-        if (storekeeperRepository.existsByGstNum(entity.getGstNum())) {
+        Optional<StorekeeperEntity> gstConflict = storekeeperRepository.findByGstNum(entity.getGstNum());
+        if (gstConflict.isPresent() && !gstConflict.get().getId().equals(entity.getId())) {
             conflictingFields.add("GST number");
         }
 
-        if (storekeeperRepository.existsByAddressLine1(entity.getAddressLine1())) {
+        Optional<StorekeeperEntity> addressConflict = storekeeperRepository.findByAddressLine1(entity.getAddressLine1());
+        if (addressConflict.isPresent() && !addressConflict.get().getId().equals(entity.getId())) {
             conflictingFields.add("address line 1");
         }
 
@@ -39,11 +42,14 @@ public class ExceptionHandleUtil {
     public void validateCustomerUniqueFields(CustomerEntity entity) {
         List<String> conflictingFields = new ArrayList<>();
 
-        if (customerRepository.existsByMobileNumber(entity.getMobileNumber())) {
-            conflictingFields.add("mobile number");
-        }
-        if (customerRepository.existsByEmail(entity.getEmail())) {
+        Optional<CustomerEntity> emailConflict = customerRepository.findByEmail(entity.getEmail());
+        if (emailConflict.isPresent() && !emailConflict.get().getId().equals(entity.getId())) {
             conflictingFields.add("email");
+        }
+
+        Optional<CustomerEntity> mobileConflict = customerRepository.findByMobileNumber(entity.getMobileNumber());
+        if (mobileConflict.isPresent() && !mobileConflict.get().getId().equals(entity.getId())) {
+            conflictingFields.add("mobile number");
         }
 
         if (!conflictingFields.isEmpty()) {
@@ -51,6 +57,7 @@ public class ExceptionHandleUtil {
             throw new DuplicateResourceException(ResponseErrorCodes.DUPLICATE_RESOURCE_EXCEPTION, message);
         }
     }
+
 
     private String formatConflictMessage(List<String> fields) {
         if (fields.size() == 1) {
