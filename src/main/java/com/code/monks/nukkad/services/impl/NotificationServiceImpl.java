@@ -47,9 +47,4 @@ public class NotificationServiceImpl implements NotificationService {
             return new SendNotificationResponseDto(false, "Failed to send notification: " + e.getMessage(), null);
         }
     }
-
-    public void sendWelcomeNotification(String token) {
-        log.info("Sending welcome notification to token: {}", token);
-        sendNotification(token, "Welcome!", "Thanks for joining Code Monks 🙌");
-    }
 }

@@ -36,6 +36,8 @@ public class OrderService {
     private final CustomerRepository customerRepository;
     private final CartItemRepository cartItemRepository;
     private final StorekeeperRepository storekeeperRepository;
+    private final NotificationService notificationService;
+    private final UserDeviceTokenRepository userDeviceTokenRepository;
 
     public PlaceOrderResponseDTO placeOrders(PlaceOrderRequestDTO requestDTO) {
 
@@ -121,6 +123,17 @@ public class OrderService {
             cartItemRepository.deleteAll(cartItems);
             log.debug("[ORDER] Cart cleared ({} item[s]) for customerId={}", cartItems.size(), customerId);
 
+            log.info("Sending notification ");
+            Optional<UserDeviceTokenEntity> tokenOpt = userDeviceTokenRepository.findByCustomerId(customerId);
+            if (tokenOpt.isPresent()) {
+                String deviceToken = tokenOpt.get().getDeviceToken();
+    
+                String title = "Order #1234";
+                String body = "Your order has been placed";
+                notificationService.sendNotification(deviceToken, title, body);
+            } else {
+                log.warn("No device token found for customerId: {}", customerId);
+            }
             // Step 8: Return response
             return new PlaceOrderResponseDTO("Order placed successfully");
 
