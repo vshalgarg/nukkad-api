@@ -24,15 +24,15 @@ WHERE o.customer.id = :customerId
   AND (
       (:status IS NOT NULL AND o.status = :status)
       OR (:status IS NULL AND (:minPrice IS NOT NULL OR :maxPrice IS NOT NULL) AND 
-         (o.status = com.code.monks.nukkad.enums.StatusEnum.DISPATCH OR o.status = com.code.monks.nukkad.enums.StatusEnum.DELIVERED))
+         (o.status = com.code.monks.nukkad.enums.StatusEnum.DISPATCHED OR o.status = com.code.monks.nukkad.enums.StatusEnum.DELIVERED))
       OR (:status IS NULL AND :minPrice IS NULL AND :maxPrice IS NULL)
   )
   AND (:start IS NULL OR o.createdAt >= :start)
   AND (:end IS NULL OR o.createdAt <= :end)
 GROUP BY o.id
 HAVING 
-  (:minPrice IS NULL OR SUM(oi.price * oi.quantity) >= :minPrice) AND
-  (:maxPrice IS NULL OR SUM(oi.price * oi.quantity) <= :maxPrice)
+  (:minPrice IS NULL OR SUM(oi.price) >= :minPrice) AND
+  (:maxPrice IS NULL OR SUM(oi.price) <= :maxPrice)
 """)
     List<OrderEntity> findCustomerOrdersWithFilters(
             @Param("customerId") Long customerId,
@@ -49,15 +49,16 @@ JOIN o.orderItems oi
 WHERE o.storeKeeper.id = :storekeeperId
   AND (
       (:status IS NOT NULL AND o.status = :status)
-      OR (:status IS NULL AND (:minPrice IS NOT NULL OR :maxPrice IS NOT NULL) AND (o.status = com.code.monks.nukkad.enums.StatusEnum.DISPATCH OR o.status = com.code.monks.nukkad.enums.StatusEnum.DELIVERED))
+      OR (:status IS NULL AND (:minPrice IS NOT NULL OR :maxPrice IS NOT NULL) AND 
+         (o.status = com.code.monks.nukkad.enums.StatusEnum.DISPATCHED OR o.status = com.code.monks.nukkad.enums.StatusEnum.DELIVERED))
       OR (:status IS NULL AND :minPrice IS NULL AND :maxPrice IS NULL)
   )
   AND (:start IS NULL OR o.createdAt >= :start)
   AND (:end IS NULL OR o.createdAt <= :end)
 GROUP BY o.id
 HAVING 
-  (:minPrice IS NULL OR SUM(oi.price * oi.quantity) >= :minPrice) AND
-  (:maxPrice IS NULL OR SUM(oi.price * oi.quantity) <= :maxPrice)
+  (:minPrice IS NULL OR SUM(oi.price) >= :minPrice) AND
+  (:maxPrice IS NULL OR SUM(oi.price) <= :maxPrice)
 """)
     List<OrderEntity> findStorekeeperOrdersWithFilters(
             @Param("storekeeperId") Long storekeeperId,

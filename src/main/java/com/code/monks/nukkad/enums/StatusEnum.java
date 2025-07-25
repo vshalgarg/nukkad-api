@@ -4,7 +4,7 @@ public enum StatusEnum
 {
     PENDING(1),
     IN_PROGRESS(2),
-    DISPATCH(3),
+    DISPATCHED(3),
     DELIVERED(4),
     CANCELLED(5);
 
@@ -28,11 +28,6 @@ public enum StatusEnum
             }
         }
         throw new IllegalArgumentException("Invalid Status code :" +code);
-
-    }
-
-
-    public void setId(StatusEnum status) {
 
     }
 }

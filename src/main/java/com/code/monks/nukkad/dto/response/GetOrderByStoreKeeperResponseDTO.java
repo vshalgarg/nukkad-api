@@ -11,22 +11,17 @@ import java.util.List;
 
 @Data
 public class GetOrderByStoreKeeperResponseDTO {
-
     private Long customerId;
     private String customerName;
     private String customerMobileNumber;
-
     private Long storeKeeperId;
-
     private Long deliveryAddressId;
     private String address;
     private String landmark;
-
-     private Long orderId;
+    private Long orderId;
     private LocalDateTime orderDate;
-
+    private LocalDateTime updatedAt;
     private List<ItemDetailsDTO> items;
-
     private StatusEnum orderStatus;
     private String storeKeeperNote;
 
@@ -34,8 +29,8 @@ public class GetOrderByStoreKeeperResponseDTO {
         GetOrderByStoreKeeperResponseDTO responseDTO = new GetOrderByStoreKeeperResponseDTO();
         responseDTO.setOrderId(entity.getId());
         responseDTO.setOrderDate(entity.getCreatedAt());
-
-
+        responseDTO.setUpdatedAt(entity.getUpdatedAt());
+        
         // Customer Info
         if (entity.getCustomer() != null) {
             responseDTO.setCustomerId(entity.getCustomer().getId());

@@ -64,7 +64,7 @@ public class GetUserHistoryByStatusAndDateResponseDTO {
 
                 itemDto.setQuantity(orderItem.getQuantity());
 
-                if (order.getStatus() == StatusEnum.DISPATCH || order.getStatus() == StatusEnum.DELIVERED) {
+                if (order.getStatus() == StatusEnum.DISPATCHED || order.getStatus() == StatusEnum.DELIVERED) {
                     itemDto.setPrice(orderItem.getPrice());
                 } else {
                     itemDto.setPrice(null);

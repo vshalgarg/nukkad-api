@@ -165,6 +165,7 @@ public class OrderService {
         }
     }
 
+
     public List<GetUserHistoryByStatusAndDateResponseDTO> getUserHistoryByOptionalFilters(
             StatusEnum status, LocalDate startDate, LocalDate endDate, Double minPrice, Double maxPrice) {
 
@@ -225,20 +226,20 @@ public class OrderService {
         try {
             // Validate item list
             if (request.getOrderItem() == null || request.getOrderItem().isEmpty()) {
-                log.warn("[DISPATCH] Empty or null order item list for orderId={}", orderId);
+                log.warn("[DISPATCHED] Empty or null order item list for orderId={}", orderId);
                 throw new IllegalArgumentException("Order items list cannot be empty or null.");
             }
 
             // Fetch order
             OrderEntity order = orderRepository.findById(orderId)
                     .orElseThrow(() -> {
-                        log.warn("[DISPATCH] Order not found with ID={}", orderId);
+                        log.warn("[DISPATCHED] Order not found with ID={}", orderId);
                         return new OrderNotFoundException(ORDER_NOT_FOUND );
                     });
 
             // Check storekeeper access
             if (!order.getStoreKeeper().getId().equals(storekeeperId)) {
-                log.error("[DISPATCH] Unauthorized dispatch attempt by storekeeperId={} for orderId={}", storekeeperId, orderId);
+                log.error("[DISPATCHED] Unauthorized dispatch attempt by storekeeperId={} for orderId={}", storekeeperId, orderId);
                 throw new UnauthorizedAccessException("Unauthorized to dispatch this order.");
             }
 
@@ -248,34 +249,34 @@ public class OrderService {
                         .filter(orderItem -> orderItem.getItem().getId().equals(requestedItem.getItemId()))
                         .findFirst()
                         .ifPresent(orderItem -> {
-                            log.debug("[DISPATCH] Updating price for itemId={} to {}", requestedItem.getItemId(), requestedItem.getPrice());
+                            log.debug("[DISPATCHED] Updating price for itemId={} to {}", requestedItem.getItemId(), requestedItem.getPrice());
                             orderItem.setPrice(requestedItem.getPrice());
                         });
             });
 
             // Update status & note
-            order.setStatus(StatusEnum.DISPATCH);
+            order.setStatus(StatusEnum.DISPATCHED);
             order.setStoreKeeperNote(request.getStoreKeeperNote());
 
             orderRepository.save(order);
-            log.info("[DISPATCH] Order ID={} dispatched successfully by storekeeperId={}", orderId, storekeeperId);
+            log.info("[DISPATCHED] Order ID={} dispatched successfully by storekeeperId={}", orderId, storekeeperId);
 
             return new DispatchOrderResponseDTO("Order dispatched successfully.");
 
         } catch (IllegalArgumentException e) {
-            log.warn("[DISPATCH] Invalid input for orderId={}: {}", orderId, e.getMessage());
+            log.warn("[DISPATCHED] Invalid input for orderId={}: {}", orderId, e.getMessage());
             throw e;
 
         } catch (OrderNotFoundException e) {
-            log.warn("[DISPATCH] Order not found: {}", e.getMessage());
+            log.warn("[DISPATCHED] Order not found: {}", e.getMessage());
             throw e;
 
         } catch (UnauthorizedAccessException e) {
-            log.error("[DISPATCH] Authorization or validation failure for orderId={}", orderId, e);
+            log.error("[DISPATCHED] Authorization or validation failure for orderId={}", orderId, e);
             throw e;
 
         } catch (Exception e) {
-            log.error("[DISPATCH] Unexpected error while dispatching orderId={}", orderId, e);
+            log.error("[DISPATCHED] Unexpected error while dispatching orderId={}", orderId, e);
             throw new UnhandledException(UNHANDLED_EXCEPTION, e);
         }
     }

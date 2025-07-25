@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS storekeeper (
     name VARCHAR(50) NOT NULL,
     store_name VARCHAR(30) NOT NULL,
     mobile_number VARCHAR(20) NOT NULL UNIQUE,
-    contact_number VARCHAR(20);
+    contact_number VARCHAR(20),
     gst_in VARCHAR(30) NOT NULL UNIQUE,
     address_line1 VARCHAR(100) NOT NULL UNIQUE,
     address_line2 VARCHAR(100),
