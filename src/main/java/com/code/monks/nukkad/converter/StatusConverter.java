@@ -1,19 +1,19 @@
 package com.code.monks.nukkad.converter;
 
-import com.code.monks.nukkad.enums.StatusEnum;
+import com.code.monks.nukkad.enums.OrderStatusEnum;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 @Converter(autoApply = true)
 
-public class StatusConverter implements AttributeConverter<StatusEnum, Integer>
+public class StatusConverter implements AttributeConverter<OrderStatusEnum, Integer>
 {
     @Override
-    public Integer convertToDatabaseColumn(StatusEnum status) {
+    public Integer convertToDatabaseColumn(OrderStatusEnum status) {
         return status !=null? status.getCode():null;    }
 
     @Override
-    public StatusEnum convertToEntityAttribute(Integer code) {
-       return code !=null? StatusEnum.fromCode(code):null;
+    public OrderStatusEnum convertToEntityAttribute(Integer code) {
+       return code !=null? OrderStatusEnum.fromCode(code):null;
     }
 }
