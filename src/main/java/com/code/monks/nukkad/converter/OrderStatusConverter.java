@@ -6,7 +6,7 @@ import jakarta.persistence.Converter;
 
 @Converter(autoApply = true)
 
-public class StatusConverter implements AttributeConverter<OrderStatusEnum, Integer>
+public class OrderStatusConverter implements AttributeConverter<OrderStatusEnum, Integer>
 {
     @Override
     public Integer convertToDatabaseColumn(OrderStatusEnum status) {
