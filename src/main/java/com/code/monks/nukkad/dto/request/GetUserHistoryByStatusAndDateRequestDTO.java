@@ -1,13 +1,13 @@
 package com.code.monks.nukkad.dto.request;
 
-import com.code.monks.nukkad.enums.StatusEnum;
+import com.code.monks.nukkad.enums.OrderStatusEnum;
 import lombok.Data;
 
 import java.time.LocalDate;
 
 @Data
 public class GetUserHistoryByStatusAndDateRequestDTO {
-    private StatusEnum status;
+    private OrderStatusEnum status;
     private LocalDate startDate;
     private LocalDate endDate;
 }

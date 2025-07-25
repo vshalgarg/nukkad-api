@@ -1,7 +1,7 @@
 
 package com.code.monks.nukkad.entities;
-import com.code.monks.nukkad.converter.StatusConverter;
-import com.code.monks.nukkad.enums.StatusEnum;
+import com.code.monks.nukkad.converter.OrderStatusConverter;
+import com.code.monks.nukkad.enums.OrderStatusEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,8 +32,8 @@ public class  OrderEntity extends BaseEntity {
     @JoinColumn(name="store_keeper_id")
     private StorekeeperEntity storeKeeper;
 
-    @Convert(converter = StatusConverter.class)
-    private StatusEnum status;
+    @Convert(converter = OrderStatusConverter.class)
+    private OrderStatusEnum status;
 
     @Column(name = "store_keeper_note")
     private String storeKeeperNote;

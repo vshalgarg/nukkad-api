@@ -2,7 +2,7 @@
 package com.code.monks.nukkad.dto.response;
 
 import com.code.monks.nukkad.entities.*;
-import com.code.monks.nukkad.enums.StatusEnum;
+import com.code.monks.nukkad.enums.OrderStatusEnum;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -22,7 +22,7 @@ public class GetOrderByStoreKeeperResponseDTO {
     private LocalDateTime orderDate;
     private LocalDateTime updatedAt;
     private List<ItemDetailsDTO> items;
-    private StatusEnum orderStatus;
+    private OrderStatusEnum orderStatus;
     private String storeKeeperNote;
 
     public static GetOrderByStoreKeeperResponseDTO toEntity(OrderEntity entity ) {
