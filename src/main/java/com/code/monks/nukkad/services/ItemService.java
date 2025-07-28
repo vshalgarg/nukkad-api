@@ -233,6 +233,10 @@ public class ItemService {
 			return GetItemsByCategoryResponseDTO.builder()
 					.message("Items fetched successfully for category")
 					.items(dtoList)
+					.totalItems(itemsPage.getTotalElements())
+					.totalPages(itemsPage.getTotalPages())
+					.currentPage(itemsPage.getNumber())
+					.pageSize(itemsPage.getSize())
 					.build();
 
 		} catch (AccessDeniedException | ResourceNotFoundException ex) {
