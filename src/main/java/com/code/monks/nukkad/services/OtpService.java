@@ -30,9 +30,7 @@ import java.util.Optional;
 public class OtpService {
 
 	private final AuthRestClient authRestClient;
-
 	private final CustomerRepository customerRepository;
-
 	private final StorekeeperRepository storekeeperRepository;
 	private final UserDeviceTokenRepository userDeviceTokenRepository;
 
