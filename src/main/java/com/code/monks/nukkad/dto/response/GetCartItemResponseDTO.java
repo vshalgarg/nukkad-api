@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 public class GetCartItemResponseDTO {
 
     private Long id;
+    private Long cartId;
     private Long itemId;
     private String itemName;
     private int quantity;
@@ -40,6 +41,7 @@ public class GetCartItemResponseDTO {
 
         return new GetCartItemResponseDTO(
                 entity.getId(),
+                entity.getCart().getId(),
                 item.getId(),
                 item.getName(),
                 entity.getQuantity(),
