@@ -1,6 +1,6 @@
 package com.code.monks.nukkad.enums;
 
-public enum StatusEnum
+public enum OrderStatusEnum
 {
     PENDING(1),
     IN_PROGRESS(2),
@@ -10,7 +10,7 @@ public enum StatusEnum
 
     private final int code;
 
-    StatusEnum(int code)
+    OrderStatusEnum(int code)
     {
         this.code= code;
     }
@@ -18,9 +18,9 @@ public enum StatusEnum
     {
         return code;
     }
-    public static StatusEnum fromCode(int code)
+    public static OrderStatusEnum fromCode(int code)
     {
-        for (StatusEnum status : StatusEnum.values())
+        for (OrderStatusEnum status : OrderStatusEnum.values())
         {
             if(status.code== code)
             {

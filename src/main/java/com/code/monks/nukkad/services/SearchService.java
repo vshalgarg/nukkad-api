@@ -27,7 +27,7 @@ public class SearchService {
     private final CategoryRepository categoryRepository;
     private final ItemRepository itemRepository;
 
-    public SearchResponseDTO search(String keyword) {
+    public SearchResponseDTO search(String keyword, Pageable pageable) {
         log.info("Starting search for keyword: '{}'", keyword);
 
         if (keyword == null || keyword.trim().isEmpty()) {
@@ -36,14 +36,12 @@ public class SearchService {
         }
 
         try {
-            Pageable pageable = Pageable.unpaged(); // Use Pageable.of(page, size) if you want actual pagination
-            Page<CategoryEntity> categoryPage = categoryRepository.findAllByNameContainingIgnoreCase(keyword, pageable);
-            Page<ItemEntity> itemPage = itemRepository.findByNameContainingIgnoreCase(keyword, pageable);
-
-            List<CreateCategoryResponseDTO> categoryDTOs = categoryPage.getContent().stream()
+            List<CategoryEntity> categoryEntities = categoryRepository.findAllByNameContainingIgnoreCase(keyword);
+            List<CreateCategoryResponseDTO> categoryDTOs = categoryEntities.stream()
                     .map(CreateCategoryResponseDTO::fromEntity)
                     .toList();
 
+            Page<ItemEntity> itemPage = itemRepository.findByNameContainingIgnoreCase(keyword, pageable);
             List<CreateItemResponseDTO> itemDTOs = itemPage.getContent().stream()
                     .map(CreateItemResponseDTO::fromEntity)
                     .toList();

@@ -2,7 +2,7 @@ package com.code.monks.nukkad.enums;
 
 import lombok.Getter;
 @Getter
-public enum  UnitEnum {
+public enum UnitEnum {
     WEIGHT(1, new String[]{"KG", "GM"}),
     VOLUME(2, new String[]{"L", "ML"}),
     PACKET(3, new String[]{"PKT"}); // single unit as array

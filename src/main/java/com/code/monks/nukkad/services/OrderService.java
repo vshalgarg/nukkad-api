@@ -9,7 +9,7 @@ import com.code.monks.nukkad.dto.response.*;
 import com.code.monks.nukkad.entities.*;
 import com.code.monks.nukkad.enums.ResponseErrorCodes;
 import com.code.monks.nukkad.enums.RoleEnum;
-import com.code.monks.nukkad.enums.StatusEnum;
+import com.code.monks.nukkad.enums.OrderStatusEnum;
 import com.code.monks.nukkad.exception.*;
 import com.code.monks.nukkad.repositories.*;
 import lombok.RequiredArgsConstructor;
@@ -85,7 +85,7 @@ public class OrderService {
                     .customer(customer)
                     .storeKeeper(storekeeper)
                     .deliveryAddress(deliveryAddress)
-                    .status(StatusEnum.PENDING)
+                    .status(OrderStatusEnum.PENDING)
                     .build();
 
             // Step 5: Fetch Cart Items
@@ -149,7 +149,7 @@ public class OrderService {
 
 
     public UpdateOrderStatusResponseDTO updateOrderStatus(long id, UpdateOrderStatusRequestDTO updateOrderStatusRequestDTO) {
-        StatusEnum newOrderStatus = updateOrderStatusRequestDTO.getOrderStatus();
+        OrderStatusEnum newOrderStatus = updateOrderStatusRequestDTO.getOrderStatus();
         log.info("Updating status for Order ID [{}] to [{}]", id, newOrderStatus);
 
         try {
@@ -181,7 +181,7 @@ public class OrderService {
 
 
     public List<GetUserHistoryByStatusAndDateResponseDTO> getUserHistoryByOptionalFilters(
-            StatusEnum status, LocalDate startDate, LocalDate endDate, Double minPrice, Double maxPrice) {
+            OrderStatusEnum status, LocalDate startDate, LocalDate endDate, Double minPrice, Double maxPrice) {
 
         Long userId = UserContextHolder.getUser().getId();
         List<RoleEnum> roles = UserContextHolder.getUser().getRoles();
@@ -269,7 +269,7 @@ public class OrderService {
             });
 
             // Update status & note
-            order.setStatus(StatusEnum.DISPATCHED);
+            order.setStatus(OrderStatusEnum.DISPATCHED);
             order.setStoreKeeperNote(request.getStoreKeeperNote());
 
             orderRepository.save(order);

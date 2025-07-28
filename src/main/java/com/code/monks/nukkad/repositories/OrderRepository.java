@@ -1,7 +1,7 @@
 package com.code.monks.nukkad.repositories;
 
 import com.code.monks.nukkad.entities.OrderEntity;
-import com.code.monks.nukkad.enums.StatusEnum;
+import com.code.monks.nukkad.enums.OrderStatusEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,7 +24,7 @@ WHERE o.customer.id = :customerId
   AND (
       (:status IS NOT NULL AND o.status = :status)
       OR (:status IS NULL AND (:minPrice IS NOT NULL OR :maxPrice IS NOT NULL) AND 
-         (o.status = com.code.monks.nukkad.enums.StatusEnum.DISPATCHED OR o.status = com.code.monks.nukkad.enums.StatusEnum.DELIVERED))
+         (o.status = com.code.monks.nukkad.enums.OrderStatusEnum.DISPATCHED OR o.status = com.code.monks.nukkad.enums.OrderStatusEnum.DELIVERED))
       OR (:status IS NULL AND :minPrice IS NULL AND :maxPrice IS NULL)
   )
   AND (:start IS NULL OR o.createdAt >= :start)
@@ -36,7 +36,7 @@ HAVING
 """)
     List<OrderEntity> findCustomerOrdersWithFilters(
             @Param("customerId") Long customerId,
-            @Param("status") StatusEnum status,
+            @Param("status") OrderStatusEnum status,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end,
             @Param("minPrice") Double minPrice,
@@ -50,7 +50,7 @@ WHERE o.storeKeeper.id = :storekeeperId
   AND (
       (:status IS NOT NULL AND o.status = :status)
       OR (:status IS NULL AND (:minPrice IS NOT NULL OR :maxPrice IS NOT NULL) AND 
-         (o.status = com.code.monks.nukkad.enums.StatusEnum.DISPATCHED OR o.status = com.code.monks.nukkad.enums.StatusEnum.DELIVERED))
+         (o.status = com.code.monks.nukkad.enums.OrderStatusEnum.DISPATCHED OR o.status = com.code.monks.nukkad.enums.OrderStatusEnum.DELIVERED))
       OR (:status IS NULL AND :minPrice IS NULL AND :maxPrice IS NULL)
   )
   AND (:start IS NULL OR o.createdAt >= :start)
@@ -62,7 +62,7 @@ HAVING
 """)
     List<OrderEntity> findStorekeeperOrdersWithFilters(
             @Param("storekeeperId") Long storekeeperId,
-            @Param("status") StatusEnum status,
+            @Param("status") OrderStatusEnum status,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end,
             @Param("minPrice") Double minPrice,
