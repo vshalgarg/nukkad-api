@@ -123,11 +123,12 @@ public class OrderService {
             cartItemRepository.deleteAll(cartItems);
             log.debug("[ORDER] Cart cleared ({} item[s]) for customerId={}", cartItems.size(), customerId);
 
-            log.info("Sending notification ");
+            log.info("Sending notification .......");
             Optional<UserDeviceTokenEntity> tokenOpt = userDeviceTokenRepository.findByCustomerId(customerId);
+
             if (tokenOpt.isPresent()) {
                 String deviceToken = tokenOpt.get().getDeviceToken();
-    
+
                 String title = "Order #1234";
                 String body = "Your order has been placed";
                 notificationService.sendNotification(deviceToken, title, body);

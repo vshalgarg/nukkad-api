@@ -17,10 +17,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public SendNotificationResponseDto sendNotification(String token, String title, String body) {
-        log.info("Preparing to send notification...");
-        log.debug("Notification Token: {}", token);
-        log.debug("Notification Title: {}", title);
-        log.debug("Notification Body: {}", body);
+        log.debug("Preparing to send notification... Notification Details -> Token: {}, Title: {}, Body: {}", token, title, body);
 
         try {
             Message message = Message.builder()
