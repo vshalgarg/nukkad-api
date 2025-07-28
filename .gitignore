@@ -5,6 +5,9 @@
 # Ignore IntelliJ IDEA project files
 /.idea/
 
+# Firebase key file
+src/main/resources/firebase-service-account.json
+
 # Logs
 *.log
 

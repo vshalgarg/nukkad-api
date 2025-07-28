@@ -15,4 +15,8 @@ import java.util.List;
 public class GetItemsByCategoryResponseDTO {
     private String message;
     private List<GetAllItemResponseDTO> items;
+    private long totalItems;
+    private int totalPages;
+    private int currentPage;
+    private int pageSize;
 }

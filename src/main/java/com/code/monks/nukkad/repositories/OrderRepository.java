@@ -33,6 +33,7 @@ GROUP BY o.id
 HAVING 
   (:minPrice IS NULL OR SUM(oi.price) >= :minPrice) AND
   (:maxPrice IS NULL OR SUM(oi.price) <= :maxPrice)
+ORDER BY o.createdAt DESC
 """)
     List<OrderEntity> findCustomerOrdersWithFilters(
             @Param("customerId") Long customerId,
@@ -59,6 +60,7 @@ GROUP BY o.id
 HAVING 
   (:minPrice IS NULL OR SUM(oi.price) >= :minPrice) AND
   (:maxPrice IS NULL OR SUM(oi.price) <= :maxPrice)
+ORDER BY o.createdAt DESC
 """)
     List<OrderEntity> findStorekeeperOrdersWithFilters(
             @Param("storekeeperId") Long storekeeperId,
@@ -68,4 +70,5 @@ HAVING
             @Param("minPrice") Double minPrice,
             @Param("maxPrice") Double maxPrice
     );
+
 }
