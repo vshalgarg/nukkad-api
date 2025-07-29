@@ -23,11 +23,4 @@ public class NotificationStatusController {
         NotificationStatusResponseDTO response = notificationStatusService.setStatus(request);
         return ResponseEntity.ok(response);
     }
-
-    @GetMapping(UrlConstants.NOTIFICATION.CHECK_STATUS)
-    public ResponseEntity<Boolean> isNotificationEnabled() {
-        boolean enabled = notificationStatusService.isNotificationEnabledForUser();
-        return ResponseEntity.ok(enabled);
-    }
-
 }

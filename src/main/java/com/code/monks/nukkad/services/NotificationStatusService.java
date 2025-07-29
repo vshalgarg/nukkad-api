@@ -44,11 +44,4 @@ public class NotificationStatusService {
         }
     }
 
-
-    public boolean isNotificationEnabledForUser() {
-        Long userId = UserContextHolder.getUser().getId();
-        return notificationStatusRepository.findByUserId(userId)
-                .map(e -> e.getStatus() == NotificationStatusEnum.ON)
-                .orElse(false); // Default false if no entry (ideally shouldn't happen if initialized)
-    }
 }
