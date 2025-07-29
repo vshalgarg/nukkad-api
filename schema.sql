@@ -248,3 +248,11 @@ CREATE TABLE  IF NOT EXISTS  rating (
     INDEX idx_rating_customer(customer_id),
     INDEX idx_rating_storekeeper(storekeeper_id)
 );
+
+CREATE TABLE notification_status (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

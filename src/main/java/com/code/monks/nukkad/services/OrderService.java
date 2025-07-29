@@ -201,21 +201,26 @@ public class OrderService {
                 .toList();
     }
 
-    public List<GetOrderByStoreKeeperResponseDTO> getOrdersByStorekeeper() {
-
+    public List<GetOrderByStoreKeeperResponseDTO> getOrdersByStorekeeper(String statusParam) {
         Long storekeeperId = UserContextHolder.getUser().getId();
-        log.info("[STOREKEEPER ORDERS] Fetching orders for storeKeeperId={}", storekeeperId);
+        log.info("[STOREKEEPER ORDERS] Fetching orders for storeKeeperId={} with status={}", storekeeperId, statusParam);
 
-        List<OrderEntity> orders = orderRepository.findByStoreKeeperId(storekeeperId);
+        List<OrderStatusEnum> statuses;
 
+        switch (statusParam.toLowerCase()) {
+            case "pending" -> statuses = List.of(OrderStatusEnum.PENDING);
+            case "in_progress" -> statuses = List.of(OrderStatusEnum.IN_PROGRESS, OrderStatusEnum.DISPATCHED);
+            case "canceled" -> statuses = List.of(OrderStatusEnum.CANCELLED);
+            default -> throw new IllegalArgumentException("Invalid status filter: " + statusParam);
+        }
 
-        List<GetOrderByStoreKeeperResponseDTO> responseDTOs = orders.stream()
+        List<OrderEntity> orders = orderRepository.findByStoreKeeperIdAndStatuses(storekeeperId, statuses);
+
+        return orders.stream()
                 .map(GetOrderByStoreKeeperResponseDTO::toEntity)
                 .toList();
-
-        log.info("[STOREKEEPER ORDERS] {} order(s) found for storeKeeperId={}", responseDTOs.size(), storekeeperId);
-        return responseDTOs;
     }
+
 
 
     public DispatchOrderResponseDTO dispatchOrder(DispatchOrderRequestDTO request) {

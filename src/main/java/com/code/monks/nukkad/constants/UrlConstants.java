@@ -107,6 +107,12 @@ public static class ADDRESS{
 		public static final String DELETE = "/v1/delete/{id}";
 	}
 
+	public static class NOTIFICATION {
+		public static final String BASE = CONTEXT + "/api/notification";
+		public static final String SET_STATUS = "/v1/set/status";
+		public static final String CHECK_STATUS = "/v1/check/status";
+	}
+
 	private UrlConstants() {
 	}
 
