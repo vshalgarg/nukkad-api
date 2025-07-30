@@ -246,9 +246,7 @@ CREATE TABLE  IF NOT EXISTS  rating (
     CONSTRAINT fk_rating_storekeeper FOREIGN KEY (storekeeper_id) REFERENCES storekeeper(id),
 
     INDEX idx_rating_customer(customer_id),
-    INDEX idx_rating_storekeeper(storekeeper_id)
-);
-
+    INDEX idx_rating_storekeeper(storekeeper_id));
 
 CREATE TABLE user_device_token (
     id INT AUTO_INCREMENT PRIMARY KEY,
