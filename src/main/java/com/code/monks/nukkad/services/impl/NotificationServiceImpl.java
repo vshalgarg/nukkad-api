@@ -22,10 +22,9 @@ public class NotificationServiceImpl implements NotificationService {
         try {
             Message message = Message.builder()
                     .setToken(token)
-                    .setNotification(Notification.builder()
-                            .setTitle(title)
-                            .setBody(body)
-                            .build())
+                    .putData("click_action", "FLUTTER_NOTIFICATION_CLICK")
+                    .putData("title", title)
+                    .putData("body", body)
                     .setAndroidConfig(AndroidConfig.builder()
                             .setTtl(Duration.ofMinutes(2).toMillis())
                             .setPriority(AndroidConfig.Priority.HIGH)
@@ -37,7 +36,6 @@ public class NotificationServiceImpl implements NotificationService {
             String messageId = FirebaseMessaging.getInstance().send(message);
             log.info("Notification sent to token {}: {}", token, messageId);
             return new SendNotificationResponseDto(true, "Notification sent successfully", messageId);
-
 
         } catch (Exception e) {
             log.error("Failed to send notification to token {}: {}", token, e.getMessage(), e);

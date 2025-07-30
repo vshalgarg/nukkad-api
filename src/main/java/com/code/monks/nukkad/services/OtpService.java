@@ -10,6 +10,8 @@ import com.code.monks.nukkad.dto.request.VerifyRequestDTO;
 import com.code.monks.nukkad.dto.response.SendOtpResponseDTO;
 import com.code.monks.nukkad.dto.response.UserAccountDeactivateResponseDTO;
 import com.code.monks.nukkad.dto.response.VerifyOtpResponseDTO;
+import com.code.monks.nukkad.entities.CustomerEntity;
+import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.entities.UserDeviceTokenEntity;
 import com.code.monks.nukkad.enums.NotificationStatusEnum;
 import com.code.monks.nukkad.enums.RoleEnum;
@@ -81,25 +83,15 @@ public class OtpService {
 			});
 
 			tokenEntity.setDeviceToken(deviceToken);
-			tokenEntity.setNotificationStatus(NotificationStatusEnum.ON);
-			log.debug("[VERIFY OTP] Device token and notification status set");
+			log.debug("[VERIFY OTP] Device token set");
 
+			// Set user ID based on role
 			if (roles.contains(RoleEnum.CUSTOMER.name())) {
-				customerRepository.findById(userId).ifPresentOrElse(
-						customer -> {
-							tokenEntity.setCustomer(customer);
-							log.debug("[VERIFY OTP] Set customer reference on token entity for userId: {}", userId);
-						},
-						() -> log.warn("[VERIFY OTP] Customer not found for userId: {}", userId)
-				);
+				tokenEntity.setCustomerId(userId);
+				log.debug("[VERIFY OTP] Set customerId on token entity for userId: {}", userId);
 			} else if (roles.contains(RoleEnum.STOREKEEPER.name())) {
-				storekeeperRepository.findById(userId).ifPresentOrElse(
-						storekeeper -> {
-							tokenEntity.setStoreKeeper(storekeeper);
-							log.debug("[VERIFY OTP] Set storekeeper reference on token entity for userId: {}", userId);
-						},
-						() -> log.warn("[VERIFY OTP] Storekeeper not found for userId: {}", userId)
-				);
+				tokenEntity.setStoreKeeperId(userId);
+				log.debug("[VERIFY OTP] Set storeKeeperId on token entity for userId: {}", userId);
 			}
 
 			userDeviceTokenRepository.save(tokenEntity);
@@ -107,6 +99,7 @@ public class OtpService {
 		} else {
 			log.warn("[VERIFY OTP] Device token is null or empty for userId: {}", userId);
 		}
+
 
 		final int code = firstTimeLogin ? 1501 : 1502;
 		log.info("[VERIFY OTP] OTP verified. userId: {}, firstTimeLogin: {}, code: {}", userId, firstTimeLogin, code);
