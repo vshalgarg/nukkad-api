@@ -66,6 +66,7 @@ pipeline {
 		        --restart unless-stopped \
 		        -e SPRING_PROFILES_ACTIVE=dev \
 		        -e spring.datasource.password=${MYSQL_PASSWORD} \
+		        -e firebase.credentials.path=${FIREBASE_CREDENTIAL_PATH} \
 		        -v /var/log/hrms-api:/logs \
 		        ${IMAGE_NAME}:${TAG}
 		        """
