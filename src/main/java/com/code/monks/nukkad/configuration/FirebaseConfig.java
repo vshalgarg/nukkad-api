@@ -8,7 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.InputStream;
+import java.io.File;
+import java.io.FileInputStream;
 
 
 @Slf4j
@@ -21,15 +22,13 @@ public class FirebaseConfig {
     @PostConstruct
     public void initFirebase() {
         try {
-            InputStream serviceAccount = getClass()
-                    .getClassLoader()
-                    .getResourceAsStream(firebaseConfigPath.replace("classpath:", ""));
-
-            if (serviceAccount == null) {
-                log.error(" firebase-service-account.json not found at: {}", firebaseConfigPath);
+            File configFile = new File(firebaseConfigPath);
+            if (!configFile.exists()) {
+                log.error(" Firebase config file not found at: {}", firebaseConfigPath);
                 return;
             }
 
+            FileInputStream serviceAccount = new FileInputStream(configFile);
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                     .build();
