@@ -36,6 +36,8 @@ public class OrderService {
     private final CustomerRepository customerRepository;
     private final CartItemRepository cartItemRepository;
     private final StorekeeperRepository storekeeperRepository;
+    private final NotificationService notificationService;
+    private final UserDeviceTokenRepository userDeviceTokenRepository;
 
     public PlaceOrderResponseDTO placeOrders(PlaceOrderRequestDTO requestDTO) {
 
@@ -121,6 +123,18 @@ public class OrderService {
             cartItemRepository.deleteAll(cartItems);
             log.debug("[ORDER] Cart cleared ({} item[s]) for customerId={}", cartItems.size(), customerId);
 
+            log.info("Sending notification ");
+            Optional<UserDeviceTokenEntity> tokenOpt = userDeviceTokenRepository.findByCustomerId(customerId);
+
+            if (tokenOpt.isPresent()) {
+                String deviceToken = tokenOpt.get().getDeviceToken();
+
+                String title = "Order #"+order.getId();
+                String body = "Your order has been placed";
+                notificationService.sendNotification(deviceToken, title, body);
+            } else {
+                log.warn("No device token found for customerId: {}", customerId);
+            }
             // Step 8: Return response
             return new PlaceOrderResponseDTO("Order placed successfully");
 
@@ -155,6 +169,23 @@ public class OrderService {
             OrderEntity updatedOrder = orderRepository.save(orderEntity);
 
             log.info("Order status updated successfully to [{}] for ID [{}]", newOrderStatus, id);
+
+            // Send notification to customer
+            Long customerId = updatedOrder.getCustomer().getId();
+            log.info("Sending notification to customerId={}", customerId);
+
+            Optional<UserDeviceTokenEntity> tokenOpt = userDeviceTokenRepository.findByCustomerId(customerId);
+
+            if (tokenOpt.isPresent()) {
+                String deviceToken = tokenOpt.get().getDeviceToken();
+
+                String title = "Order #" + updatedOrder.getId();
+                String body = "Your order has been " + newOrderStatus.name().toLowerCase().replace("_", " ") + " successfully";
+                notificationService.sendNotification(deviceToken, title, body);
+            } else {
+                log.warn("No device token found for customerId: {}", customerId);
+            }
+
             return new UpdateOrderStatusResponseDTO("Status are updated successfully");
 
         } catch (OrderNotFoundException | IllegalArgumentException e) {
@@ -260,6 +291,21 @@ public class OrderService {
 
             orderRepository.save(order);
             log.info("[DISPATCHED] Order ID={} dispatched successfully by storekeeperId={}", orderId, storekeeperId);
+
+            // Send  notification to customer
+            Long customerId = order.getCustomer().getId();
+            log.info("[DISPATCHED] Sending dispatch notification to customerId={}", customerId);
+
+            Optional<UserDeviceTokenEntity> tokenOpt = userDeviceTokenRepository.findByCustomerId(customerId);
+
+            if(tokenOpt.isPresent()){
+                String deviceToken = tokenOpt.get().getDeviceToken();
+                String title = "Order #" + order.getId();
+                String body = "Your order has been dispatched successfully. ";
+                notificationService.sendNotification(deviceToken,title,body);
+            }else{
+                log.warn("[DISPATCHED] No device token found for customerId={}", customerId);
+            }
 
             return new DispatchOrderResponseDTO("Order dispatched successfully.");
 

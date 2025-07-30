@@ -10,14 +10,20 @@ import com.code.monks.nukkad.dto.request.VerifyRequestDTO;
 import com.code.monks.nukkad.dto.response.SendOtpResponseDTO;
 import com.code.monks.nukkad.dto.response.UserAccountDeactivateResponseDTO;
 import com.code.monks.nukkad.dto.response.VerifyOtpResponseDTO;
+import com.code.monks.nukkad.entities.CustomerEntity;
+import com.code.monks.nukkad.entities.StorekeeperEntity;
+import com.code.monks.nukkad.entities.UserDeviceTokenEntity;
+import com.code.monks.nukkad.enums.NotificationStatusEnum;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.repositories.CustomerRepository;
 import com.code.monks.nukkad.repositories.StorekeeperRepository;
+import com.code.monks.nukkad.repositories.UserDeviceTokenRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -26,10 +32,9 @@ import java.util.List;
 public class OtpService {
 
 	private final AuthRestClient authRestClient;
-
 	private final CustomerRepository customerRepository;
-
 	private final StorekeeperRepository storekeeperRepository;
+	private final UserDeviceTokenRepository userDeviceTokenRepository;
 
 	public SendOtpResponseDTO sendLoginOtp(SendOtpRequestDTO sendOtpRequestDTO) {
 		String mobileNumber = sendOtpRequestDTO.getMobileNumber();
@@ -56,6 +61,45 @@ public class OtpService {
 		} else if (roles.contains(RoleEnum.STOREKEEPER.name())) {
 			firstTimeLogin = !storekeeperRepository.existsById(userId);
 		}
+
+		// Save or update device token
+		String deviceToken = verifyRequestDTO.getDeviceToken();
+		log.debug("[VERIFY OTP] Received device token: {}", deviceToken);
+
+		if (deviceToken != null && !deviceToken.isEmpty()) {
+			Optional<UserDeviceTokenEntity> existingTokenOpt = Optional.empty();
+
+			if (roles.contains(RoleEnum.CUSTOMER.name())) {
+				log.debug("[VERIFY OTP] User has CUSTOMER role. Fetching token by customerId: {}", userId);
+				existingTokenOpt = userDeviceTokenRepository.findByCustomerId(userId);
+			} else if (roles.contains(RoleEnum.STOREKEEPER.name())) {
+				log.debug("[VERIFY OTP] User has STOREKEEPER role. Fetching token by storeKeeperId: {}", userId);
+				existingTokenOpt = userDeviceTokenRepository.findByStoreKeeperId(userId);
+			}
+
+			UserDeviceTokenEntity tokenEntity = existingTokenOpt.orElseGet(() -> {
+				log.debug("[VERIFY OTP] No existing token found. Creating new UserDeviceTokenEntity");
+				return new UserDeviceTokenEntity();
+			});
+
+			tokenEntity.setDeviceToken(deviceToken);
+			log.debug("[VERIFY OTP] Device token set");
+
+			// Set user ID based on role
+			if (roles.contains(RoleEnum.CUSTOMER.name())) {
+				tokenEntity.setCustomerId(userId);
+				log.debug("[VERIFY OTP] Set customerId on token entity for userId: {}", userId);
+			} else if (roles.contains(RoleEnum.STOREKEEPER.name())) {
+				tokenEntity.setStoreKeeperId(userId);
+				log.debug("[VERIFY OTP] Set storeKeeperId on token entity for userId: {}", userId);
+			}
+
+			userDeviceTokenRepository.save(tokenEntity);
+			log.info("[VERIFY OTP] Device token saved/updated successfully for userId: {}", userId);
+		} else {
+			log.warn("[VERIFY OTP] Device token is null or empty for userId: {}", userId);
+		}
+
 
 		final int code = firstTimeLogin ? 1501 : 1502;
 		log.info("[VERIFY OTP] OTP verified. userId: {}, firstTimeLogin: {}, code: {}", userId, firstTimeLogin, code);
