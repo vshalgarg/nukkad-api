@@ -129,7 +129,7 @@ public class OrderService {
             if (tokenOpt.isPresent()) {
                 String deviceToken = tokenOpt.get().getDeviceToken();
 
-                String title = "Order #1234";
+                String title = "Order #"+order.getId();
                 String body = "Your order has been placed";
                 notificationService.sendNotification(deviceToken, title, body);
             } else {
