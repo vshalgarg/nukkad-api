@@ -248,7 +248,6 @@ CREATE TABLE  IF NOT EXISTS  rating (
     INDEX idx_rating_customer(customer_id),
     INDEX idx_rating_storekeeper(storekeeper_id)
 );
-
 CREATE TABLE user_device_token (
     id INT AUTO_INCREMENT PRIMARY KEY,
     device_token VARCHAR(255),
