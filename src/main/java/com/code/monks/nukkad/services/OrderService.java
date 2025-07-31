@@ -15,6 +15,10 @@ import com.code.monks.nukkad.exception.*;
 import com.code.monks.nukkad.repositories.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -234,18 +238,19 @@ public class OrderService {
     }
 
 
-    public List<GetOrderByStoreKeeperResponseDTO> getOrdersByStorekeeper(OrderStatusFilterEnum statusFilter) {
+    public Page<GetOrderByStoreKeeperResponseDTO> getOrdersByStorekeeper(OrderStatusFilterEnum statusFilter, int page, int size) {
         Long storekeeperId = UserContextHolder.getUser().getId();
-        log.info("[STOREKEEPER ORDERS] Fetching orders for storeKeeperId={} with status filter={}", storekeeperId, statusFilter);
+        log.info("[STOREKEEPER ORDERS] Fetching orders for storeKeeperId={} with status filter={} and page={}, size={}", storekeeperId, statusFilter, page, size);
 
         List<OrderStatusEnum> statuses = statusFilter.getStatusEnums();
 
-        List<OrderEntity> orders = orderRepository.findByStoreKeeperIdAndStatuses(storekeeperId, statuses);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        return orders.stream()
-                .map(GetOrderByStoreKeeperResponseDTO::toEntity)
-                .toList();
+        Page<OrderEntity> pagedOrders = orderRepository.findByStoreKeeperIdAndStatuses(storekeeperId, statuses, pageable);
+
+        return pagedOrders.map(GetOrderByStoreKeeperResponseDTO::toEntity);
     }
+
 
 
     public DispatchOrderResponseDTO dispatchOrder(DispatchOrderRequestDTO request) {

@@ -63,7 +63,7 @@ public class OtpService {
 			firstTimeLogin = !storekeeperRepository.existsById(userId);
 		}
 
-//		// Initialize notification preference only if NOT first time login
+		// Initialize notification preference only if NOT first time login
 //		if (!firstTimeLogin) {
 //			try {
 //				log.info("[VERIFY OTP] Existing user. Ensuring notification status is initialized...");

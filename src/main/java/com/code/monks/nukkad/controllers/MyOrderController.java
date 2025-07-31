@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,13 +34,16 @@ public class MyOrderController
     private OrderService orderService;
 
     @GetMapping(GET_ORDER_BY_STOREKEEPER)
-    public ResponseEntity<List<GetOrderByStoreKeeperResponseDTO>> getOrdersByStorekeeperId(
-            @RequestParam OrderStatusFilterEnum statusFilter) {
+    public ResponseEntity<Page<GetOrderByStoreKeeperResponseDTO>> getOrdersByStorekeeperId(
+            @RequestParam OrderStatusFilterEnum statusFilter,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
-        List<GetOrderByStoreKeeperResponseDTO> response = orderService.getOrdersByStorekeeper(statusFilter);
-        log.info("Returning {} orders for status={}", response.size(), statusFilter);
+        Page<GetOrderByStoreKeeperResponseDTO> response = orderService.getOrdersByStorekeeper(statusFilter, page, size);
+        log.info("Returning {} orders for status={} on page={}", response.getTotalElements(), statusFilter, page);
         return ResponseEntity.ok(response);
     }
+
 
 
     @GetMapping(ORDER_HISTORY)
