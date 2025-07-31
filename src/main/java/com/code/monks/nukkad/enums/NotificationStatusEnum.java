@@ -1,5 +1,6 @@
 package com.code.monks.nukkad.enums;
 
+import jakarta.persistence.Converter;
 import lombok.Getter;
 
 @Getter

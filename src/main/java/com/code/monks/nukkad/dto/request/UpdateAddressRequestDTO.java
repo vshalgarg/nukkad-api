@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 public class UpdateAddressRequestDTO {
-
+    private String name;
     private String addressLine1;
     private String addressLine2;
     private String landmark;
@@ -15,6 +15,7 @@ public class UpdateAddressRequestDTO {
     private String mobileNumber;
 
     public static void updateEntity(AddressEntity address, UpdateAddressRequestDTO dto) {
+        address.setName(dto.getName());
         address.setAddressLine1(dto.getAddressLine1());
         address.setAddressLine2(dto.getAddressLine2());
         address.setLandmark(dto.getLandmark());
