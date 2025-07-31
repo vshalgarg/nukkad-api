@@ -17,6 +17,17 @@ public interface OrderRepository extends JpaRepository<OrderEntity,Long> {
 
     List<OrderEntity> findByStoreKeeperId(Long storeKeeperId);
 
+
+    @Query("""
+    SELECT o FROM OrderEntity o 
+    WHERE o.storeKeeper.id = :storekeeperId 
+    AND o.status IN :statuses
+    """)
+    List<OrderEntity> findByStoreKeeperIdAndStatuses(@Param("storekeeperId") Long storekeeperId,
+                                                     @Param("statuses") List<OrderStatusEnum> statuses);
+
+
+
     @Query("""
 SELECT o FROM OrderEntity o
 JOIN o.orderItems oi

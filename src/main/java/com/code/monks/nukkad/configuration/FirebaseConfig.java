@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 
 
 @Slf4j
@@ -29,6 +30,15 @@ public class FirebaseConfig {
             }
 
             FileInputStream serviceAccount = new FileInputStream(configFile);
+
+//            String path = firebaseConfigPath.replace("classpath:", "");
+//            InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream(path);
+//
+//            if (serviceAccount == null) {
+//                log.error(" Firebase config file not found in classpath at: {}", firebaseConfigPath);
+//                return;
+//            }
+
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                     .build();

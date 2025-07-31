@@ -7,6 +7,7 @@ import com.code.monks.nukkad.dto.request.PlaceOrderRequestDTO;
 import com.code.monks.nukkad.dto.request.UpdateOrderStatusRequestDTO;
 import com.code.monks.nukkad.dto.response.*;
 import com.code.monks.nukkad.entities.*;
+import com.code.monks.nukkad.enums.OrderStatusFilterEnum;
 import com.code.monks.nukkad.enums.ResponseErrorCodes;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.enums.OrderStatusEnum;
@@ -232,20 +233,18 @@ public class OrderService {
                 .toList();
     }
 
-    public List<GetOrderByStoreKeeperResponseDTO> getOrdersByStorekeeper() {
 
+    public List<GetOrderByStoreKeeperResponseDTO> getOrdersByStorekeeper(OrderStatusFilterEnum statusFilter) {
         Long storekeeperId = UserContextHolder.getUser().getId();
-        log.info("[STOREKEEPER ORDERS] Fetching orders for storeKeeperId={}", storekeeperId);
+        log.info("[STOREKEEPER ORDERS] Fetching orders for storeKeeperId={} with status filter={}", storekeeperId, statusFilter);
 
-        List<OrderEntity> orders = orderRepository.findByStoreKeeperId(storekeeperId);
+        List<OrderStatusEnum> statuses = statusFilter.getStatusEnums();
 
+        List<OrderEntity> orders = orderRepository.findByStoreKeeperIdAndStatuses(storekeeperId, statuses);
 
-        List<GetOrderByStoreKeeperResponseDTO> responseDTOs = orders.stream()
+        return orders.stream()
                 .map(GetOrderByStoreKeeperResponseDTO::toEntity)
                 .toList();
-
-        log.info("[STOREKEEPER ORDERS] {} order(s) found for storeKeeperId={}", responseDTOs.size(), storekeeperId);
-        return responseDTOs;
     }
 
 

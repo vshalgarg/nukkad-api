@@ -5,15 +5,15 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 @Converter(autoApply = true)
-public class NotificationStatusEnumConverter implements AttributeConverter<NotificationStatusEnum, Integer> {
+public class NotificationStatusEnumToCodeConverter implements AttributeConverter<NotificationStatusEnum,Integer>{
 
     @Override
     public Integer convertToDatabaseColumn(NotificationStatusEnum status) {
-    return status !=null? status.getCode():null;    }
+        return status != null ? status.getCode() : null;
+    }
 
     @Override
     public NotificationStatusEnum convertToEntityAttribute(Integer code) {
-        return code !=null? NotificationStatusEnum.fromCode(code):null;
+        return code != null ? NotificationStatusEnum.fromCode(code) : null;
     }
-
 }
