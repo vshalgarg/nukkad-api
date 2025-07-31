@@ -161,6 +161,7 @@ public class CustomerService {
 						storekeeper.getStoreName(),
 						storekeeper.getAddressLine1(),
 						storekeeper.getAddressLine2(),
+						storekeeper.getStoreQrId(),
 						"Store added to customer.");
 			} else {
 				log.info("[ADD STORE] Storekeeper already linked. customerId={}, storekeeperId={}", customerId, storekeeper.getId());
@@ -170,6 +171,7 @@ public class CustomerService {
 						storekeeper.getStoreName(),
 						storekeeper.getAddressLine1(),
 						storekeeper.getAddressLine2(),
+						storekeeper.getStoreQrId(),
 						"Store already added.");
 			}
 
