@@ -2,6 +2,8 @@ package com.code.monks.nukkad.repositories;
 
 import com.code.monks.nukkad.entities.OrderEntity;
 import com.code.monks.nukkad.enums.OrderStatusEnum;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,9 +24,11 @@ public interface OrderRepository extends JpaRepository<OrderEntity,Long> {
     SELECT o FROM OrderEntity o 
     WHERE o.storeKeeper.id = :storekeeperId 
     AND o.status IN :statuses
-    """)
-    List<OrderEntity> findByStoreKeeperIdAndStatuses(@Param("storekeeperId") Long storekeeperId,
-                                                     @Param("statuses") List<OrderStatusEnum> statuses);
+""")
+    Page<OrderEntity> findByStoreKeeperIdAndStatuses(@Param("storekeeperId") Long storekeeperId,
+                                                     @Param("statuses") List<OrderStatusEnum> statuses,
+                                                     Pageable pageable);
+
 
 
 
