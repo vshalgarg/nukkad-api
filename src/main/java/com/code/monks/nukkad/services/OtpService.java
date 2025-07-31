@@ -35,6 +35,7 @@ public class OtpService {
 	private final CustomerRepository customerRepository;
 	private final StorekeeperRepository storekeeperRepository;
 	private final UserDeviceTokenRepository userDeviceTokenRepository;
+	private final NotificationStatusService notificationStatusService;
 
 	public SendOtpResponseDTO sendLoginOtp(SendOtpRequestDTO sendOtpRequestDTO) {
 		String mobileNumber = sendOtpRequestDTO.getMobileNumber();
@@ -61,6 +62,16 @@ public class OtpService {
 		} else if (roles.contains(RoleEnum.STOREKEEPER.name())) {
 			firstTimeLogin = !storekeeperRepository.existsById(userId);
 		}
+
+//		// Initialize notification preference only if NOT first time login
+//		if (!firstTimeLogin) {
+//			try {
+//				log.info("[VERIFY OTP] Existing user. Ensuring notification status is initialized...");
+//				notificationStatusService.initializeStatusIfAbsent(userId, roles);
+//			} catch (Exception e) {
+//				log.error("[VERIFY OTP] Failed to initialize notification status for userId: {}", userId, e);
+//			}
+//		}
 
 		// Save or update device token
 		String deviceToken = verifyRequestDTO.getDeviceToken();
