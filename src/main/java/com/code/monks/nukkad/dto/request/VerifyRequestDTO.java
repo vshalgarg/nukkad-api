@@ -9,4 +9,8 @@ public class VerifyRequestDTO {
     private String otp;
     private String deviceToken;
 
+<<<<<<< Updated upstream:src/main/java/com/code/monks/nukkad/dto/request/VerifyRequestDTO.java
+=======
+
+>>>>>>> Stashed changes:nukkad_App/src/main/java/com/code/monks/nukkad/dto/request/VerifyRequestDTO.java
 }
