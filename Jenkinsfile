@@ -59,13 +59,15 @@ pipeline {
 
         stage('Run New Container') {
             steps {
-            	withCredentials([string(credentialsId: 'NUKKAD_MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD')]) {
+            	withCredentials([string(credentialsId: 'NUKKAD_MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
+            			file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')]) {
 		        sh """
 		        docker run -d --name ${CONTAINER_NAME} -p ${PORT_MAPPING} \
 		        --add-host=host.docker.internal:host-gateway \
 		        --restart unless-stopped \
 		        -e SPRING_PROFILES_ACTIVE=dev \
 		        -e spring.datasource.password=${MYSQL_PASSWORD} \
+		        -e firebase.credentials.path=${FIREBASE_CRED_FILE} \
 		        -v /var/log/hrms-api:/logs \
 		        ${IMAGE_NAME}:${TAG}
 		        """
