@@ -9,6 +9,8 @@ import com.code.monks.nukkad.repositories.NotificationStatusRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class NotificationStatusService {
@@ -34,14 +36,19 @@ public class NotificationStatusService {
 
     public void initializeStatusIfAbsent() {
         Long userId = UserContextHolder.getUser().getId();
+        Optional<NotificationStatusEntity> existingStatus = notificationStatusRepository.findByUserId(userId);
 
-        boolean exists = notificationStatusRepository.existsByUserId(userId);
-        if (!exists) {
-            NotificationStatusEntity entity = new NotificationStatusEntity();
-            entity.setUserId(userId);
-            entity.setStatus(NotificationStatusEnum.ON); // Default status
-            notificationStatusRepository.save(entity);
+        if (existingStatus.isPresent()) {
+            // Status already set, don't touch it (user has ON/OFF preference)
+            return;
         }
+
+        // Status not present — create default ON status
+        NotificationStatusEntity status = new NotificationStatusEntity();
+        status.setUserId(userId);
+        status.setStatus(NotificationStatusEnum.ON); // default ON
+        notificationStatusRepository.save(status);
     }
+
 
 }
