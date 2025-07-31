@@ -7,6 +7,7 @@ import com.code.monks.nukkad.dto.request.PlaceOrderRequestDTO;
 import com.code.monks.nukkad.dto.request.UpdateOrderStatusRequestDTO;
 import com.code.monks.nukkad.dto.response.*;
 import com.code.monks.nukkad.entities.*;
+import com.code.monks.nukkad.enums.OrderStatusFilterEnum;
 import com.code.monks.nukkad.enums.ResponseErrorCodes;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.enums.OrderStatusEnum;
@@ -201,18 +202,12 @@ public class OrderService {
                 .toList();
     }
 
-    public List<GetOrderByStoreKeeperResponseDTO> getOrdersByStorekeeper(String statusParam) {
+
+    public List<GetOrderByStoreKeeperResponseDTO> getOrdersByStorekeeper(OrderStatusFilterEnum statusFilter) {
         Long storekeeperId = UserContextHolder.getUser().getId();
-        log.info("[STOREKEEPER ORDERS] Fetching orders for storeKeeperId={} with status={}", storekeeperId, statusParam);
+        log.info("[STOREKEEPER ORDERS] Fetching orders for storeKeeperId={} with status filter={}", storekeeperId, statusFilter);
 
-        List<OrderStatusEnum> statuses;
-
-        switch (statusParam.toLowerCase()) {
-            case "pending" -> statuses = List.of(OrderStatusEnum.PENDING);
-            case "in_progress" -> statuses = List.of(OrderStatusEnum.IN_PROGRESS, OrderStatusEnum.DISPATCHED);
-            case "canceled" -> statuses = List.of(OrderStatusEnum.CANCELLED);
-            default -> throw new IllegalArgumentException("Invalid status filter: " + statusParam);
-        }
+        List<OrderStatusEnum> statuses = statusFilter.getStatusEnums();
 
         List<OrderEntity> orders = orderRepository.findByStoreKeeperIdAndStatuses(storekeeperId, statuses);
 
@@ -220,7 +215,6 @@ public class OrderService {
                 .map(GetOrderByStoreKeeperResponseDTO::toEntity)
                 .toList();
     }
-
 
 
     public DispatchOrderResponseDTO dispatchOrder(DispatchOrderRequestDTO request) {
