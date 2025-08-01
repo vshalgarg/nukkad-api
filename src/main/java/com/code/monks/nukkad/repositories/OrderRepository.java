@@ -31,7 +31,6 @@ public interface OrderRepository extends JpaRepository<OrderEntity,Long> {
 
 
 
-
     @Query("""
 SELECT o FROM OrderEntity o
 JOIN o.orderItems oi
@@ -49,13 +48,14 @@ HAVING
   (:minPrice IS NULL OR SUM(oi.price) >= :minPrice) AND
   (:maxPrice IS NULL OR SUM(oi.price) <= :maxPrice)
 """)
-    List<OrderEntity> findCustomerOrdersWithFilters(
+    Page<OrderEntity> findCustomerOrdersWithFilters(
             @Param("customerId") Long customerId,
             @Param("status") OrderStatusEnum status,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end,
             @Param("minPrice") Double minPrice,
-            @Param("maxPrice") Double maxPrice
+            @Param("maxPrice") Double maxPrice,
+            Pageable pageable
     );
 
     @Query("""
@@ -75,12 +75,14 @@ HAVING
   (:minPrice IS NULL OR SUM(oi.price) >= :minPrice) AND
   (:maxPrice IS NULL OR SUM(oi.price) <= :maxPrice)
 """)
-    List<OrderEntity> findStorekeeperOrdersWithFilters(
+    Page<OrderEntity> findStorekeeperOrdersWithFilters(
             @Param("storekeeperId") Long storekeeperId,
             @Param("status") OrderStatusEnum status,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end,
             @Param("minPrice") Double minPrice,
-            @Param("maxPrice") Double maxPrice
+            @Param("maxPrice") Double maxPrice,
+            Pageable pageable
     );
+
 }

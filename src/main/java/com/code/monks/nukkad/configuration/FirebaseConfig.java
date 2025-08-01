@@ -23,7 +23,6 @@
         public void initFirebase() {
 
             log.info("FirebaseConfig loaded");
-
             log.info("Inside initFirebase() method");
             try {
                 File configFile = new File(firebaseConfigPath);
