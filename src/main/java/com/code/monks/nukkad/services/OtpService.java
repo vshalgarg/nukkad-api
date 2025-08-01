@@ -10,10 +10,7 @@ import com.code.monks.nukkad.dto.request.VerifyRequestDTO;
 import com.code.monks.nukkad.dto.response.SendOtpResponseDTO;
 import com.code.monks.nukkad.dto.response.UserAccountDeactivateResponseDTO;
 import com.code.monks.nukkad.dto.response.VerifyOtpResponseDTO;
-import com.code.monks.nukkad.entities.CustomerEntity;
-import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.entities.UserDeviceTokenEntity;
-import com.code.monks.nukkad.enums.NotificationStatusEnum;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.repositories.CustomerRepository;
 import com.code.monks.nukkad.repositories.StorekeeperRepository;
@@ -35,7 +32,6 @@ public class OtpService {
 	private final CustomerRepository customerRepository;
 	private final StorekeeperRepository storekeeperRepository;
 	private final UserDeviceTokenRepository userDeviceTokenRepository;
-	private final NotificationStatusService notificationStatusService;
 
 	public SendOtpResponseDTO sendLoginOtp(SendOtpRequestDTO sendOtpRequestDTO) {
 		String mobileNumber = sendOtpRequestDTO.getMobileNumber();
@@ -63,15 +59,6 @@ public class OtpService {
 			firstTimeLogin = !storekeeperRepository.existsById(userId);
 		}
 
-		// Initialize notification preference only if NOT first time login
-//		if (!firstTimeLogin) {
-//			try {
-//				log.info("[VERIFY OTP] Existing user. Ensuring notification status is initialized...");
-//				notificationStatusService.initializeStatusIfAbsent(userId, roles);
-//			} catch (Exception e) {
-//				log.error("[VERIFY OTP] Failed to initialize notification status for userId: {}", userId, e);
-//			}
-//		}
 
 		// Save or update device token
 		String deviceToken = verifyRequestDTO.getDeviceToken();
