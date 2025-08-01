@@ -5,6 +5,7 @@ import com.code.monks.nukkad.constants.UrlConstants;
 import com.code.monks.nukkad.dto.response.GetOrderByStoreKeeperResponseDTO;
 import com.code.monks.nukkad.dto.response.GetOrdersResponseDTO;
 import com.code.monks.nukkad.dto.response.GetUserHistoryByStatusAndDateResponseDTO;
+import com.code.monks.nukkad.dto.response.PagedOrderHistoryResponseDTO;
 import com.code.monks.nukkad.enums.OrderStatusEnum;
 import com.code.monks.nukkad.enums.OrderStatusFilterEnum;
 import com.code.monks.nukkad.services.OrderService;
@@ -13,6 +14,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,18 +51,21 @@ public class MyOrderController
 
 
     @GetMapping(ORDER_HISTORY)
-    public ResponseEntity<List<GetUserHistoryByStatusAndDateResponseDTO>> getHistory(
+    public ResponseEntity<PagedOrderHistoryResponseDTO> getHistory(
             @RequestParam(required = false) OrderStatusEnum status,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) Double minPrice,
-            @RequestParam(required = false) Double maxPrice) {
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
-        List<GetUserHistoryByStatusAndDateResponseDTO> response =
-                orderService.getUserHistoryByOptionalFilters(status, startDate, endDate, minPrice, maxPrice);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        PagedOrderHistoryResponseDTO response = orderService.getUserHistoryByOptionalFilters(
+                status, startDate, endDate, minPrice, maxPrice, pageable);
+
         return ResponseEntity.ok(response);
     }
-
-
 
 }

@@ -202,8 +202,13 @@ public class OrderService {
     }
 
 
-    public List<GetUserHistoryByStatusAndDateResponseDTO> getUserHistoryByOptionalFilters(
-            OrderStatusEnum status, LocalDate startDate, LocalDate endDate, Double minPrice, Double maxPrice) {
+    public PagedOrderHistoryResponseDTO getUserHistoryByOptionalFilters(
+            OrderStatusEnum status,
+            LocalDate startDate,
+            LocalDate endDate,
+            Double minPrice,
+            Double maxPrice,
+            Pageable pageable) {
 
         Long userId = UserContextHolder.getUser().getId();
         List<RoleEnum> roles = UserContextHolder.getUser().getRoles();
@@ -219,22 +224,31 @@ public class OrderService {
         LocalDateTime start = (startDate != null) ? startDate.atStartOfDay() : null;
         LocalDateTime end = (endDate != null) ? endDate.atTime(23, 59, 59) : null;
 
-        List<OrderEntity> orders;
+        Page<OrderEntity> ordersPage;
 
         if (roles.contains(RoleEnum.CUSTOMER)) {
             log.info("[ORDER FILTER] Fetching orders for CUSTOMER with userId={}", userId);
-            orders = orderRepository.findCustomerOrdersWithFilters(userId, status, start, end, minPrice, maxPrice);
+            ordersPage = orderRepository.findCustomerOrdersWithFilters(userId, status, start, end, minPrice, maxPrice, pageable);
         } else if (roles.contains(RoleEnum.STOREKEEPER)) {
             log.info("[ORDER FILTER] Fetching orders for STOREKEEPER with userId={}", userId);
-            orders = orderRepository.findStorekeeperOrdersWithFilters(userId, status, start, end, minPrice, maxPrice);
+            ordersPage = orderRepository.findStorekeeperOrdersWithFilters(userId, status, start, end, minPrice, maxPrice, pageable);
         } else {
             log.error("[ORDER FILTER] Unauthorized role access for userId={}", userId);
             throw new UnauthorizedAccessException("User role not authorized to access order history.");
         }
 
-        return orders.stream()
+        List<GetUserHistoryByStatusAndDateResponseDTO> orders = ordersPage.getContent()
+                .stream()
                 .map(GetUserHistoryByStatusAndDateResponseDTO::fromEntity)
                 .toList();
+
+        return new PagedOrderHistoryResponseDTO(
+                orders,
+                ordersPage.getTotalElements(),
+                ordersPage.getTotalPages(),
+                ordersPage.getNumber(),
+                ordersPage.getSize()
+        );
     }
 
 
