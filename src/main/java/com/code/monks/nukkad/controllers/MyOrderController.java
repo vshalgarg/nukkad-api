@@ -3,6 +3,7 @@ package com.code.monks.nukkad.controllers;
 
 import com.code.monks.nukkad.constants.UrlConstants;
 import com.code.monks.nukkad.dto.response.GetOrderByStoreKeeperResponseDTO;
+import com.code.monks.nukkad.dto.response.GetOrdersResponseDTO;
 import com.code.monks.nukkad.dto.response.GetUserHistoryByStatusAndDateResponseDTO;
 import com.code.monks.nukkad.enums.OrderStatusEnum;
 import com.code.monks.nukkad.enums.OrderStatusFilterEnum;
@@ -34,13 +35,12 @@ public class MyOrderController
     private OrderService orderService;
 
     @GetMapping(GET_ORDER_BY_STOREKEEPER)
-    public ResponseEntity<Page<GetOrderByStoreKeeperResponseDTO>> getOrdersByStorekeeperId(
+    public ResponseEntity<GetOrdersResponseDTO> getOrdersByStorekeeperId(
             @RequestParam OrderStatusFilterEnum statusFilter,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-
-        Page<GetOrderByStoreKeeperResponseDTO> response = orderService.getOrdersByStorekeeper(statusFilter, page, size);
-        log.info("Returning {} orders for status={} on page={}", response.getTotalElements(), statusFilter, page);
+        GetOrdersResponseDTO response = orderService.getOrdersByStorekeeper(statusFilter, page, size);
+        log.info("Returning {} orders for status={} on page={}", response.getTotalOrders(), statusFilter, page);
         return ResponseEntity.ok(response);
     }
 
