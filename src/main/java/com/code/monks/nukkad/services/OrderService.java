@@ -238,19 +238,30 @@ public class OrderService {
     }
 
 
-    public Page<GetOrderByStoreKeeperResponseDTO> getOrdersByStorekeeper(OrderStatusFilterEnum statusFilter, int page, int size) {
+    public GetOrdersResponseDTO getOrdersByStorekeeper(OrderStatusFilterEnum statusFilter, int page, int size) {
         Long storekeeperId = UserContextHolder.getUser().getId();
-        log.info("[STOREKEEPER ORDERS] Fetching orders for storeKeeperId={} with status filter={} and page={}, size={}", storekeeperId, statusFilter, page, size);
+        log.info("[STOREKEEPER ORDERS] Fetching orders for storeKeeperId={} with status filter={} and page={}, size={}",
+                storekeeperId, statusFilter, page, size);
 
         List<OrderStatusEnum> statuses = statusFilter.getStatusEnums();
-
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         Page<OrderEntity> pagedOrders = orderRepository.findByStoreKeeperIdAndStatuses(storekeeperId, statuses, pageable);
 
-        return pagedOrders.map(GetOrderByStoreKeeperResponseDTO::toEntity);
-    }
+        List<GetOrderByStoreKeeperResponseDTO> orderDTOs = pagedOrders
+                .getContent()
+                .stream()
+                .map(GetOrderByStoreKeeperResponseDTO::toEntity)
+                .toList();
 
+        return GetOrdersResponseDTO.builder()
+                .orders(orderDTOs)
+                .totalOrders(pagedOrders.getTotalElements())
+                .totalPages(pagedOrders.getTotalPages())
+                .currentPage(pagedOrders.getNumber())
+                .pageSize(pagedOrders.getSize())
+                .build();
+    }
 
 
     public DispatchOrderResponseDTO dispatchOrder(DispatchOrderRequestDTO request) {
