@@ -10,6 +10,4 @@ import java.util.Optional;
 public interface NotificationStatusRepository extends JpaRepository <NotificationStatusEntity,Integer>{
 
     Optional<NotificationStatusEntity> findByUserId(Long userId);
-    boolean existsByUserId(Long userId);
-
 }
