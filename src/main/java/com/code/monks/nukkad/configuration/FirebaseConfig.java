@@ -10,6 +10,7 @@
 
     import java.io.File;
     import java.io.FileInputStream;
+    import java.io.InputStream;
 
 
     @Slf4j
@@ -24,6 +25,7 @@
 
             log.info("FirebaseConfig loaded");
             log.info("Inside initFirebase() method");
+            log.info("Loaded Firebase credentials from: {}", firebaseConfigPath);
             try {
                 File configFile = new File(firebaseConfigPath);
                 if (!configFile.exists()) {
@@ -33,13 +35,13 @@
 
                 FileInputStream serviceAccount = new FileInputStream(configFile);
 
-    //            String path = firebaseConfigPath.replace("classpath:", "");
-    //            InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream(path);
-    //
-    //            if (serviceAccount == null) {
-    //                log.error(" Firebase config file not found in classpath at: {}", firebaseConfigPath);
-    //                return;
-    //            }
+//                String path = firebaseConfigPath.replace("classpath:", "");
+//                InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream(path);
+
+//                if (serviceAccount == null) {
+//                    log.error(" Firebase config file not found in classpath at: {}", firebaseConfigPath);
+//                    return;
+//                }
 
                 FirebaseOptions options = FirebaseOptions.builder()
                         .setCredentials(GoogleCredentials.fromStream(serviceAccount))
