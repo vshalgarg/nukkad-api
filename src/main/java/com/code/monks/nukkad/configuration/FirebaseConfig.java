@@ -37,7 +37,7 @@
 
 //                String path = firebaseConfigPath.replace("classpath:", "");
 //                InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream(path);
-
+//
 //                if (serviceAccount == null) {
 //                    log.error(" Firebase config file not found in classpath at: {}", firebaseConfigPath);
 //                    return;
