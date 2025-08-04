@@ -42,183 +42,154 @@ public class OrderService {
     private final CartItemRepository cartItemRepository;
     private final StorekeeperRepository storekeeperRepository;
     private final NotificationService notificationService;
-    private final UserDeviceTokenRepository userDeviceTokenRepository;
     private final UserNotificationService userNotificationService;
     private final UserDeviceTokenService userDeviceTokenService;
 
     public PlaceOrderResponseDTO placeOrders(PlaceOrderRequestDTO requestDTO) {
-
         log.info("[ORDER] Place‑order request: {}", requestDTO);
-
         Long customerId = UserContextHolder.getUser().getId();
 
         try {
-            // Step 1: Validate Customer
-            CustomerEntity customer = customerRepository.findById(customerId)
-                    .orElseThrow(() -> {
-                        log.warn("[ORDER] Customer not found (id={})", customerId);
-                        return new ResourceNotFoundException(ResponseErrorCodes.CUSTOMER_NOT_FOUND);
-                    });
+            CustomerEntity customer = validateCustomer(customerId);
+            StorekeeperEntity storekeeper = validateStorekeeper(requestDTO.getStoreKeeperId(), customer);
+            AddressEntity deliveryAddress = validateAddress(requestDTO.getDeliveryAddressId(), customerId);
 
-            // Step 2: Validate Storekeeper
-            StorekeeperEntity storekeeper = storekeeperRepository.findById(requestDTO.getStoreKeeperId())
-                    .orElseThrow(() -> {
-                        log.warn("[ORDER] Storekeeper not found (id={})", requestDTO.getStoreKeeperId());
-                        return new ResourceNotFoundException(ResponseErrorCodes.STOREKEEPER_NOT_FOUND, requestDTO.getStoreKeeperId());
-                    });
-
-            //  Validate Storekeeper belongs to Customer
-            if (customer.getStorekeepers() == null ||
-                    customer.getStorekeepers().stream().noneMatch(sk -> sk.getId().equals(storekeeper.getId()))) {
-                log.warn("[ORDER] Storekeeper mismatch: customerId={}, storekeeperId={}", customerId, storekeeper.getId());
-                throw new InvalidRequestException(ResponseErrorCodes.STOREKEEPER_CUSTOMER_MISMATCH);
-            }
-
-            // Step 3: Validate Delivery Address
-            AddressEntity deliveryAddress = addressRepository.findById(requestDTO.getDeliveryAddressId())
-                    .orElseThrow(() -> {
-                        log.warn("[ORDER] Delivery address not found (id={})", requestDTO.getDeliveryAddressId());
-                        return new ResourceNotFoundException(ResponseErrorCodes.ADDRESS_NOT_FOUND);
-                    });
-
-            //  Validate Address belongs to Customer
-            if (!deliveryAddress.getCustomerId().equals(customerId)) {
-                log.warn("[ORDER] Address mismatch: customerId={}, addressId={}", customerId, deliveryAddress.getId());
-                throw new InvalidRequestException(ResponseErrorCodes.ADDRESS_CUSTOMER_MISMATCH);
-            }
-
-            // Step 4: Prepare new Order
-            OrderEntity order = OrderEntity.builder()
-                    .customer(customer)
-                    .storeKeeper(storekeeper)
-                    .deliveryAddress(deliveryAddress)
-                    .status(OrderStatusEnum.PENDING)
-                    .build();
-
-            // Step 5: Fetch Cart Items
-            List<CartItemEntity> cartItems = Optional
-                    .ofNullable(cartItemRepository.findByCustomerId(customerId))
-                    .orElseGet(ArrayList::new);
-
-            if (cartItems.isEmpty()) {
-                log.warn("[ORDER] Cart empty — aborting (customerId={})", customerId);
-                throw new ResourceNotFoundException(ResponseErrorCodes.CART_EMPTY);
-            }
-
-            log.debug("[ORDER] {} cart item(s) fetched for customerId={}", cartItems.size(), customerId);
-
-            // Step 6: Convert to Order Items
-            List<OrderItemEntity> orderItems = cartItems.stream()
-                    .map(ci -> {
-                        OrderItemEntity oi = new OrderItemEntity();
-                        oi.setItem(ci.getItem());
-                        oi.setItemName(ci.getItem().getName());
-                        oi.setQuantity(ci.getQuantity());
-                        oi.setUnit(ci.getUnit());
-                        oi.setOrders(order);
-                        log.debug("[ORDER]   → itemId={}, qty={}, unit={}", ci.getItem().getId(), ci.getQuantity(), ci.getUnit());
-                        return oi;
-                    })
-                    .toList();
-
+            OrderEntity order = prepareOrder(customer, storekeeper, deliveryAddress);
+            List<CartItemEntity> cartItems = getCartItems(customerId);
+            List<OrderItemEntity> orderItems = convertToOrderItems(cartItems, order);
             order.setOrderItems(orderItems);
 
-            // Step 7: Persist order and cleanup cart
-            orderRepository.save(order);
-            log.info("[ORDER] Order saved (orderId={}, customerId={})", order.getId(), customerId);
+            saveOrderAndClearCart(order, cartItems, customerId);
+            notifyUsers(customerId, storekeeper.getId(), order.getId());
 
-            cartItemRepository.deleteAll(cartItems);
-            log.debug("[ORDER] Cart cleared ({} item[s]) for customerId={}", cartItems.size(), customerId);
-
-            // Step 8: Send notifications to Customer and Storekeeper
-            String title = "Order #" + order.getId();
-
-            // → Notify Customer
-            String customerMessage   = "Your order has been placed";
-            userDeviceTokenService.getDeviceTokenForUser(customerId, RoleEnum.CUSTOMER).ifPresentOrElse(
-                    token -> {
-                        notificationService.sendNotification(token, title, customerMessage);
-                        userNotificationService.saveNotification(customerId, title, customerMessage);
-                        log.info("[NOTIFY] Sent to Customer (id={})", customerId);
-                    },
-                    () -> log.warn("No device token found for customerId: {}", customerId)
-            );
-
-            // → Notify Storekeeper
-            Long storekeeperId = storekeeper.getId();
-            String storekeeperMessage = "You have received a new order";
-
-            userDeviceTokenService.getDeviceTokenForUser(storekeeperId, RoleEnum.STOREKEEPER).ifPresentOrElse(
-                    token -> {
-                        notificationService.sendNotification(token, title, storekeeperMessage);
-                        userNotificationService.saveNotification(storekeeperId, title, storekeeperMessage);
-                        log.info("[NOTIFY] Sent to Storekeeper (id={})", storekeeperId);
-                    },
-                    () -> log.warn("No device token found for storekeeperId: {}", storekeeperId)
-            );
-
-            // Step 8: Return response
             return new PlaceOrderResponseDTO("Order placed successfully");
 
         } catch (ResourceNotFoundException | InvalidRequestException ex) {
             throw ex;
-
         } catch (Exception ex) {
             log.error("[ORDER] Unexpected failure while placing order (customerId={})", customerId, ex);
             throw new UnhandledException(UNHANDLED_EXCEPTION, ex);
         }
     }
+    private CustomerEntity validateCustomer(Long customerId) {
+        return customerRepository.findById(customerId)
+                .orElseThrow(() -> {
+                    log.warn("[ORDER] Customer not found (id={})", customerId);
+                    return new ResourceNotFoundException(ResponseErrorCodes.CUSTOMER_NOT_FOUND);
+                });
+    }
+
+    private StorekeeperEntity validateStorekeeper(Long storekeeperId, CustomerEntity customer) {
+        StorekeeperEntity storekeeper = storekeeperRepository.findById(storekeeperId)
+                .orElseThrow(() -> {
+                    log.warn("[ORDER] Storekeeper not found (id={})", storekeeperId);
+                    return new ResourceNotFoundException(ResponseErrorCodes.STOREKEEPER_NOT_FOUND, storekeeperId);
+                });
+
+        if (customer.getStorekeepers() == null ||
+                customer.getStorekeepers().stream().noneMatch(sk -> sk.getId().equals(storekeeperId))) {
+            log.warn("[ORDER] Storekeeper mismatch: customerId={}, storekeeperId={}", customer.getId(), storekeeperId);
+            throw new InvalidRequestException(ResponseErrorCodes.STOREKEEPER_CUSTOMER_MISMATCH);
+        }
+
+        return storekeeper;
+    }
+
+    private AddressEntity validateAddress(Long addressId, Long customerId) {
+        AddressEntity address = addressRepository.findById(addressId)
+                .orElseThrow(() -> {
+                    log.warn("[ORDER] Delivery address not found (id={})", addressId);
+                    return new ResourceNotFoundException(ResponseErrorCodes.ADDRESS_NOT_FOUND);
+                });
+
+        if (!address.getCustomerId().equals(customerId)) {
+            log.warn("[ORDER] Address mismatch: customerId={}, addressId={}", customerId, addressId);
+            throw new InvalidRequestException(ResponseErrorCodes.ADDRESS_CUSTOMER_MISMATCH);
+        }
+
+        return address;
+    }
+
+    private OrderEntity prepareOrder(CustomerEntity customer, StorekeeperEntity storekeeper, AddressEntity address) {
+        return OrderEntity.builder()
+                .customer(customer)
+                .storeKeeper(storekeeper)
+                .deliveryAddress(address)
+                .status(OrderStatusEnum.PENDING)
+                .build();
+    }
+
+    private List<CartItemEntity> getCartItems(Long customerId) {
+        List<CartItemEntity> cartItems = Optional
+                .ofNullable(cartItemRepository.findByCustomerId(customerId))
+                .orElseGet(ArrayList::new);
+
+        if (cartItems.isEmpty()) {
+            log.warn("[ORDER] Cart empty — aborting (customerId={})", customerId);
+            throw new ResourceNotFoundException(ResponseErrorCodes.CART_EMPTY);
+        }
+
+        log.debug("[ORDER] {} cart item(s) fetched for customerId={}", cartItems.size(), customerId);
+        return cartItems;
+    }
+
+    private List<OrderItemEntity> convertToOrderItems(List<CartItemEntity> cartItems, OrderEntity order) {
+        return cartItems.stream()
+                .map(ci -> {
+                    OrderItemEntity oi = new OrderItemEntity();
+                    oi.setItem(ci.getItem());
+                    oi.setItemName(ci.getItem().getName());
+                    oi.setQuantity(ci.getQuantity());
+                    oi.setUnit(ci.getUnit());
+                    oi.setOrders(order);
+                    log.debug("[ORDER]   → itemId={}, qty={}, unit={}", ci.getItem().getId(), ci.getQuantity(), ci.getUnit());
+                    return oi;
+                })
+                .toList();
+    }
+
+    private void saveOrderAndClearCart(OrderEntity order, List<CartItemEntity> cartItems, Long customerId) {
+        orderRepository.save(order);
+        log.info("[ORDER] Order saved (orderId={}, customerId={})", order.getId(), customerId);
+        cartItemRepository.deleteAll(cartItems);
+        log.debug("[ORDER] Cart cleared ({} item[s]) for customerId={}", cartItems.size(), customerId);
+    }
+
+    private void notifyUser(Long userId, RoleEnum role, String title, String message) {
+        userDeviceTokenService.getDeviceTokenForUser(userId, role).ifPresentOrElse(
+                token -> {
+                    notificationService.sendNotification(token, title, message);
+                    userNotificationService.saveNotification(userId, title, message);
+                    log.info("[NOTIFY] Sent to {} (id={})", role.name(), userId);
+                },
+                () -> log.warn("No device token found for {}Id: {}", role.name().toLowerCase(), userId)
+        );
+    }
+
+    private void notifyUsers(Long customerId, Long storekeeperId, Long orderId) {
+        String title = "Order #" + orderId;
+
+        notifyUser(
+                customerId,
+                RoleEnum.CUSTOMER,
+                title, "Your order has been placed");
+        notifyUser(
+                storekeeperId,
+                RoleEnum.STOREKEEPER,
+                title,
+                "You have received a new order");
+    }
 
 
-    public UpdateOrderStatusResponseDTO updateOrderStatus(long id, UpdateOrderStatusRequestDTO updateOrderStatusRequestDTO) {
-        OrderStatusEnum newOrderStatus = updateOrderStatusRequestDTO.getOrderStatus();
-        log.info("Updating status for Order ID [{}] to [{}]", id, newOrderStatus);
+    public UpdateOrderStatusResponseDTO updateOrderStatus(long id, UpdateOrderStatusRequestDTO request) {
+        OrderStatusEnum newStatus = validateStatus(request.getOrderStatus());
+        log.info("Updating status for Order ID [{}] to [{}]", id, newStatus);
 
         try {
-            // Validate input
-            if (newOrderStatus == null) {
-                log.error("Status in request is null");
-                throw new IllegalArgumentException("Status cannot be null");
-            }
+            OrderEntity order = fetchOrderOrThrow(id);
+            updateStatus(order, newStatus);
 
-            // Fetch existing order
-            OrderEntity orderEntity = orderRepository.findById(id)
-                    .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND));
-
-            // Update status
-            orderEntity.setStatus(newOrderStatus);
-            OrderEntity updatedOrder = orderRepository.save(orderEntity);
-
-            log.info("Order status updated successfully to [{}] for ID [{}]", newOrderStatus, id);
-
-            // Notification title
-            String title = "Order #" + updatedOrder.getId();
-
-            // → Notify Customer
-            Long customerId = updatedOrder.getCustomer().getId();
-            String customerMessage = "Your order has been " + newOrderStatus.name().toLowerCase().replace("_", " ") + " successfully";
-
-            userDeviceTokenService.getDeviceTokenForUser(customerId, RoleEnum.CUSTOMER).ifPresentOrElse(
-                    token -> {
-                        notificationService.sendNotification(token, title, customerMessage);
-                        userNotificationService.saveNotification(customerId, title, customerMessage);
-                        log.info("[NOTIFY] Sent to Customer (id={})", customerId);
-                    },
-                    () -> log.warn("No device token found for customerId: {}", customerId)
-            );
-
-            // → Notify Storekeeper
-            Long storekeeperId = updatedOrder.getStoreKeeper().getId();
-            String storekeeperMessage = "Order has been updated to " + newOrderStatus.name().toLowerCase().replace("_", " ");
-
-            userDeviceTokenService.getDeviceTokenForUser(storekeeperId, RoleEnum.STOREKEEPER).ifPresentOrElse(
-                    token -> {
-                        notificationService.sendNotification(token, title, storekeeperMessage);
-                        userNotificationService.saveNotification(storekeeperId, title, storekeeperMessage);
-                        log.info("[NOTIFY] Sent to Storekeeper (id={})", storekeeperId);
-                    },
-                    () -> log.warn("No device token found for storekeeperId: {}", storekeeperId)
-            );
+            sendNotifications(order, newStatus);
 
             return new UpdateOrderStatusResponseDTO("Status updated successfully");
 
@@ -228,6 +199,41 @@ public class OrderService {
             log.error("Failed to update order status for ID [{}]", id, e);
             throw new UnhandledException(UNHANDLED_EXCEPTION, e);
         }
+    }
+    private OrderStatusEnum validateStatus(OrderStatusEnum status) {
+        if (status == null) {
+            log.error("Status in request is null");
+            throw new IllegalArgumentException("Status cannot be null");
+        }
+        return status;
+    }
+
+    private OrderEntity fetchOrderOrThrow(long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND));
+    }
+
+    private void updateStatus(OrderEntity order, OrderStatusEnum newStatus) {
+        order.setStatus(newStatus);
+        orderRepository.save(order);
+        log.info("Order status updated successfully to [{}] for ID [{}]", newStatus, order.getId());
+    }
+
+    private void sendNotifications(OrderEntity order, OrderStatusEnum newStatus) {
+        String title = "Order #" + order.getId();
+        String statusText = newStatus.name().toLowerCase().replace("_", " ");
+
+        notifyUser(
+                order.getCustomer().getId(),
+                RoleEnum.CUSTOMER, title,
+                "Your order has been " + statusText + " successfully"
+        );
+
+        notifyUser(
+                order.getStoreKeeper().getId(),
+                RoleEnum.STOREKEEPER, title,
+                "Order has been updated to " + statusText
+        );
     }
 
 
@@ -313,86 +319,73 @@ public class OrderService {
         log.info("[DISPATCH] Request received to dispatch orderId={} by storekeeperId={}", orderId, storekeeperId);
 
         try {
-            // Step 1: Validate item list
-            if (request.getOrderItem() == null || request.getOrderItem().isEmpty()) {
-                log.warn("[DISPATCH] Empty or null order item list for orderId={}", orderId);
-                throw new IllegalArgumentException("Order items list cannot be empty or null.");
-            }
-
-            // Step 2: Fetch order
-            OrderEntity order = orderRepository.findById(orderId)
-                    .orElseThrow(() -> {
-                        log.warn("[DISPATCH] Order not found with ID={}", orderId);
-                        return new OrderNotFoundException(ORDER_NOT_FOUND);
-                    });
-
-            // Step 3: Check storekeeper access
-            if (!order.getStoreKeeper().getId().equals(storekeeperId)) {
-                log.error("[DISPATCH] Unauthorized dispatch attempt by storekeeperId={} for orderId={}", storekeeperId, orderId);
-                throw new UnauthorizedAccessException("Unauthorized to dispatch this order.");
-            }
-
-            // Step 4: Update item prices
-            request.getOrderItem().forEach(requestedItem -> {
-                order.getOrderItems().stream()
-                        .filter(orderItem -> orderItem.getItem().getId().equals(requestedItem.getItemId()))
-                        .findFirst()
-                        .ifPresent(orderItem -> {
-                            log.debug("[DISPATCH] Updating price for itemId={} to {}", requestedItem.getItemId(), requestedItem.getPrice());
-                            orderItem.setPrice(requestedItem.getPrice());
-                        });
-            });
-
-            // Step 5: Update order status & note
-            order.setStatus(OrderStatusEnum.DISPATCHED);
-            order.setStoreKeeperNote(request.getStoreKeeperNote());
-            orderRepository.save(order);
-            log.info("[DISPATCH] Order ID={} dispatched successfully by storekeeperId={}", orderId, storekeeperId);
-
-            // Step 6: Prepare notification
-            String title = "Order #" + order.getId();
-
-            // → Notify Customer
-            Long customerId = order.getCustomer().getId();
-            String customerMessage = "Your order has been dispatched successfully.";
-            userDeviceTokenService.getDeviceTokenForUser(customerId, RoleEnum.CUSTOMER).ifPresentOrElse(
-                    token -> {
-                        notificationService.sendNotification(token, title, customerMessage);
-                        userNotificationService.saveNotification(customerId, title, customerMessage);
-                        log.info("[NOTIFY] Sent to Customer (id={})", customerId);
-                    },
-                    () -> log.warn("[NOTIFY] No device token found for customerId: {}", customerId)
-            );
-
-            // → Notify Storekeeper
-            String storekeeperMessage = "You have successfully dispatched Order #" + order.getId();
-            userDeviceTokenService.getDeviceTokenForUser(storekeeperId, RoleEnum.STOREKEEPER).ifPresentOrElse(
-                    token -> {
-                        notificationService.sendNotification(token, title, storekeeperMessage);
-                        userNotificationService.saveNotification(storekeeperId, title, storekeeperMessage);
-                        log.info("[NOTIFY] Sent to Storekeeper (id={})", storekeeperId);
-                    },
-                    () -> log.warn("[NOTIFY] No device token found for storekeeperId: {}", storekeeperId)
-            );
+            validateOrderItems(request);
+            OrderEntity order = fetchOrderOrThrow(orderId);
+            validateStorekeeperAccess(order, storekeeperId);
+            updateItemPrices(order, request);
+            updateOrderStatusAndNote(order, request);
+            notifyCustomerAndStorekeeper(order, storekeeperId);
 
             return new DispatchOrderResponseDTO("Order dispatched successfully.");
-
-        } catch (IllegalArgumentException e) {
-            log.warn("[DISPATCH] Invalid input for orderId={}: {}", orderId, e.getMessage());
+        } catch (IllegalArgumentException | OrderNotFoundException | UnauthorizedAccessException e) {
+            log.warn("[DISPATCH] Error while processing orderId={}: {}", orderId, e.getMessage());
             throw e;
-
-        } catch (OrderNotFoundException e) {
-            log.warn("[DISPATCH] Order not found: {}", e.getMessage());
-            throw e;
-
-        } catch (UnauthorizedAccessException e) {
-            log.error("[DISPATCH] Authorization or validation failure for orderId={}", orderId, e);
-            throw e;
-
         } catch (Exception e) {
             log.error("[DISPATCH] Unexpected error while dispatching orderId={}", orderId, e);
             throw new UnhandledException(UNHANDLED_EXCEPTION, e);
         }
     }
+    private void validateOrderItems(DispatchOrderRequestDTO request) {
+        if (request.getOrderItem() == null || request.getOrderItem().isEmpty()) {
+            throw new IllegalArgumentException("Order items list cannot be empty or null.");
+        }
+    }
+    private OrderEntity fetchOrderOrThrow(Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> {
+                    log.warn("[DISPATCH] Order not found with ID={}", orderId);
+                    return new OrderNotFoundException(ORDER_NOT_FOUND);
+                });
+    }
+    private void validateStorekeeperAccess(OrderEntity order, Long storekeeperId) {
+        if (!order.getStoreKeeper().getId().equals(storekeeperId)) {
+            log.error("[DISPATCH] Unauthorized dispatch attempt by storekeeperId={} for orderId={}", storekeeperId, order.getId());
+            throw new UnauthorizedAccessException("Unauthorized to dispatch this order.");
+        }
+    }
+    private void updateItemPrices(OrderEntity order, DispatchOrderRequestDTO request) {
+        request.getOrderItem().forEach(requestedItem -> {
+            order.getOrderItems().stream()
+                    .filter(orderItem -> orderItem.getItem().getId().equals(requestedItem.getItemId()))
+                    .findFirst()
+                    .ifPresent(orderItem -> {
+                        log.debug("[DISPATCH] Updating price for itemId={} to {}", requestedItem.getItemId(), requestedItem.getPrice());
+                        orderItem.setPrice(requestedItem.getPrice());
+                    });
+        });
+    }
+    private void updateOrderStatusAndNote(OrderEntity order, DispatchOrderRequestDTO request) {
+        order.setStatus(OrderStatusEnum.DISPATCHED);
+        order.setStoreKeeperNote(request.getStoreKeeperNote());
+        orderRepository.save(order);
+        log.info("[DISPATCH] Order ID={} dispatched successfully", order.getId());
+    }
 
+    private void notifyCustomerAndStorekeeper(OrderEntity order, Long storekeeperId) {
+        String title = "Order #" + order.getId();
+
+        notifyUser(
+                order.getCustomer().getId(),
+                RoleEnum.CUSTOMER,
+                title,
+                "Your order has been dispatched successfully."
+        );
+
+        notifyUser(
+                storekeeperId,
+                RoleEnum.STOREKEEPER,
+                title,
+                "You have successfully dispatched Order #" + order.getId()
+        );
+    }
 }

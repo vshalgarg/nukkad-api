@@ -22,26 +22,31 @@
 
         @PostConstruct
         public void initFirebase() {
-
             log.info("FirebaseConfig loaded");
             log.info("Inside initFirebase() method");
-            log.info("Loaded Firebase credentials from: {}", firebaseConfigPath);
+            log.info("Firebase credentials path: {}", firebaseConfigPath);
+
             try {
-                File configFile = new File(firebaseConfigPath);
-                if (!configFile.exists()) {
-                    log.error(" Firebase config file not found at: {}", firebaseConfigPath);
-                    return;
+                InputStream serviceAccount;
+
+                if (firebaseConfigPath.startsWith("classpath:")) {
+                    // Local environment - classpath resource
+                    String path = firebaseConfigPath.replace("classpath:", "");
+                    serviceAccount = getClass().getClassLoader().getResourceAsStream(path);
+
+                    if (serviceAccount == null) {
+                        log.error("Firebase config file not found in classpath at: {}", firebaseConfigPath);
+                        return;
+                    }
+                } else {
+                    // Jenkins or file system path
+                    File configFile = new File(firebaseConfigPath);
+                    if (!configFile.exists()) {
+                        log.error("Firebase config file not found at: {}", firebaseConfigPath);
+                        return;
+                    }
+                    serviceAccount = new FileInputStream(configFile);
                 }
-
-                FileInputStream serviceAccount = new FileInputStream(configFile);
-
-//                String path = firebaseConfigPath.replace("classpath:", "");
-//                InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream(path);
-//
-//                if (serviceAccount == null) {
-//                    log.error(" Firebase config file not found in classpath at: {}", firebaseConfigPath);
-//                    return;
-//                }
 
                 FirebaseOptions options = FirebaseOptions.builder()
                         .setCredentials(GoogleCredentials.fromStream(serviceAccount))
@@ -49,10 +54,12 @@
 
                 if (FirebaseApp.getApps().isEmpty()) {
                     FirebaseApp.initializeApp(options);
-                    log.info(" Firebase initialized successfully!");
+                    log.info("Firebase initialized successfully!");
                 }
+
             } catch (Exception e) {
-                log.error(" Failed to initialize Firebase: {}", e.getMessage(), e);
+                log.error("Failed to initialize Firebase: {}", e.getMessage(), e);
             }
         }
+
     }
