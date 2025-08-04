@@ -43,6 +43,8 @@ public class OrderService {
     private final StorekeeperRepository storekeeperRepository;
     private final NotificationService notificationService;
     private final UserDeviceTokenRepository userDeviceTokenRepository;
+    private final UserNotificationService userNotificationService;
+    private final UserDeviceTokenService userDeviceTokenService;
 
     public PlaceOrderResponseDTO placeOrders(PlaceOrderRequestDTO requestDTO) {
 
@@ -128,18 +130,33 @@ public class OrderService {
             cartItemRepository.deleteAll(cartItems);
             log.debug("[ORDER] Cart cleared ({} item[s]) for customerId={}", cartItems.size(), customerId);
 
-            log.info("Sending notification ");
-            Optional<UserDeviceTokenEntity> tokenOpt = userDeviceTokenRepository.findByCustomerId(customerId);
+            // Step 8: Send notifications to Customer and Storekeeper
+            String title = "Order #" + order.getId();
 
-            if (tokenOpt.isPresent()) {
-                String deviceToken = tokenOpt.get().getDeviceToken();
+            // → Notify Customer
+            String customerMessage   = "Your order has been placed";
+            userDeviceTokenService.getDeviceTokenForUser(customerId, RoleEnum.CUSTOMER).ifPresentOrElse(
+                    token -> {
+                        notificationService.sendNotification(token, title, customerMessage);
+                        userNotificationService.saveNotification(customerId, title, customerMessage);
+                        log.info("[NOTIFY] Sent to Customer (id={})", customerId);
+                    },
+                    () -> log.warn("No device token found for customerId: {}", customerId)
+            );
 
-                String title = "Order #"+order.getId();
-                String body = "Your order has been placed";
-                notificationService.sendNotification(deviceToken, title, body);
-            } else {
-                log.warn("No device token found for customerId: {}", customerId);
-            }
+            // → Notify Storekeeper
+            Long storekeeperId = storekeeper.getId();
+            String storekeeperMessage = "You have received a new order";
+
+            userDeviceTokenService.getDeviceTokenForUser(storekeeperId, RoleEnum.STOREKEEPER).ifPresentOrElse(
+                    token -> {
+                        notificationService.sendNotification(token, title, storekeeperMessage);
+                        userNotificationService.saveNotification(storekeeperId, title, storekeeperMessage);
+                        log.info("[NOTIFY] Sent to Storekeeper (id={})", storekeeperId);
+                    },
+                    () -> log.warn("No device token found for storekeeperId: {}", storekeeperId)
+            );
+
             // Step 8: Return response
             return new PlaceOrderResponseDTO("Order placed successfully");
 
@@ -170,28 +187,40 @@ public class OrderService {
 
             // Update status
             orderEntity.setStatus(newOrderStatus);
-
             OrderEntity updatedOrder = orderRepository.save(orderEntity);
 
             log.info("Order status updated successfully to [{}] for ID [{}]", newOrderStatus, id);
 
-            // Send notification to customer
+            // Notification title
+            String title = "Order #" + updatedOrder.getId();
+
+            // → Notify Customer
             Long customerId = updatedOrder.getCustomer().getId();
-            log.info("Sending notification to customerId={}", customerId);
+            String customerMessage = "Your order has been " + newOrderStatus.name().toLowerCase().replace("_", " ") + " successfully";
 
-            Optional<UserDeviceTokenEntity> tokenOpt = userDeviceTokenRepository.findByCustomerId(customerId);
+            userDeviceTokenService.getDeviceTokenForUser(customerId, RoleEnum.CUSTOMER).ifPresentOrElse(
+                    token -> {
+                        notificationService.sendNotification(token, title, customerMessage);
+                        userNotificationService.saveNotification(customerId, title, customerMessage);
+                        log.info("[NOTIFY] Sent to Customer (id={})", customerId);
+                    },
+                    () -> log.warn("No device token found for customerId: {}", customerId)
+            );
 
-            if (tokenOpt.isPresent()) {
-                String deviceToken = tokenOpt.get().getDeviceToken();
+            // → Notify Storekeeper
+            Long storekeeperId = updatedOrder.getStoreKeeper().getId();
+            String storekeeperMessage = "Order has been updated to " + newOrderStatus.name().toLowerCase().replace("_", " ");
 
-                String title = "Order #" + updatedOrder.getId();
-                String body = "Your order has been " + newOrderStatus.name().toLowerCase().replace("_", " ") + " successfully";
-                notificationService.sendNotification(deviceToken, title, body);
-            } else {
-                log.warn("No device token found for customerId: {}", customerId);
-            }
+            userDeviceTokenService.getDeviceTokenForUser(storekeeperId, RoleEnum.STOREKEEPER).ifPresentOrElse(
+                    token -> {
+                        notificationService.sendNotification(token, title, storekeeperMessage);
+                        userNotificationService.saveNotification(storekeeperId, title, storekeeperMessage);
+                        log.info("[NOTIFY] Sent to Storekeeper (id={})", storekeeperId);
+                    },
+                    () -> log.warn("No device token found for storekeeperId: {}", storekeeperId)
+            );
 
-            return new UpdateOrderStatusResponseDTO("Status are updated successfully");
+            return new UpdateOrderStatusResponseDTO("Status updated successfully");
 
         } catch (OrderNotFoundException | IllegalArgumentException e) {
             throw e;
@@ -284,75 +313,86 @@ public class OrderService {
         log.info("[DISPATCH] Request received to dispatch orderId={} by storekeeperId={}", orderId, storekeeperId);
 
         try {
-            // Validate item list
+            // Step 1: Validate item list
             if (request.getOrderItem() == null || request.getOrderItem().isEmpty()) {
-                log.warn("[DISPATCHED] Empty or null order item list for orderId={}", orderId);
+                log.warn("[DISPATCH] Empty or null order item list for orderId={}", orderId);
                 throw new IllegalArgumentException("Order items list cannot be empty or null.");
             }
 
-            // Fetch order
+            // Step 2: Fetch order
             OrderEntity order = orderRepository.findById(orderId)
                     .orElseThrow(() -> {
-                        log.warn("[DISPATCHED] Order not found with ID={}", orderId);
-                        return new OrderNotFoundException(ORDER_NOT_FOUND );
+                        log.warn("[DISPATCH] Order not found with ID={}", orderId);
+                        return new OrderNotFoundException(ORDER_NOT_FOUND);
                     });
 
-            // Check storekeeper access
+            // Step 3: Check storekeeper access
             if (!order.getStoreKeeper().getId().equals(storekeeperId)) {
-                log.error("[DISPATCHED] Unauthorized dispatch attempt by storekeeperId={} for orderId={}", storekeeperId, orderId);
+                log.error("[DISPATCH] Unauthorized dispatch attempt by storekeeperId={} for orderId={}", storekeeperId, orderId);
                 throw new UnauthorizedAccessException("Unauthorized to dispatch this order.");
             }
 
-            // Update item prices
+            // Step 4: Update item prices
             request.getOrderItem().forEach(requestedItem -> {
                 order.getOrderItems().stream()
                         .filter(orderItem -> orderItem.getItem().getId().equals(requestedItem.getItemId()))
                         .findFirst()
                         .ifPresent(orderItem -> {
-                            log.debug("[DISPATCHED] Updating price for itemId={} to {}", requestedItem.getItemId(), requestedItem.getPrice());
+                            log.debug("[DISPATCH] Updating price for itemId={} to {}", requestedItem.getItemId(), requestedItem.getPrice());
                             orderItem.setPrice(requestedItem.getPrice());
                         });
             });
 
-            // Update status & note
+            // Step 5: Update order status & note
             order.setStatus(OrderStatusEnum.DISPATCHED);
             order.setStoreKeeperNote(request.getStoreKeeperNote());
-
             orderRepository.save(order);
-            log.info("[DISPATCHED] Order ID={} dispatched successfully by storekeeperId={}", orderId, storekeeperId);
+            log.info("[DISPATCH] Order ID={} dispatched successfully by storekeeperId={}", orderId, storekeeperId);
 
-            // Send  notification to customer
+            // Step 6: Prepare notification
+            String title = "Order #" + order.getId();
+
+            // → Notify Customer
             Long customerId = order.getCustomer().getId();
-            log.info("[DISPATCHED] Sending dispatch notification to customerId={}", customerId);
+            String customerMessage = "Your order has been dispatched successfully.";
+            userDeviceTokenService.getDeviceTokenForUser(customerId, RoleEnum.CUSTOMER).ifPresentOrElse(
+                    token -> {
+                        notificationService.sendNotification(token, title, customerMessage);
+                        userNotificationService.saveNotification(customerId, title, customerMessage);
+                        log.info("[NOTIFY] Sent to Customer (id={})", customerId);
+                    },
+                    () -> log.warn("[NOTIFY] No device token found for customerId: {}", customerId)
+            );
 
-            Optional<UserDeviceTokenEntity> tokenOpt = userDeviceTokenRepository.findByCustomerId(customerId);
-
-            if(tokenOpt.isPresent()){
-                String deviceToken = tokenOpt.get().getDeviceToken();
-                String title = "Order #" + order.getId();
-                String body = "Your order has been dispatched successfully. ";
-                notificationService.sendNotification(deviceToken,title,body);
-            }else{
-                log.warn("[DISPATCHED] No device token found for customerId={}", customerId);
-            }
+            // → Notify Storekeeper
+            String storekeeperMessage = "You have successfully dispatched Order #" + order.getId();
+            userDeviceTokenService.getDeviceTokenForUser(storekeeperId, RoleEnum.STOREKEEPER).ifPresentOrElse(
+                    token -> {
+                        notificationService.sendNotification(token, title, storekeeperMessage);
+                        userNotificationService.saveNotification(storekeeperId, title, storekeeperMessage);
+                        log.info("[NOTIFY] Sent to Storekeeper (id={})", storekeeperId);
+                    },
+                    () -> log.warn("[NOTIFY] No device token found for storekeeperId: {}", storekeeperId)
+            );
 
             return new DispatchOrderResponseDTO("Order dispatched successfully.");
 
         } catch (IllegalArgumentException e) {
-            log.warn("[DISPATCHED] Invalid input for orderId={}: {}", orderId, e.getMessage());
+            log.warn("[DISPATCH] Invalid input for orderId={}: {}", orderId, e.getMessage());
             throw e;
 
         } catch (OrderNotFoundException e) {
-            log.warn("[DISPATCHED] Order not found: {}", e.getMessage());
+            log.warn("[DISPATCH] Order not found: {}", e.getMessage());
             throw e;
 
         } catch (UnauthorizedAccessException e) {
-            log.error("[DISPATCHED] Authorization or validation failure for orderId={}", orderId, e);
+            log.error("[DISPATCH] Authorization or validation failure for orderId={}", orderId, e);
             throw e;
 
         } catch (Exception e) {
-            log.error("[DISPATCHED] Unexpected error while dispatching orderId={}", orderId, e);
+            log.error("[DISPATCH] Unexpected error while dispatching orderId={}", orderId, e);
             throw new UnhandledException(UNHANDLED_EXCEPTION, e);
         }
     }
+
 }

@@ -237,11 +237,6 @@ public class CartItemService {
 
         List<CartItemEntity> cartItems = cartItemRepository.findByCustomerId(customerId);
 
-        if (cartItems.isEmpty()) {
-            log.warn("[CART CLEAR] No cart items found for customerId={}", customerId);
-            throw new ResourceNotFoundException(NO_ITEM_FOUND_IN_CART_FOR_CUSTOMER, customerId);
-        }
-
         cartItemRepository.deleteAll(cartItems);
 
         log.info("[CART CLEAR] Cart cleared successfully for customerId={}", customerId);
