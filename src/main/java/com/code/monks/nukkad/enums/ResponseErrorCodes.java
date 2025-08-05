@@ -33,8 +33,10 @@ public enum ResponseErrorCodes {
 	STOREKEEPER_CUSTOMER_MISMATCH(1024,"Storekeeper is not associate with customer"),
 	ADDRESS_CUSTOMER_MISMATCH(1025,"Address is not match with customer"),
 	ORDER_NOT_FOUND(1026,"Order not found: "),
-	NO_ITEM_FOUND_IN_CART_FOR_CUSTOMER(1027,"No item found in cart for customer id : "),
-	UNABLE_TO_SET_NOTIFICATION_ENABLE_STATUS(1028,"Unable to set notification status at this time. Please try again later.");
+	UNABLE_TO_SET_NOTIFICATION_ENABLE_STATUS(1027,"Unable to set notification status at this time. Please try again later."),
+	ENABLE_TO_SAVE_NOTIFICATION(1028,"Could not save notification. Please try again later."),
+	ENABLE_TO_FETCH_NOTIFICATIONS(1029,"Could not fetch notifications. Please try again later."),
+	UNABLE_TO_ALL_NOTIFICATIONS(1030,"Unable to delete notifications");
 	private int responseCode;
 
 	private String message;

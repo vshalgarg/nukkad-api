@@ -1,14 +1,12 @@
 package com.code.monks.nukkad.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name  = "user_notifications")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

@@ -79,12 +79,6 @@ public class AddressService {
                         return new ResourceNotFoundException(ADDRESS_NOT_FOUND);
                     });
 
-//
-//            // Check for default address restriction
-//            if (Boolean.TRUE.equals(address.getIsDefault())) {
-//                log.warn("[UPDATE ADDRESS] Update not allowed on default address. addressId={}, customerId={}", id, customerId);
-//                throw new DefaultAddressUpdateNotAllowedException(DEFAULT_ADDRESS_CAN_NOT_BE_CHANGE);
-//            }
 
             // Update address fields
             UpdateAddressRequestDTO.updateEntity(address, request);
