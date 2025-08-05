@@ -110,6 +110,8 @@ public static class ADDRESS{
 	public static class NOTIFICATION {
 		public static final String BASE = CONTEXT + "/api/notification";
 		public static final String SET_STATUS = "/v1/set/status";
+		public static final String GET_NOTIFICATIONS = "/v1/get/notifications";
+		public static final String DELETE_ALL_NOTIFICATIONS = "/v1/delete/notifications";
 	}
 
 	private UrlConstants() {
