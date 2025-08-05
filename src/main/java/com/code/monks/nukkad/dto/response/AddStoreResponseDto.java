@@ -11,6 +11,7 @@ public class AddStoreResponseDto {
     private String storeName;
     private String addressLine1;
     private String addressLine2;
+    private String storeQrId;
     private String message;
 
     public AddStoreResponseDto(String message){

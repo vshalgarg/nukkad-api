@@ -36,6 +36,7 @@ public class StorekeeperService {
     private final StorekeeperImageRepository storekeeperImageRepository;
     private final FileUploadHelper fileUploadHelper;
     private final ExceptionHandleUtil exceptionHandleUtil;
+    private final NotificationStatusService notificationStatusService;
 
     public CreateStorekeeperResponseDTO createStoreKeeper(CreateStorekeeperRequestDTO dto, MultipartFile[] images) {
         if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.STOREKEEPER)) {
@@ -66,6 +67,10 @@ public class StorekeeperService {
         try {
             saved = storekeeperRepository.save(storekeeper);
             log.info("[CREATE STOREKEEPER] Storekeeper saved with ID={}", saved.getId());
+
+            // Set default notification status ON
+            notificationStatusService.initializeStatusIfAbsent();
+
         } catch (Exception e) {
             log.error("[CREATE STOREKEEPER] Unexpected error while saving storekeeper", e);
             throw new UnhandledException(UNHANDLED_EXCEPTION, e);

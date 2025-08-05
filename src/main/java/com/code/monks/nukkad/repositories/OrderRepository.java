@@ -2,6 +2,8 @@ package com.code.monks.nukkad.repositories;
 
 import com.code.monks.nukkad.entities.OrderEntity;
 import com.code.monks.nukkad.enums.OrderStatusEnum;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,6 +18,18 @@ public interface OrderRepository extends JpaRepository<OrderEntity,Long> {
     Optional<OrderEntity> findById (Long id);
 
     List<OrderEntity> findByStoreKeeperId(Long storeKeeperId);
+
+
+    @Query("""
+    SELECT o FROM OrderEntity o 
+    WHERE o.storeKeeper.id = :storekeeperId 
+    AND o.status IN :statuses
+""")
+    Page<OrderEntity> findByStoreKeeperIdAndStatuses(@Param("storekeeperId") Long storekeeperId,
+                                                     @Param("statuses") List<OrderStatusEnum> statuses,
+                                                     Pageable pageable);
+
+
 
     @Query("""
 SELECT o FROM OrderEntity o
@@ -34,13 +48,14 @@ HAVING
   (:minPrice IS NULL OR SUM(oi.price) >= :minPrice) AND
   (:maxPrice IS NULL OR SUM(oi.price) <= :maxPrice)
 """)
-    List<OrderEntity> findCustomerOrdersWithFilters(
+    Page<OrderEntity> findCustomerOrdersWithFilters(
             @Param("customerId") Long customerId,
             @Param("status") OrderStatusEnum status,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end,
             @Param("minPrice") Double minPrice,
-            @Param("maxPrice") Double maxPrice
+            @Param("maxPrice") Double maxPrice,
+            Pageable pageable
     );
 
     @Query("""
@@ -60,12 +75,14 @@ HAVING
   (:minPrice IS NULL OR SUM(oi.price) >= :minPrice) AND
   (:maxPrice IS NULL OR SUM(oi.price) <= :maxPrice)
 """)
-    List<OrderEntity> findStorekeeperOrdersWithFilters(
+    Page<OrderEntity> findStorekeeperOrdersWithFilters(
             @Param("storekeeperId") Long storekeeperId,
             @Param("status") OrderStatusEnum status,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end,
             @Param("minPrice") Double minPrice,
-            @Param("maxPrice") Double maxPrice
+            @Param("maxPrice") Double maxPrice,
+            Pageable pageable
     );
+
 }

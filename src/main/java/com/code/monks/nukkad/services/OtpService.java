@@ -10,10 +10,7 @@ import com.code.monks.nukkad.dto.request.VerifyRequestDTO;
 import com.code.monks.nukkad.dto.response.SendOtpResponseDTO;
 import com.code.monks.nukkad.dto.response.UserAccountDeactivateResponseDTO;
 import com.code.monks.nukkad.dto.response.VerifyOtpResponseDTO;
-import com.code.monks.nukkad.entities.CustomerEntity;
-import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.entities.UserDeviceTokenEntity;
-import com.code.monks.nukkad.enums.NotificationStatusEnum;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.repositories.CustomerRepository;
 import com.code.monks.nukkad.repositories.StorekeeperRepository;
@@ -61,6 +58,7 @@ public class OtpService {
 		} else if (roles.contains(RoleEnum.STOREKEEPER.name())) {
 			firstTimeLogin = !storekeeperRepository.existsById(userId);
 		}
+
 
 		// Save or update device token
 		String deviceToken = verifyRequestDTO.getDeviceToken();

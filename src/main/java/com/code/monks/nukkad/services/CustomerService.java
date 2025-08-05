@@ -36,6 +36,7 @@ public class CustomerService {
 	private final AddressRepository addressRepository;
 	private final StorekeeperRepository storekeeperRepository;
 	private final ExceptionHandleUtil exceptionHandleUtil;
+	private final NotificationStatusService notificationStatusService;
 
 	public CreateCustomerResponseDTO createCustomer(CreateCustomerRequestDTO dto) {
 		if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.CUSTOMER)) {
@@ -61,6 +62,9 @@ public class CustomerService {
 		try {
 			// Save customer
 			CustomerEntity saved = customerRepository.save(customer);
+
+			// Set default notification status ON
+			notificationStatusService.initializeStatusIfAbsent();
 
 			//  Save default address
 			log.info("[CREATE CUSTOMER] Saving default address for customerId={}", saved.getId());
@@ -157,6 +161,7 @@ public class CustomerService {
 						storekeeper.getStoreName(),
 						storekeeper.getAddressLine1(),
 						storekeeper.getAddressLine2(),
+						storekeeper.getStoreQrId(),
 						"Store added to customer.");
 			} else {
 				log.info("[ADD STORE] Storekeeper already linked. customerId={}, storekeeperId={}", customerId, storekeeper.getId());
@@ -166,6 +171,7 @@ public class CustomerService {
 						storekeeper.getStoreName(),
 						storekeeper.getAddressLine1(),
 						storekeeper.getAddressLine2(),
+						storekeeper.getStoreQrId(),
 						"Store already added.");
 			}
 
