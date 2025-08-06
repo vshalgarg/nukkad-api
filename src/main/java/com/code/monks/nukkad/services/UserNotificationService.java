@@ -2,6 +2,7 @@ package com.code.monks.nukkad.services;
 
 import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.response.DeleteAllUserNotificationsResponseDTO;
+import com.code.monks.nukkad.dto.response.UserNotificationListResponseDTO;
 import com.code.monks.nukkad.dto.response.UserNotificationResponseDTO;
 import com.code.monks.nukkad.entities.UserNotificationEntity;
 import com.code.monks.nukkad.exception.UnhandledException;
@@ -41,25 +42,22 @@ public class UserNotificationService {
         }
     }
 
-    public List<UserNotificationResponseDTO> getNotificationsByUserId() {
+    public UserNotificationListResponseDTO getNotificationsByUserId() {
         try {
             Long userId = UserContextHolder.getUser().getId();
             log.info("Fetching notifications for userId: {}", userId);
 
-            // Define the cutoff date as 7 days ago
             LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
 
-            // Delete old notifications
             userNotificationRepository.deleteByUserIdAndCreatedAtBefore(userId, sevenDaysAgo);
             log.info("Deleted notifications older than 7 days for userId: {}", userId);
 
-            // Fetch recent notifications
             List<UserNotificationEntity> notifications = userNotificationRepository
                     .findByUserIdAndCreatedAtAfter(userId, sevenDaysAgo);
 
             log.info("Found {} notifications for userId: {}", notifications.size(), userId);
 
-            return notifications.stream()
+            List<UserNotificationResponseDTO> notificationDTOs = notifications.stream()
                     .map(entity -> UserNotificationResponseDTO.builder()
                             .title(entity.getTitle())
                             .message(entity.getMessage())
@@ -67,11 +65,21 @@ public class UserNotificationService {
                             .build())
                     .collect(Collectors.toList());
 
+            String responseMessage = notificationDTOs.isEmpty()
+                    ? "No notification found"
+                    : "Notifications fetched successfully";
+
+            return UserNotificationListResponseDTO.builder()
+                    .message(responseMessage)
+                    .notifications(notificationDTOs)
+                    .build();
+
         } catch (Exception e) {
             log.error("Failed to fetch notifications", e);
             throw new UnhandledException(ENABLE_TO_FETCH_NOTIFICATIONS, e);
         }
     }
+
 
     public DeleteAllUserNotificationsResponseDTO deleteAllUserNotifications() {
         try {
