@@ -83,7 +83,6 @@ pipeline {
 			  
 			rm -f firebase.json
 		      """
-		    }
 	        }
             }
         }
