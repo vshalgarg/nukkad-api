@@ -69,18 +69,21 @@ pipeline {
             steps {
             	withCredentials([string(credentialsId: 'NUKKAD_MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
             			file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')]) {
-		        sh(script: '''
-				cp "$FIREBASE_CRED_FILE" firebase.json
+		        sh """
+			cp "$FIREBASE_CRED_FILE" firebase.json
 
-				docker run -d --name "$CONTAINER_NAME" -p "$PORT_MAPPING" \
-				  --add-host=host.docker.internal:host-gateway \
-				  --restart unless-stopped \
-				  -e SPRING_PROFILES_ACTIVE=dev \
-				  -e spring.datasource.password="$MYSQL_PASSWORD" \
-				  -e FIREBASE_CREDENTIAL_PATH=/app/firebase.json \
-				  -v /var/log/hrms-api:/logs \
-				  "$IMAGE_NAME:$TAG"
-			      ''', shell: 'bash')
+			docker run -d --name "$CONTAINER_NAME" -p "$PORT_MAPPING" \
+			  --add-host=host.docker.internal:host-gateway \
+			  --restart unless-stopped \
+			  -e SPRING_PROFILES_ACTIVE=dev \
+			  -e spring.datasource.password="$MYSQL_PASSWORD" \
+			  -e FIREBASE_CREDENTIAL_PATH=/app/firebase.json \
+			  -v /var/log/hrms-api:/logs \
+			  "$IMAGE_NAME:$TAG"
+			  
+			rm -f firebase.json
+		      """
+		    }
 	        }
             }
         }
