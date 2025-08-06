@@ -30,10 +30,18 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                	echo 'Building git repo'
-                    docker.build("${IMAGE_NAME}:${TAG}")
-                }
+                withCredentials([
+		  string(credentialsId: 'NUKKAD_MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
+		  file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
+		]) {
+		    sh """
+		    cp $FIREBASE_CRED_FILE firebase.json
+
+		    docker build -t ${IMAGE_NAME}:${TAG} .
+
+		    rm -f firebase.json  
+		    """
+		}
             }
         }
 
