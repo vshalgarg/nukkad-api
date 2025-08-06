@@ -4,6 +4,7 @@ import com.code.monks.nukkad.constants.UrlConstants;
 import com.code.monks.nukkad.dto.request.NotificationStatusRequestDTO;
 import com.code.monks.nukkad.dto.response.DeleteAllUserNotificationsResponseDTO;
 import com.code.monks.nukkad.dto.response.NotificationStatusResponseDTO;
+import com.code.monks.nukkad.dto.response.UserNotificationListResponseDTO;
 import com.code.monks.nukkad.dto.response.UserNotificationResponseDTO;
 import com.code.monks.nukkad.services.NotificationStatusService;
 import com.code.monks.nukkad.services.UserNotificationService;
@@ -34,11 +35,11 @@ public class NotificationStatusController {
     }
 
     @GetMapping(GET_NOTIFICATIONS)
-    public ResponseEntity<List<UserNotificationResponseDTO>> getMyNotifications() {
+    public ResponseEntity<UserNotificationListResponseDTO> getMyNotifications() {
         log.info("Request received to fetch notifications for the current user");
-        List<UserNotificationResponseDTO> notifications = userNotificationService.getNotificationsByUserId();
-        log.info("Returning {} notifications", notifications.size());
-        return ResponseEntity.ok(notifications);
+        UserNotificationListResponseDTO response = userNotificationService.getNotificationsByUserId();
+        log.info("Returning {} notifications", response.getNotifications().size());
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping(DELETE_ALL_NOTIFICATIONS)

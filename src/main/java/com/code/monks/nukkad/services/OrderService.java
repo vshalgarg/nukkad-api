@@ -228,12 +228,6 @@ public class OrderService {
                 RoleEnum.CUSTOMER, title,
                 "Your order has been " + statusText + " successfully"
         );
-
-        notifyUser(
-                order.getStoreKeeper().getId(),
-                RoleEnum.STOREKEEPER, title,
-                "Order has been updated to " + statusText
-        );
     }
 
 
@@ -379,13 +373,6 @@ public class OrderService {
                 RoleEnum.CUSTOMER,
                 title,
                 "Your order has been dispatched successfully."
-        );
-
-        notifyUser(
-                storekeeperId,
-                RoleEnum.STOREKEEPER,
-                title,
-                "You have successfully dispatched Order #" + order.getId()
         );
     }
 }
