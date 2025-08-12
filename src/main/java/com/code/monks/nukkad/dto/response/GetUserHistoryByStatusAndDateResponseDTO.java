@@ -12,9 +12,8 @@ import java.util.List;
 public class GetUserHistoryByStatusAndDateResponseDTO {
     private Long orderId;
     private LocalDateTime orderDate;
-    private String customerName;
-    private Long deliveryAddressId;
-    private String address;
+//    private String customerName;
+    private AddressSnapshotDTO address;
     private Long storeKeeperId;
     private String storeName;
     private List<ItemDetailsDTO> items;
@@ -28,16 +27,13 @@ public class GetUserHistoryByStatusAndDateResponseDTO {
         dto.setOrderDate(order.getCreatedAt());
         dto.setOrderStatus(order.getStatus());
 
-        // Customer Info
-        if (order.getCustomer() != null) {
-            dto.setCustomerName(order.getCustomer().getName());
-        }
+//        // Customer Info
+//        if (order.getCustomer() != null) {
+//            dto.setCustomerName(order.getCustomer().getName());
+//        }
 
-        // Address Info
-        if (order.getDeliveryAddress() != null) {
-            dto.setDeliveryAddressId(order.getDeliveryAddress().getId());
-            dto.setAddress(order.getDeliveryAddress().getAddressLine1());
-        }
+        // Address Info from snapshot text field
+        dto.setAddress(order.getDeliveryAddressSnapshot());
 
         // StoreKeeper Info
         if (order.getStoreKeeper() != null) {

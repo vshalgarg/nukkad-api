@@ -48,4 +48,19 @@ public class AddressEntity extends BaseEntity {
     @Column(name = "is_default",nullable = false)
     private Boolean isDefault = false;
 
+    // Helper method to build full address string with all fields
+    public String getFullAddress() {
+        StringBuilder sb = new StringBuilder();
+
+        if (name != null && !name.isBlank()) sb.append(name);
+        if (mobileNumber != null && !mobileNumber.isBlank()) sb.append(", ").append(mobileNumber);
+        if (addressLine1 != null && !addressLine1.isBlank()) sb.append(", ").append(addressLine1);
+        if (addressLine2 != null && !addressLine2.isBlank()) sb.append(", ").append(addressLine2);
+        if (landmark != null && !landmark.isBlank()) sb.append(", Landmark: ").append(landmark);
+        if (city != null && !city.isBlank()) sb.append(", ").append(city);
+        if (state != null && !state.isBlank()) sb.append(", ").append(state);
+        if (pincode != null && !pincode.isBlank()) sb.append(" - ").append(pincode);
+
+        return sb.toString();
+    }
 }

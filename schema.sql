@@ -185,22 +185,22 @@ CREATE TABLE IF NOT EXISTS cart_item (
     INDEX idx_cart_item_cart_item (cart_id, item_id)
 );
 
-
 CREATE TABLE IF NOT EXISTS orders (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
 
     customer_id BIGINT NOT NULL,
-    delivery_address_id BIGINT NOT NULL,
+    delivery_address_id BIGINT NULL,
+    delivery_address_snapshot TEXT,
+
     store_keeper_id BIGINT NOT NULL,
     status VARCHAR(50) NOT NULL,
     store_keeper_note VARCHAR(255),
-
 
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_order_customer FOREIGN KEY (customer_id) REFERENCES customer(id),
-    CONSTRAINT fk_order_delivery FOREIGN KEY (delivery_address_id) REFERENCES address(id),
+    CONSTRAINT fk_order_delivery FOREIGN KEY (delivery_address_id) REFERENCES address(id) ON DELETE SET NULL,
     CONSTRAINT fk_order_store_keeper FOREIGN KEY (store_keeper_id) REFERENCES storekeeper(id),
 
     INDEX idx_order_customer (customer_id),
@@ -208,8 +208,6 @@ CREATE TABLE IF NOT EXISTS orders (
     INDEX idx_order_store_keeper (store_keeper_id),
     INDEX idx_order_status (status)
 );
-
-
 
 CREATE TABLE IF NOT EXISTS order_item (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
