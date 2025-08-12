@@ -32,13 +32,15 @@ public enum ResponseErrorCodes {
 	CART_EMPTY(1023,"Cart is empty.So , you can not place order"),
 	STOREKEEPER_CUSTOMER_MISMATCH(1024,"Storekeeper is not associate with customer"),
 	ADDRESS_CUSTOMER_MISMATCH(1025,"Address is not match with customer"),
-	ORDER_NOT_FOUND(1026,"Order not found: "),
+	ORDER_NOT_FOUND(1026,"Order not found"),
 	UNABLE_TO_SET_NOTIFICATION_ENABLE_STATUS(1027,"Unable to set notification status at this time. Please try again later."),
 	ENABLE_TO_SAVE_NOTIFICATION(1028,"Could not save notification. Please try again later."),
 	ENABLE_TO_FETCH_NOTIFICATIONS(1029,"Could not fetch notifications. Please try again later."),
-	UNABLE_TO_ALL_NOTIFICATIONS(1030,"Unable to delete notifications");
-	private int responseCode;
+	UNABLE_TO_ALL_NOTIFICATIONS(1030,"Unable to delete notifications"),
+	ERROR_TO_CONVERT_JAVA_OBJECT_TO_STRING(1031,"Error serializing AddressSnapshotDTO to JSON"),
+	ERROR_TO_CONVERT_STRING_TO_JAVA_OBJECT(1032,"Error deserializing JSON to AddressSnapshotDTO");
 
+	private int responseCode;
 	private String message;
 
 }

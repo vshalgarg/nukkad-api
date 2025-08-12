@@ -12,12 +12,8 @@ import java.util.List;
 @Data
 public class GetOrderByStoreKeeperResponseDTO {
     private Long customerId;
-    private String customerName;
-    private String customerMobileNumber;
     private Long storeKeeperId;
-    private Long deliveryAddressId;
-    private String address;
-    private String landmark;
+    private AddressSnapshotDTO address;
     private Long orderId;
     private LocalDateTime orderDate;
     private LocalDateTime updatedAt;
@@ -34,17 +30,10 @@ public class GetOrderByStoreKeeperResponseDTO {
         // Customer Info
         if (entity.getCustomer() != null) {
             responseDTO.setCustomerId(entity.getCustomer().getId());
-            responseDTO.setCustomerName(entity.getCustomer().getName());
-            responseDTO.setCustomerMobileNumber(entity.getCustomer().getMobileNumber());
         }
 
-        // Address Info
-        if (entity.getDeliveryAddress() != null) {
-            AddressEntity address = entity.getDeliveryAddress();
-            responseDTO.setDeliveryAddressId(address.getId());
-            responseDTO.setAddress(address.getAddressLine1());
-            responseDTO.setLandmark(address.getLandmark());
-        }
+        // Address Info from snapshot text fields
+        responseDTO.setAddress(entity.getDeliveryAddressSnapshot());
 
         // Storekeeper Info
         if (entity.getStoreKeeper() != null) {

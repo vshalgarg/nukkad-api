@@ -1,6 +1,8 @@
 
 package com.code.monks.nukkad.entities;
+import com.code.monks.nukkad.converter.AddressSnapshotConverter;
 import com.code.monks.nukkad.converter.OrderStatusConverter;
+import com.code.monks.nukkad.dto.response.AddressSnapshotDTO;
 import com.code.monks.nukkad.enums.OrderStatusEnum;
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,6 +29,10 @@ public class  OrderEntity extends BaseEntity {
     @ManyToOne
     @JoinColumn(name ="delivery_address_id")
     private AddressEntity deliveryAddress;
+
+    @Column(name = "delivery_address_snapshot", columnDefinition = "TEXT")
+    @Convert(converter = AddressSnapshotConverter.class)
+    private AddressSnapshotDTO deliveryAddressSnapshot;
 
     @ManyToOne
     @JoinColumn(name="store_keeper_id")

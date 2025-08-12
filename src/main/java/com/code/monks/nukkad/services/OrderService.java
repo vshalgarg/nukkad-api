@@ -111,13 +111,26 @@ public class OrderService {
     }
 
     private OrderEntity prepareOrder(CustomerEntity customer, StorekeeperEntity storekeeper, AddressEntity address) {
+        AddressSnapshotDTO snapshotDTO = new AddressSnapshotDTO(
+                address.getName(),
+                address.getMobileNumber(),
+                address.getAddressLine1(),
+                address.getAddressLine2(),
+                address.getLandmark(),
+                address.getCity(),
+                address.getState(),
+                address.getPincode()
+        );
+
         return OrderEntity.builder()
                 .customer(customer)
                 .storeKeeper(storekeeper)
-                .deliveryAddress(address)
+                .deliveryAddress(address)  // entity relationship as before
+                .deliveryAddressSnapshot(snapshotDTO) // set DTO instead of String
                 .status(OrderStatusEnum.PENDING)
                 .build();
     }
+
 
     private List<CartItemEntity> getCartItems(Long customerId) {
         List<CartItemEntity> cartItems = Optional
