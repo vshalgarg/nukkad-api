@@ -4,8 +4,10 @@ package com.code.monks.nukkad.entities;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "rating")
 @Data
@@ -18,17 +20,17 @@ public class RatingEntity extends BaseEntity
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name ="customer_id",nullable = false)
+    @JoinColumn(name ="customer_id")
     private CustomerEntity customer;
 
     @ManyToOne
-    @JoinColumn(name = "storekeeper_id",nullable = false)
+    @JoinColumn(name = "storekeeper_id")
     private StorekeeperEntity storekeeper;
 
-    @Column(nullable = false)
+    @Column(name = "review")
     private String review;
 
-    @Column(nullable = false)
+    @Column(name = "rating")
     private int rating;
 }
 
