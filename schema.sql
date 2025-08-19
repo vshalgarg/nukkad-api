@@ -231,7 +231,7 @@ CREATE TABLE IF NOT EXISTS order_item (
 
 CREATE TABLE  IF NOT EXISTS  rating (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    review VARCHAR(255) NOT NULL,
+    review VARCHAR(255),
     rating INT NOT NULL,
 
     customer_id BIGINT NOT NULL,
