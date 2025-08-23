@@ -217,7 +217,7 @@ public class StorekeeperService {
         String storeQrId;
 
         do {
-            storeQrId = "STR" + mobileNumber + suffix;
+            storeQrId = "NKS" + mobileNumber + suffix;
             suffix++;
         } while (storekeeperRepository.existsByStoreQrId(storeQrId));
 
