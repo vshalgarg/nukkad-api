@@ -106,6 +106,7 @@ public class OtpService {
 				userId,
 				authResponse.getUsername(),
 				roles,
+				authResponse.getPermissions(),
 				authResponse.getToken(),
 				authResponse.getStatus(),
 				code
