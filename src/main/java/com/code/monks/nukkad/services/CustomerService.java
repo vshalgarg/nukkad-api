@@ -59,6 +59,7 @@ public class CustomerService {
 		customer.setMobileNumber(mobileNumber);
 
 		exceptionHandleUtil.validateCustomerUniqueFields(customer);
+
 		try {
 			// Save customer
 			CustomerEntity saved = customerRepository.save(customer);
@@ -66,23 +67,35 @@ public class CustomerService {
 			// Set default notification status ON
 			notificationStatusService.initializeStatusIfAbsent();
 
-			//  Save default address
-			log.info("[CREATE CUSTOMER] Saving default address for customerId={}", saved.getId());
-			AddressEntity address = setAddress(dto, saved.getId(), saved.getName(), saved.getMobileNumber());
-			AddressEntity savedAddress = addressRepository.save(address);
+			AddressEntity savedAddress = null;
 
-			log.info("[CREATE CUSTOMER] Customer and address created successfully for customerId={}", saved.getId());
+			// Only save address if addressLine1 is provided
+			boolean isAddressProvided = dto.getAddressLine1() != null && !dto.getAddressLine1().isBlank();
 
-			//  Prepare response
+			if (isAddressProvided) {
+				log.info("[CREATE CUSTOMER] Saving address for customerId={}", saved.getId());
+				AddressEntity address = setAddress(dto, saved.getId(), saved.getName(), saved.getMobileNumber());
+				address.setIsDefault(true); // mark as default
+				savedAddress = addressRepository.save(address);
+			} else {
+				log.info("[CREATE CUSTOMER] No valid address (addressLine1 missing) for customerId={}, skipping address save", saved.getId());
+			}
+
+			log.info("[CREATE CUSTOMER] Customer created successfully for customerId={}", saved.getId());
+
+			// Prepare response
 			CreateCustomerResponseDTO responseDTO = CreateCustomerResponseDTO.fromEntity(saved);
-			responseDTO.setAddressId(savedAddress.getId());
+			if (savedAddress != null) {
+				responseDTO.setAddressId(savedAddress.getId());
+			}
 			return responseDTO;
 
 		} catch (Exception e) {
 			log.error("[CREATE CUSTOMER] Data integrity violation while creating customer", e);
-			throw new UnhandledException(UNHANDLED_EXCEPTION,e);
+			throw new UnhandledException(UNHANDLED_EXCEPTION, e);
 		}
 	}
+
 
 
 	public UpdateCustomerResponseDTO updateCustomer(UpdateCustomerRequestDTO dto) {

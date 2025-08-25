@@ -132,12 +132,12 @@ CREATE TABLE IF NOT EXISTS address (
     name VARCHAR(50),
     mobile_number VARCHAR(10),
 
-    address_line1 VARCHAR(100) NOT NULL,
+    address_line1 VARCHAR(100) NULL,
     address_line2 VARCHAR(100),
-    landmark VARCHAR(100) NOT NULL,
-    city VARCHAR(30) NOT NULL,
-    state VARCHAR(30) NOT NULL,
-    pincode VARCHAR(6) NOT NULL,
+    landmark VARCHAR(100) NULL,
+    city VARCHAR(30) NULL,
+    state VARCHAR(30) NULL,
+    pincode VARCHAR(6) NULL,
     customer_id BIGINT,
     is_default BOOLEAN NOT NULL DEFAULT FALSE,
 
