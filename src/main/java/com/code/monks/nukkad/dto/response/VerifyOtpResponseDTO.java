@@ -12,7 +12,6 @@ public class VerifyOtpResponseDTO {
     private Long userId;
     private String mobileNumber;
     private List<String> roles;
-    private List<String> permissions;
     private String token;
     private AuthUserStatusEnum status;
     private int firstTimeLogin;
