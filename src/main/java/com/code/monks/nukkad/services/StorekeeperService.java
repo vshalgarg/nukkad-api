@@ -15,7 +15,7 @@ import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.StorekeeperImageRepository;
 import com.code.monks.nukkad.repositories.StorekeeperRepository;
 import com.code.monks.nukkad.utils.ExceptionHandleUtil;
-import com.code.monks.nukkad.utils.FileUploadHelper;
+import com.code.monks.nukkad.utils.FirebaseFileUploadHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,9 +34,9 @@ public class StorekeeperService {
 
     private final StorekeeperRepository storekeeperRepository;
     private final StorekeeperImageRepository storekeeperImageRepository;
-    private final FileUploadHelper fileUploadHelper;
     private final ExceptionHandleUtil exceptionHandleUtil;
     private final NotificationStatusService notificationStatusService;
+    private final FirebaseFileUploadHelper firebaseFileUploadHelper;
 
     public CreateStorekeeperResponseDTO createStoreKeeper(CreateStorekeeperRequestDTO dto, MultipartFile[] images) {
         if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.STOREKEEPER)) {
@@ -81,16 +81,18 @@ public class StorekeeperService {
         if (images != null && images.length > 0) {
             for (MultipartFile image : images) {
                 try {
-                    String imageUrl = fileUploadHelper.storeFile(image);
+                    // Upload to Firebase
+                    String imageUrl = firebaseFileUploadHelper.uploadFile(image, "storekeepers");
+
                     StorekeeperImageEntity imageEntity = StorekeeperImageEntity.builder()
                             .storekeeper(saved)
                             .imageUrl(imageUrl)
                             .build();
                     storekeeperImageRepository.save(imageEntity);
                     imageUrls.add(imageUrl);
-                    log.debug("[CREATE STOREKEEPER] Image uploaded: {}", imageUrl);
+                    log.debug("[CREATE STOREKEEPER] Image uploaded to Firebase: {}", imageUrl);
                 } catch (Exception e) {
-                    log.error("[CREATE STOREKEEPER] Failed to store image: {}", image.getOriginalFilename(), e);
+                    log.error("[CREATE STOREKEEPER] Failed to upload image to Firebase: {}", image.getOriginalFilename(), e);
                     throw new UnhandledException(UNHANDLED_EXCEPTION, e);
                 }
             }
@@ -138,14 +140,26 @@ public class StorekeeperService {
             // Handle new images
             if (newImages != null && newImages.length > 0) {
                 try {
+                    // Fetch existing images
                     List<StorekeeperImageEntity> existingImages = storekeeperImageRepository.findByStorekeeperId(storekeeperId);
+
                     if (!existingImages.isEmpty()) {
+                        // Delete old images from Firebase
+                        for (StorekeeperImageEntity oldImage : existingImages) {
+                            if (oldImage.getImageUrl() != null && !oldImage.getImageUrl().isBlank()) {
+                                firebaseFileUploadHelper.deleteFile(oldImage.getImageUrl());
+                                log.info("[UPDATE STOREKEEPER] Deleted old image from Firebase: {}", oldImage.getImageUrl());
+                            }
+                        }
+
+                        // Delete old images from DB
                         storekeeperImageRepository.deleteAll(existingImages);
-                        log.info("[UPDATE STOREKEEPER] Deleted {} existing image(s) for storekeeperId={}", existingImages.size(), storekeeperId);
+                        log.info("[UPDATE STOREKEEPER] Deleted {} existing image record(s) for storekeeperId={}", existingImages.size(), storekeeperId);
                     }
 
+                    // Upload new images
                     for (MultipartFile image : newImages) {
-                        String imageUrl = fileUploadHelper.storeFile(image);
+                        String imageUrl = firebaseFileUploadHelper.uploadFile(image, "storekeepers");
                         StorekeeperImageEntity imageEntity = StorekeeperImageEntity.builder()
                                 .storekeeper(storekeeper)
                                 .imageUrl(imageUrl)
@@ -160,6 +174,7 @@ public class StorekeeperService {
                     throw new UnhandledException(UNHANDLED_EXCEPTION, e);
                 }
             } else {
+                // Retain existing images if no new ones provided
                 imageUrls = storekeeper.getImages().stream()
                         .map(StorekeeperImageEntity::getImageUrl)
                         .toList();

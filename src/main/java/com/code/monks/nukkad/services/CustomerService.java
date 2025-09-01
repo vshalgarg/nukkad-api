@@ -15,11 +15,13 @@ import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.AddressRepository;
 import com.code.monks.nukkad.repositories.CustomerRepository;
 import com.code.monks.nukkad.repositories.StorekeeperRepository;
+import com.code.monks.nukkad.utils.FirebaseFileUploadHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import com.code.monks.nukkad.utils.ExceptionHandleUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +39,7 @@ public class CustomerService {
 	private final StorekeeperRepository storekeeperRepository;
 	private final ExceptionHandleUtil exceptionHandleUtil;
 	private final NotificationStatusService notificationStatusService;
+	private final FirebaseFileUploadHelper firebaseFileUploadHelper;
 
 	public CreateCustomerResponseDTO createCustomer(CreateCustomerRequestDTO dto) {
 		if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.CUSTOMER)) {
@@ -97,8 +100,7 @@ public class CustomerService {
 	}
 
 
-
-	public UpdateCustomerResponseDTO updateCustomer(UpdateCustomerRequestDTO dto) {
+	public UpdateCustomerResponseDTO updateCustomer(UpdateCustomerRequestDTO dto, MultipartFile image) {
 		if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.CUSTOMER)) {
 			log.warn("[UPDATE CUSTOMER] Access denied: User role does not include CUSTOMER");
 			throw new AccessDeniedException(ACCESS_DENIED_FOR_STOREKEEPER_EXCEPTION);
@@ -113,16 +115,34 @@ public class CustomerService {
 					return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
 				});
 
+		// update normal fields
 		customer = UpdateCustomerRequestDTO.updateEntity(customer, dto);
 
+		// validate unique fields
 		exceptionHandleUtil.validateCustomerUniqueFields(customer);
 
 		try {
-			// Save customer
-			CustomerEntity updated = customerRepository.save(customer);
-			log.info("[UPDATE CUSTOMER] Customer profile updated. customerId={}", updated.getId());
+			// handle image upload
+			if (image != null && !image.isEmpty()) {
+				// store old image URL before updating
+				String oldImageUrl = customer.getProfileImage();
 
-			// Update default address if exists
+				// upload new image
+				String imageUrl = firebaseFileUploadHelper.uploadFile(image, "customers");
+				customer.setProfileImage(imageUrl);
+				log.info("[UPDATE CUSTOMER] Profile image updated for customerId={}", customerId);
+
+				// delete old image if exists
+				if (oldImageUrl != null && !oldImageUrl.isBlank()) {
+					firebaseFileUploadHelper.deleteFile(oldImageUrl);
+					log.info("[UPDATE CUSTOMER] Old profile image deleted for customerId={}", customerId);
+				}
+			}
+
+			// save customer
+			CustomerEntity updated = customerRepository.save(customer);
+
+			// update default address also
 			Optional<AddressEntity> defaultAddressOpt = addressRepository.findByCustomerIdAndIsDefaultTrue(customerId);
 			if (defaultAddressOpt.isPresent()) {
 				AddressEntity defaultAddress = defaultAddressOpt.get();
@@ -134,14 +154,15 @@ public class CustomerService {
 				log.warn("[UPDATE CUSTOMER] Default address not found for customerId={}", customerId);
 			}
 
-			// Return response
 			return UpdateCustomerResponseDTO.fromEntity(updated);
 
 		} catch (DataIntegrityViolationException e) {
 			log.error("[UPDATE CUSTOMER] Email already exists. Email={}, customerId={}", dto.getEmail(), customerId, e);
-			throw new DuplicateResourceException(DUPLICATE_EMAIL_FOUND_EXCEPTION,e);
+			throw new DuplicateResourceException(DUPLICATE_EMAIL_FOUND_EXCEPTION, e);
 		}
 	}
+
+
 
 
 	public AddStoreResponseDto addStoreToCustomer(String storeQrId) {

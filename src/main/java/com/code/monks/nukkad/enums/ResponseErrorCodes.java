@@ -38,7 +38,9 @@ public enum ResponseErrorCodes {
 	ENABLE_TO_FETCH_NOTIFICATIONS(1029,"Could not fetch notifications. Please try again later."),
 	UNABLE_TO_ALL_NOTIFICATIONS(1030,"Unable to delete notifications"),
 	ERROR_TO_CONVERT_JAVA_OBJECT_TO_STRING(1031,"Error serializing AddressSnapshotDTO to JSON"),
-	ERROR_TO_CONVERT_STRING_TO_JAVA_OBJECT(1032,"Error deserializing JSON to AddressSnapshotDTO");
+	ERROR_TO_CONVERT_STRING_TO_JAVA_OBJECT(1032,"Error deserializing JSON to AddressSnapshotDTO"),
+	FAILED_TO_UPLOAD_FILE_TO_FIREBASE(1033,"Failed to upload file to Firebase"),
+	FAILED_TO_DELETE_FILE_FROM_FIREBASE(1034,"FAILED_TO_DELETE_FILE_FROM_FIREBASE");
 
 	private int responseCode;
 	private String message;

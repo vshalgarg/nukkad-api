@@ -17,6 +17,7 @@ public class GetCustomerProfileResponseDTO {
     private String email;
     private String dob;
     private String mobileNumber;
+    private String profileImage;
 
     public static GetCustomerProfileResponseDTO fromEntity(CustomerEntity customer) {
         return GetCustomerProfileResponseDTO.builder()
@@ -25,6 +26,7 @@ public class GetCustomerProfileResponseDTO {
                 .email(customer.getEmail())
                 .dob(customer.getDob())
                 .mobileNumber(customer.getMobileNumber())
+                .profileImage(customer.getProfileImage())
                 .build();
     }
 }

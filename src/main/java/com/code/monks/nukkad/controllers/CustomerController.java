@@ -8,8 +8,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 import static com.code.monks.nukkad.constants.UrlConstants.CUSTOMER;
 
@@ -31,11 +34,14 @@ public class CustomerController {
 		return new ResponseEntity<>(response, HttpStatus.CREATED);
 	}
 
-	@PutMapping(CUSTOMER.UPDATE)
-	public ResponseEntity<UpdateCustomerResponseDTO> updateCustomer(@Valid @RequestBody UpdateCustomerRequestDTO dto) {
-		log.info("[UPDATE CUSTOMER] Incoming update request: {}", dto);
+	@PutMapping(value = CUSTOMER.UPDATE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<UpdateCustomerResponseDTO> updateCustomer(
+			@RequestPart("data") @Valid UpdateCustomerRequestDTO dto,
+			@RequestPart(value = "image", required = false) MultipartFile image) {
 
-		UpdateCustomerResponseDTO response = customerService.updateCustomer(dto);
+		log.info("[UPDATE CUSTOMER] Incoming update request for customer: {}", dto);
+
+		UpdateCustomerResponseDTO response = customerService.updateCustomer(dto, image);
 
 		log.info("[UPDATE CUSTOMER] Customer successfully updated. ID={}", response.getId());
 		return ResponseEntity.ok(response);

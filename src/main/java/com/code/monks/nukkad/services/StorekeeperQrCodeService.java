@@ -12,7 +12,7 @@ import com.code.monks.nukkad.exception.MaxQrLimitExceededException;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
 import com.code.monks.nukkad.repositories.StorekeeperQrCodeRepository;
 import com.code.monks.nukkad.repositories.StorekeeperRepository;
-import com.code.monks.nukkad.utils.FileUploadHelper;
+import com.code.monks.nukkad.utils.FirebaseFileUploadHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,7 +28,7 @@ import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
 public class StorekeeperQrCodeService {
     private final StorekeeperQrCodeRepository qrRepo;
     private final StorekeeperRepository storekeeperRepo;
-    private final FileUploadHelper fileUploadHelper;
+    private final FirebaseFileUploadHelper firebaseFileUploadHelper;
 
     public UploadQrCodeResponseDto uploadQrCodes(MultipartFile[] qrCodes) {
         Long storekeeperId = UserContextHolder.getUser().getId();
@@ -44,8 +44,7 @@ public class StorekeeperQrCodeService {
         boolean hasDefault = qrRepo.existsByStorekeeperIdAndIsDefaultTrue(storekeeperId);
 
         for (int i = 0; i < qrCodes.length; i++) {
-            String url = fileUploadHelper.storeFile(qrCodes[i]);
-
+            String url = firebaseFileUploadHelper.uploadFile(qrCodes[i], "storekeeperPaymentQR");
             qrRepo.save(StorekeeperQrCodeEntity.builder()
                     .storekeeper(storekeeper)
                     .qrImageUrl(url)
@@ -125,14 +124,26 @@ public class StorekeeperQrCodeService {
         StorekeeperQrCodeEntity qr = qrRepo.findById(qrId)
                 .orElseThrow(() -> new ResourceNotFoundException(QR_CODE_NOT_FOUND));
 
-        String url = fileUploadHelper.storeFile(file);
-        qr.setQrImageUrl(url);
+        // Delete old image if exists
+        if (qr.getQrImageUrl() != null && !qr.getQrImageUrl().isEmpty()) {
+            try {
+                firebaseFileUploadHelper.deleteFile(qr.getQrImageUrl());
+                log.info("[QR UPDATE] Deleted old QR image from Firebase: {}", qr.getQrImageUrl());
+            } catch (Exception e) {
+                log.warn("[QR UPDATE] Failed to delete old QR image from Firebase: {}", qr.getQrImageUrl(), e);
+            }
+        }
+        // Upload new file
+        String url = firebaseFileUploadHelper.uploadFile(file, "storekeeperPaymentQR");
 
+        //Update entity with new URL
+        qr.setQrImageUrl(url);
         StorekeeperQrCodeEntity updated = qrRepo.save(qr);
 
         log.info("[QR UPDATE] Updated QR code ID={} with new image URL={}", updated.getId(), updated.getQrImageUrl());
 
         return UpdateStorekeeperQrResponseDTO.fromEntity(updated);
     }
+
 
 }

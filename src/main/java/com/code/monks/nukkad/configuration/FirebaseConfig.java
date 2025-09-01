@@ -50,6 +50,7 @@
 
                 FirebaseOptions options = FirebaseOptions.builder()
                         .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                        .setStorageBucket("nukkad-app-ad9c9.firebasestorage.app")
                         .build();
 
                 if (FirebaseApp.getApps().isEmpty()) {
