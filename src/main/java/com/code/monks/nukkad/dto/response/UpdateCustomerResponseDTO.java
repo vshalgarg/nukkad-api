@@ -13,6 +13,7 @@ public class UpdateCustomerResponseDTO {
     private String name;
     private String email;
     private String dob;
+    private String profileImage;
 
     public static UpdateCustomerResponseDTO fromEntity(CustomerEntity customer) {
         UpdateCustomerResponseDTO dto = new UpdateCustomerResponseDTO();
@@ -20,6 +21,7 @@ public class UpdateCustomerResponseDTO {
         dto.setName(customer.getName());
         dto.setEmail(customer.getEmail());
         dto.setDob(customer.getDob());
+        dto.setProfileImage(customer.getProfileImage());
         return dto;
     }
 }

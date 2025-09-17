@@ -19,12 +19,15 @@
 
         @Value("${firebase.credentials.path}")
         private String firebaseConfigPath;
+        @Value("${firebase.bucket.name}")
+        private String firebaseBucketName;
 
         @PostConstruct
         public void initFirebase() {
             log.info("FirebaseConfig loaded");
             log.info("Inside initFirebase() method");
             log.info("Firebase credentials path: {}", firebaseConfigPath);
+            log.info("Firebase bucket: {}", firebaseBucketName);
 
             try {
                 InputStream serviceAccount;
@@ -50,6 +53,7 @@
 
                 FirebaseOptions options = FirebaseOptions.builder()
                         .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                        .setStorageBucket(firebaseBucketName)
                         .build();
 
                 if (FirebaseApp.getApps().isEmpty()) {

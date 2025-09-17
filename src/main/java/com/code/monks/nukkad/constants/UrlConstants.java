@@ -35,6 +35,7 @@ public class UrlConstants {
 	    public static final String GET_PROFILE = "/v1/get/profile";
 	    public static final String ADD_STORE_TO_CUSTOMER = "/v1/add/store";
 		public  static final String GET_MY_STORES = "/v1/myStores";
+		public static final String GET_MY_STORE_BY_STORE_QR_ID = "/v1/get/store/by/store/qr/id";
 		public static final String DELETE_STORE = "/v1/delete/store";
 
  }
