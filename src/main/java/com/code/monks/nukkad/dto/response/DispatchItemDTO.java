@@ -6,5 +6,5 @@ import lombok.Data;
 public class DispatchItemDTO
 {
     private Long itemId;
-    private double price;
+    private Double price;
 }
