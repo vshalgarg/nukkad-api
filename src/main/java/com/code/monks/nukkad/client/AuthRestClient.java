@@ -73,9 +73,9 @@ public class AuthRestClient {
 		}
 	}
 
-	public AuthVerifyOtpResponseDTO callVerifyOtpResponse(String firebaseToken,String mobileNumber) {
+	public AuthVerifyOtpResponseDTO callVerifyOtpResponse(String mobileNumber,String firebaseToken) {
 	String url = authHost + verifyFirebaseUrl;
-	AuthVerifyFirebaseTokenRequestDTO authDto = new AuthVerifyFirebaseTokenRequestDTO(firebaseToken,mobileNumber);
+	AuthVerifyFirebaseTokenRequestDTO authDto = new AuthVerifyFirebaseTokenRequestDTO(mobileNumber,firebaseToken);
 	Map<String, String> headers = new HashMap<>();
 	updateHeadersForClientNameAndSecret(headers);
 
