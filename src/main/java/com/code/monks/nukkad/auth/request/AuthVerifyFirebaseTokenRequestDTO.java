@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class AuthVerifyOtpRequestDTO {
+public class AuthVerifyFirebaseTokenRequestDTO {
     private String phoneNumber;
-    private String verificationCode;
+    private String token;
 }

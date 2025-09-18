@@ -33,11 +33,11 @@ public class OtpController {
 
 	@PostMapping(OTP.VERIFY_LOGIN_OTP)
 	public ResponseEntity<VerifyOtpResponseDTO> verifyLoginOtp(@RequestBody VerifyRequestDTO request) {
-		log.info("[VERIFY OTP] Request received for mobile: {}", request.getMobileNumber());
+		log.info("[VERIFY LOGIN] Request received with firebaseToken: {}", request.getFirebaseToken());
 
 		VerifyOtpResponseDTO response = otpService.verifyLoginOtp(request);
 
-		log.info("[VERIFY OTP] Verification result for mobile {}:", request.getMobileNumber());
+		log.info("[VERIFY LOGIN] Verification result for firebaseToken: {}", request.getFirebaseToken());
 		return ResponseEntity.ok(response);
 	}
 
