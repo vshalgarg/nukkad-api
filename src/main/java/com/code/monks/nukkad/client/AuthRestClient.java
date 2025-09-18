@@ -3,14 +3,13 @@ package com.code.monks.nukkad.client;
 import com.code.monks.nukkad.auth.request.AuthSendOtpRequestDTO;
 import com.code.monks.nukkad.auth.request.AuthTokenRequestDto;
 import com.code.monks.nukkad.auth.request.AuthUserAccountDeactivateRequestDTO;
-import com.code.monks.nukkad.auth.request.AuthVerifyOtpRequestDTO;
+import com.code.monks.nukkad.auth.request.AuthVerifyFirebaseTokenRequestDTO;
 import com.code.monks.nukkad.auth.response.AuthSendOtpResponseDTO;
 import com.code.monks.nukkad.auth.response.AuthTokenResponseDto;
 import com.code.monks.nukkad.auth.response.AuthUserAccountDeactivateResponseDTO;
 import com.code.monks.nukkad.auth.response.AuthVerifyOtpResponseDTO;
 import com.code.monks.nukkad.dto.User;
 import com.code.monks.nukkad.dto.request.SendOtpRequestDTO;
-import com.code.monks.nukkad.dto.request.VerifyRequestDTO;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.exception.ExternalServiceException;
 import lombok.extern.slf4j.Slf4j;
@@ -43,8 +42,8 @@ public class AuthRestClient {
 	@Value("${auth.validateToken.url}")
 	private String validateUrl;
 
-	@Value("${auth.otpVerify.url}")
-	private String verifyOtpUrl;
+	@Value("${auth.Verify.firebaseToken.url}")
+	private String verifyFirebaseUrl;
 
 	@Value("${auth.userAccountDeactivate.url}")
 	private String userAccountDeactivateUrl;
@@ -74,35 +73,29 @@ public class AuthRestClient {
 		}
 	}
 
-	public AuthVerifyOtpResponseDTO callVerifyOtpResponse(VerifyRequestDTO requestDTO) {
-	String url = authHost + verifyOtpUrl;
-	AuthVerifyOtpRequestDTO authDto = new AuthVerifyOtpRequestDTO(requestDTO.getMobileNumber(), requestDTO.getOtp());
+	public AuthVerifyOtpResponseDTO callVerifyOtpResponse(String firebaseToken,String mobileNumber) {
+	String url = authHost + verifyFirebaseUrl;
+	AuthVerifyFirebaseTokenRequestDTO authDto = new AuthVerifyFirebaseTokenRequestDTO(firebaseToken,mobileNumber);
 	Map<String, String> headers = new HashMap<>();
 	updateHeadersForClientNameAndSecret(headers);
 
-	log.info("[OTP VERIFY] Verifying OTP for mobile: {}", requestDTO.getMobileNumber());
+		log.info("[VERIFY FIREBASE] Verifying Firebase token with Auth service. mobile: {}", mobileNumber);
 
-	try {
-		AuthVerifyOtpResponseDTO response = genericRestClient.postForEntity(
-				url, authDto, headers, AuthVerifyOtpResponseDTO.class,HttpMethod.POST
-		);
-
-		if (response.getUserId() == null || response.getToken() == null) {
-			String rawResponse = genericRestClient.postForEntity(url, authDto, headers, String.class,HttpMethod.POST);
-			String message = rawResponse.replaceAll(".*\"message\"\\s*:\\s*\"([^\"]+)\".*", "$1");
-			String code = rawResponse.replaceAll(".*\"responseCode\"\\s*:\\s*(\\d+).*", "$1");
-
-			throw new ExternalServiceException(
-					String.format("{\"message\":\"%s\",\"responseCode\":%s}", message, code)
+		try {
+			AuthVerifyOtpResponseDTO response = genericRestClient.postForEntity(
+					url, authDto, headers, AuthVerifyOtpResponseDTO.class, HttpMethod.POST
 			);
+
+			if (response.getUserId() == null || response.getToken() == null) {
+				throw new ExternalServiceException("Invalid Firebase token response from Auth");
+			}
+
+			return response;
+
+		} catch (Exception ex) {
+			log.error("[VERIFY FIREBASE] Failed to verify Firebase token. Error: {}", ex.getMessage());
+			throw ex;
 		}
-
-		return response;
-
-	} catch (Exception ex) {
-		log.error("[OTP VERIFY] Failed to verify OTP for mobile: {}. Error: {}", requestDTO.getMobileNumber(), ex.getMessage());
-		throw ex;
-	}
 }
 
 	public AuthUserAccountDeactivateResponseDTO callUserAccountDeactivateResponse(String mobileNumber) {

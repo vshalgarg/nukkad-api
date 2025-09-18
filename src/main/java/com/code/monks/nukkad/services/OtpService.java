@@ -42,15 +42,17 @@ public class OtpService {
 	}
 
 	public VerifyOtpResponseDTO verifyLoginOtp(VerifyRequestDTO verifyRequestDTO) {
+		String firebaseToken = verifyRequestDTO.getFirebaseToken();
 		String mobileNumber = verifyRequestDTO.getMobileNumber();
-		String otp = verifyRequestDTO.getOtp();
-		log.info("[VERIFY OTP] Verifying OTP for mobile: {}, OTP: {}", mobileNumber, otp);
+		log.info("[VERIFY LOGIN] Verifying login with Firebase token: {}", firebaseToken);
 
-		AuthVerifyOtpResponseDTO authResponse = authRestClient.callVerifyOtpResponse(verifyRequestDTO);
+		// Call Auth with firebase token
+		AuthVerifyOtpResponseDTO authResponse = authRestClient.callVerifyOtpResponse(firebaseToken,mobileNumber);
 
 		Long userId = authResponse.getUserId();
 		List<String> roles = authResponse.getRoles();
         log.info("roles : {}",roles);
+
 		boolean firstTimeLogin = false;
 
 		if (roles.contains(RoleEnum.CUSTOMER.name())) {

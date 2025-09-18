@@ -6,7 +6,7 @@ import lombok.Data;
 public class VerifyRequestDTO {
 
     private String mobileNumber;
-    private String otp;
+    private String firebaseToken;
     private String deviceToken;
 
 }
