@@ -76,7 +76,11 @@ public class AuthRestClient {
 	public AuthVerifyOtpResponseDTO callVerifyOtpResponse(String mobileNumber,String firebaseToken) {
 	String url = authHost + verifyFirebaseUrl;
 	AuthVerifyFirebaseTokenRequestDTO authDto = new AuthVerifyFirebaseTokenRequestDTO(mobileNumber,firebaseToken);
-	Map<String, String> headers = new HashMap<>();
+
+		log.debug("[VERIFY FIREBASE] Outgoing payload: mobile={} token={}",
+				mobileNumber, firebaseToken != null ? firebaseToken.substring(0, 10) : "null");
+
+		Map<String, String> headers = new HashMap<>();
 	updateHeadersForClientNameAndSecret(headers);
 
 		log.info("[VERIFY FIREBASE] Verifying Firebase token with Auth service. mobile: {}", mobileNumber);
