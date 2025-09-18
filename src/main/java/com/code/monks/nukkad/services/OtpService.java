@@ -47,7 +47,7 @@ public class OtpService {
 		log.info("[VERIFY LOGIN] Verifying login with Firebase token: {}", firebaseToken);
 
 		// Call Auth with firebase token
-		AuthVerifyOtpResponseDTO authResponse = authRestClient.callVerifyOtpResponse(firebaseToken,mobileNumber);
+		AuthVerifyOtpResponseDTO authResponse = authRestClient.callVerifyOtpResponse(mobileNumber,firebaseToken);
 
 		Long userId = authResponse.getUserId();
 		List<String> roles = authResponse.getRoles();
