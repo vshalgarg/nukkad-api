@@ -107,13 +107,8 @@ public class CustomerService {
 
 
 
-	public UpdateCustomerResponseDTO updateCustomer(MultipartFile dataFile, MultipartFile image) {
+	public UpdateCustomerResponseDTO updateCustomer(UpdateCustomerRequestDTO  dto, MultipartFile image) {
 
-		log.info("[UPDATE CUSTOMER] Service received dataFile: {} bytes, image: {}",
-				dataFile != null ? dataFile.getSize() : 0,
-				image != null ? image.getSize() : 0);
-
-		UpdateCustomerRequestDTO dto = parseJsonData(dataFile);
 		if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.CUSTOMER)) {
 			log.warn("[UPDATE CUSTOMER] Access denied: User role does not include CUSTOMER");
 			throw new AccessDeniedException(ACCESS_DENIED_FOR_STOREKEEPER_EXCEPTION);
@@ -364,49 +359,4 @@ public class CustomerService {
 		}
 	}
 
-
-	/**
-	 * NEW: Parse JSON from MultipartFile to DTO
-	 */
-	private UpdateCustomerRequestDTO parseJsonData(MultipartFile dataFile) {
-		try {
-			// Validate dataFile exists
-			if (dataFile == null || dataFile.isEmpty()) {
-				log.error("[UPDATE CUSTOMER] Data part is missing or empty");
-				throw new BadRequestException("JSON data is required in 'data' field");
-			}
-
-			log.info("[UPDATE CUSTOMER] Processing data part - Size: {} bytes, Content-Type: {}",
-					dataFile.getSize(), dataFile.getContentType());
-
-			// Read content as string (this fixes octet-stream issue)
-			String jsonContent = new String(dataFile.getBytes(), StandardCharsets.UTF_8);
-			log.debug("[UPDATE CUSTOMER] Raw JSON received: {}", jsonContent);
-
-			// Check if content is empty
-			if (jsonContent.trim().isEmpty()) {
-				throw new BadRequestException("JSON data cannot be empty");
-			}
-
-			// Parse JSON to DTO using ObjectMapper
-			UpdateCustomerRequestDTO dto = objectMapper.readValue(jsonContent, UpdateCustomerRequestDTO.class);
-
-			// Validate DTO (optional - if you have @Valid annotations)
-			// Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-			// Set<ConstraintViolation<UpdateCustomerRequestDTO>> violations = validator.validate(dto);
-			// if (!violations.isEmpty()) {
-			//     throw new BadRequestException("Validation failed: " + violations.iterator().next().getMessage());
-			// }
-
-			log.debug("[UPDATE CUSTOMER] Successfully parsed DTO: {}", dto);
-			return dto;
-
-		} catch (JsonProcessingException e) {
-			log.error("[UPDATE CUSTOMER] Invalid JSON format: {}", e.getMessage());
-			throw new InvalidRequestException(INVALID_JSON_EXCEPTION);
-		} catch (IOException e) {
-			log.error("[UPDATE CUSTOMER] Error reading data content: {}", e.getMessage());
-			throw new InvalidRequestException(ERROR_READING_JSON_DATA);
-		}
-	}
 }
