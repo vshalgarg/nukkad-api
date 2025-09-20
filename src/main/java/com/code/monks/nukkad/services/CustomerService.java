@@ -8,21 +8,23 @@ import com.code.monks.nukkad.entities.AddressEntity;
 import com.code.monks.nukkad.entities.CustomerEntity;
 import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.enums.RoleEnum;
-import com.code.monks.nukkad.exception.AccessDeniedException;
-import com.code.monks.nukkad.exception.DuplicateResourceException;
-import com.code.monks.nukkad.exception.ResourceNotFoundException;
-import com.code.monks.nukkad.exception.UnhandledException;
+import com.code.monks.nukkad.exception.*;
 import com.code.monks.nukkad.repositories.AddressRepository;
 import com.code.monks.nukkad.repositories.CustomerRepository;
 import com.code.monks.nukkad.repositories.StorekeeperRepository;
 import com.code.monks.nukkad.utils.FirebaseFileUploadHelper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.springframework.dao.DataIntegrityViolationException;
 import com.code.monks.nukkad.utils.ExceptionHandleUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -40,6 +42,7 @@ public class CustomerService {
 	private final ExceptionHandleUtil exceptionHandleUtil;
 	private final NotificationStatusService notificationStatusService;
 	private final FirebaseFileUploadHelper firebaseFileUploadHelper;
+	private final ObjectMapper objectMapper;
 
 	public CreateCustomerResponseDTO createCustomer(CreateCustomerRequestDTO dto) {
 
@@ -104,7 +107,13 @@ public class CustomerService {
 
 
 
-	public UpdateCustomerResponseDTO updateCustomer(UpdateCustomerRequestDTO dto, MultipartFile image) {
+	public UpdateCustomerResponseDTO updateCustomer(MultipartFile dataFile, MultipartFile image) {
+
+		log.info("[UPDATE CUSTOMER] Service received dataFile: {} bytes, image: {}",
+				dataFile != null ? dataFile.getSize() : 0,
+				image != null ? image.getSize() : 0);
+
+		UpdateCustomerRequestDTO dto = parseJsonData(dataFile);
 		if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.CUSTOMER)) {
 			log.warn("[UPDATE CUSTOMER] Access denied: User role does not include CUSTOMER");
 			throw new AccessDeniedException(ACCESS_DENIED_FOR_STOREKEEPER_EXCEPTION);
@@ -355,4 +364,49 @@ public class CustomerService {
 		}
 	}
 
+
+	/**
+	 * NEW: Parse JSON from MultipartFile to DTO
+	 */
+	private UpdateCustomerRequestDTO parseJsonData(MultipartFile dataFile) {
+		try {
+			// Validate dataFile exists
+			if (dataFile == null || dataFile.isEmpty()) {
+				log.error("[UPDATE CUSTOMER] Data part is missing or empty");
+				throw new BadRequestException("JSON data is required in 'data' field");
+			}
+
+			log.info("[UPDATE CUSTOMER] Processing data part - Size: {} bytes, Content-Type: {}",
+					dataFile.getSize(), dataFile.getContentType());
+
+			// Read content as string (this fixes octet-stream issue)
+			String jsonContent = new String(dataFile.getBytes(), StandardCharsets.UTF_8);
+			log.debug("[UPDATE CUSTOMER] Raw JSON received: {}", jsonContent);
+
+			// Check if content is empty
+			if (jsonContent.trim().isEmpty()) {
+				throw new BadRequestException("JSON data cannot be empty");
+			}
+
+			// Parse JSON to DTO using ObjectMapper
+			UpdateCustomerRequestDTO dto = objectMapper.readValue(jsonContent, UpdateCustomerRequestDTO.class);
+
+			// Validate DTO (optional - if you have @Valid annotations)
+			// Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+			// Set<ConstraintViolation<UpdateCustomerRequestDTO>> violations = validator.validate(dto);
+			// if (!violations.isEmpty()) {
+			//     throw new BadRequestException("Validation failed: " + violations.iterator().next().getMessage());
+			// }
+
+			log.debug("[UPDATE CUSTOMER] Successfully parsed DTO: {}", dto);
+			return dto;
+
+		} catch (JsonProcessingException e) {
+			log.error("[UPDATE CUSTOMER] Invalid JSON format: {}", e.getMessage());
+			throw new InvalidRequestException(INVALID_JSON_EXCEPTION);
+		} catch (IOException e) {
+			log.error("[UPDATE CUSTOMER] Error reading data content: {}", e.getMessage());
+			throw new InvalidRequestException(ERROR_READING_JSON_DATA);
+		}
+	}
 }
