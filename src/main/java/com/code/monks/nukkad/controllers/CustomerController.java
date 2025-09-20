@@ -4,15 +4,20 @@ import com.code.monks.nukkad.dto.request.CreateCustomerRequestDTO;
 import com.code.monks.nukkad.dto.request.UpdateCustomerRequestDTO;
 import com.code.monks.nukkad.dto.response.*;
 import com.code.monks.nukkad.services.CustomerService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import static com.code.monks.nukkad.constants.UrlConstants.CUSTOMER;
 
@@ -37,12 +42,12 @@ public class CustomerController {
 
 	@PutMapping(value = CUSTOMER.UPDATE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<UpdateCustomerResponseDTO> updateCustomer(
-			@RequestPart("data") @Valid UpdateCustomerRequestDTO dto,
+			@RequestPart("data") @Valid MultipartFile dataFile,
 			@RequestPart(value = "image", required = false) MultipartFile image) {
 
-		log.info("[UPDATE CUSTOMER] Incoming update request for customer: {}", dto);
+		log.info("received rq for update customer profile ");
 
-		UpdateCustomerResponseDTO response = customerService.updateCustomer(dto, image);
+		UpdateCustomerResponseDTO response = customerService.updateCustomer(dataFile, image);
 
 		log.info("[UPDATE CUSTOMER] Customer successfully updated. ID={}", response.getId());
 		return ResponseEntity.ok(response);
@@ -101,6 +106,4 @@ public class CustomerController {
 		log.info("[DELETE STORE] {}", result.getMessage());
 		return ResponseEntity.ok(result);
 	}
-
-
 }

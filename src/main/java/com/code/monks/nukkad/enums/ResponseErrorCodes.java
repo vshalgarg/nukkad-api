@@ -41,7 +41,12 @@ public enum ResponseErrorCodes {
 	ERROR_TO_CONVERT_STRING_TO_JAVA_OBJECT(1032,"Error deserializing JSON to AddressSnapshotDTO"),
 	FAILED_TO_UPLOAD_FILE_TO_FIREBASE(1033,"Failed to upload file to Firebase"),
 	FAILED_TO_DELETE_FILE_FROM_FIREBASE(1034,"FAILED_TO_DELETE_FILE_FROM_FIREBASE"),
+
+
+	INVALID_JSON_EXCEPTION(1036,"Invalid JSON format in 'data' field:" ),
+	ERROR_READING_JSON_DATA(1037, "Error reading JSON data: "),
 	STORE_NOT_FOUND(1035,"Store not found with ");
+
 
 	private int responseCode;
 	private String message;
