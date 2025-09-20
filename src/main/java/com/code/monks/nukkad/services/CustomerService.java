@@ -42,6 +42,8 @@ public class CustomerService {
 	private final FirebaseFileUploadHelper firebaseFileUploadHelper;
 
 	public CreateCustomerResponseDTO createCustomer(CreateCustomerRequestDTO dto) {
+
+		log.info("Received create profile req for customer name {}",dto.getName());
 		if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.CUSTOMER)) {
 			log.warn("[CREATE CUSTOMER] Access denied: User role does not include CUSTOMER");
 			throw new AccessDeniedException(ACCESS_DENIED_FOR_STOREKEEPER_EXCEPTION);
@@ -61,12 +63,13 @@ public class CustomerService {
 		customer.setId(customerId);
 		customer.setMobileNumber(mobileNumber);
 
-		exceptionHandleUtil.validateCustomerUniqueFields(customer);
+		//exceptionHandleUtil.validateCustomerUniqueFields(customer);
 
 		try {
 			// Save customer
-			CustomerEntity saved = customerRepository.save(customer);
 
+			CustomerEntity saved = customerRepository.save(customer);
+			log.info("customer profile saved successfully..............");
 			// Set default notification status ON
 			notificationStatusService.initializeStatusIfAbsent();
 
