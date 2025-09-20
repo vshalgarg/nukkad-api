@@ -130,6 +130,7 @@ public class CustomerService {
 		exceptionHandleUtil.validateCustomerUniqueFields(customer);
 
 		try {
+			log.info("start profile img updating");
 			// handle image upload
 			if (image != null && !image.isEmpty()) {
 				// store old image URL before updating
@@ -137,6 +138,7 @@ public class CustomerService {
 
 				// upload new image
 				String imageUrl = firebaseFileUploadHelper.uploadFile(image, "customers");
+				log.info("new img url before save in db {}",imageUrl);
 				customer.setProfileImage(imageUrl);
 				log.info("[UPDATE CUSTOMER] Profile image updated for customerId={}", customerId);
 
