@@ -114,6 +114,7 @@ public class CustomerService {
 			throw new AccessDeniedException(ACCESS_DENIED_FOR_STOREKEEPER_EXCEPTION);
 		}
 
+
 		Long customerId = UserContextHolder.getUser().getId();
 		log.info("[UPDATE CUSTOMER] Start updating profile for customerId={}", customerId);
 
@@ -123,7 +124,10 @@ public class CustomerService {
 					return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
 				});
 
+		log.info("Received profile img url for update profile img {}", dto.getImageUrl());
 		String previousProfileImageUrl = customer.getProfileImage();
+		log.info("old profile img url :{}", customer.getProfileImage());
+
 		customer = UpdateCustomerRequestDTO.updateEntity(customer, dto);
 
 		log.info("[UPDATE CUSTOMER] Validating unique fields (email/mobile) for customerId={}", customerId);
@@ -132,6 +136,7 @@ public class CustomerService {
 		try {
 			CustomerEntity updatedCustomer = customerRepository.save(customer);
 			log.info("[UPDATE CUSTOMER] Customer profile saved successfully for customerId={}", customerId);
+            log.info("updated profile img url :{}", updatedCustomer.getProfileImage());
 
 				// delete old image if exists
 				if (dto.getImageUrl() != null && !dto.getImageUrl().isBlank() &&
@@ -311,8 +316,6 @@ public class CustomerService {
 			throw new UnhandledException(UNHANDLED_EXCEPTION, e);
 		}
 	}
-
-
 
 	public GetCustomerProfileResponseDTO getCustomerProfile() {
 		if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.CUSTOMER)) {
