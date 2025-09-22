@@ -40,14 +40,13 @@ public class CustomerController {
 	}
 
 
-	@PutMapping(value = CUSTOMER.UPDATE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PutMapping(value = CUSTOMER.UPDATE)
 	public ResponseEntity<UpdateCustomerResponseDTO> updateCustomer(
-			@RequestPart("data") @Valid UpdateCustomerRequestDTO requestDTO,
-			@RequestPart(value = "image", required = false) MultipartFile image) {
+			@RequestBody @Valid UpdateCustomerRequestDTO requestDTO) {
 
 		log.info("received rq for update customer profile {} ",requestDTO);
 
-		UpdateCustomerResponseDTO response = customerService.updateCustomer(requestDTO, image);
+		UpdateCustomerResponseDTO response = customerService.updateCustomer(requestDTO);
 
 		log.info("[UPDATE CUSTOMER] Customer successfully updated. ID={}", response.getId());
 		return ResponseEntity.ok(response);

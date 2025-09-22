@@ -23,10 +23,15 @@ public class UpdateCustomerRequestDTO {
     @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "DOB must be in format YYYY-MM-DD")
     private String dob;
 
+    private String imageUrl;
+
     public static CustomerEntity updateEntity(CustomerEntity customer, UpdateCustomerRequestDTO dto) {
         customer.setName(dto.getName());
         customer.setEmail(dto.getEmail());
         customer.setDob(dto.getDob());
+        if (dto.getImageUrl() != null && !dto.getImageUrl().isBlank()) {
+            customer.setProfileImage(dto.getImageUrl());
+        }
         return customer;
     }
 
