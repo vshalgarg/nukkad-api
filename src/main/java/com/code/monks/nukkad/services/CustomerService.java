@@ -107,59 +107,40 @@ public class CustomerService {
 
 
 
-	public UpdateCustomerResponseDTO updateCustomer(UpdateCustomerRequestDTO  dto, MultipartFile image) {
+	public UpdateCustomerResponseDTO updateCustomer(UpdateCustomerRequestDTO  dto) {
 
 		if (!UserContextHolder.getUser().getRoles().contains(RoleEnum.CUSTOMER)) {
-			log.warn("[UPDATE CUSTOMER] Access denied: User role does not include CUSTOMER");
+			log.warn("[UPDATE CUSTOMER] Access denied. User does not have CUSTOMER role");
 			throw new AccessDeniedException(ACCESS_DENIED_FOR_STOREKEEPER_EXCEPTION);
 		}
 
 		Long customerId = UserContextHolder.getUser().getId();
-		log.info("[UPDATE CUSTOMER] Updating customer profile for customerId={}", customerId);
+		log.info("[UPDATE CUSTOMER] Start updating profile for customerId={}", customerId);
 
 		CustomerEntity customer = customerRepository.findById(customerId)
 				.orElseThrow(() -> {
-					log.error("[UPDATE CUSTOMER] Customer not found. ID={}", customerId);
+					log.error("[UPDATE CUSTOMER] Customer not found. customerId={}", customerId);
 					return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
 				});
 
-		// update normal fields
+		String previousProfileImageUrl = customer.getProfileImage();
 		customer = UpdateCustomerRequestDTO.updateEntity(customer, dto);
 
-		// validate unique fields
+		log.info("[UPDATE CUSTOMER] Validating unique fields (email/mobile) for customerId={}", customerId);
 		exceptionHandleUtil.validateCustomerUniqueFields(customer);
 
 		try {
-			log.info("start profile img updating");
-			// handle image upload
-			if (image != null && !image.isEmpty()) {
-				// store old image URL before updating
-				String oldImageUrl = customer.getProfileImage();
-
-				// upload new image
-				String imageUrl = firebaseFileUploadHelper.uploadFile(image, "customers");
-				log.info("new img url before save in db {}",imageUrl);
-				customer.setProfileImage(imageUrl);
-				log.info("[UPDATE CUSTOMER] Profile image updated for customerId={}", customerId);
+			CustomerEntity updatedCustomer = customerRepository.save(customer);
+			log.info("[UPDATE CUSTOMER] Customer profile saved successfully for customerId={}", customerId);
 
 				// delete old image if exists
-				if (oldImageUrl != null && !oldImageUrl.isBlank()) {
-					firebaseFileUploadHelper.deleteFile(oldImageUrl);
-					log.info("[UPDATE CUSTOMER] Old profile image deleted for customerId={}", customerId);
+				if (dto.getImageUrl() != null && !dto.getImageUrl().isBlank() &&
+						previousProfileImageUrl != null && !previousProfileImageUrl.isBlank()) {
+					firebaseFileUploadHelper.deleteFile(previousProfileImageUrl);
+					log.info("[UPDATE CUSTOMER] Old profile image deleted from Firebase for customerId={}", customerId);
 				}
-			}
 
-			// save customer
-			CustomerEntity updated = customerRepository.save(customer);
-
-			// update default address also
-			Optional<AddressEntity> defaultAddressOpt = addressRepository.findByCustomerIdAndIsDefaultTrue(customerId);
-			if (defaultAddressOpt.isPresent()) {
-				AddressEntity defaultAddress = defaultAddressOpt.get();
-				log.warn("[UPDATE CUSTOMER] Default address not found for customerId={}", customerId);
-			}
-
-			return UpdateCustomerResponseDTO.fromEntity(updated);
+			return UpdateCustomerResponseDTO.fromEntity(updatedCustomer);
 
 		} catch (DataIntegrityViolationException e) {
 			log.error("[UPDATE CUSTOMER] Email already exists. Email={}, customerId={}", dto.getEmail(), customerId, e);
