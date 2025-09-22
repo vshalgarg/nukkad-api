@@ -124,7 +124,7 @@ public class CustomerService {
 					return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId);
 				});
 
-		log.info("Received profile img url for update profile img {}", dto.getImageUrl());
+		log.info("Received profile img url for update profile img {}", dto.getProfileImageUrl());
 		String previousProfileImageUrl = customer.getProfileImage();
 		log.info("old profile img url :{}", customer.getProfileImage());
 
@@ -139,7 +139,7 @@ public class CustomerService {
             log.info("updated profile img url :{}", updatedCustomer.getProfileImage());
 
 				// delete old image if exists
-				if (dto.getImageUrl() != null && !dto.getImageUrl().isBlank() &&
+				if (dto.getProfileImageUrl() != null && !dto.getProfileImageUrl().isBlank() &&
 						previousProfileImageUrl != null && !previousProfileImageUrl.isBlank()) {
 					firebaseFileUploadHelper.deleteFile(previousProfileImageUrl);
 					log.info("[UPDATE CUSTOMER] Old profile image deleted from Firebase for customerId={}", customerId);
