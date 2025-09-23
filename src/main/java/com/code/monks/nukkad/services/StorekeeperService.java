@@ -65,34 +65,28 @@ public class StorekeeperService {
                 .filter(url -> url != null && !url.isBlank())
                 .limit(4)
                 .toList();
+
+        List<StorekeeperImageEntity> imageEntities = imgUrls.stream()
+                .map(url -> StorekeeperImageEntity.builder()
+                        .storekeeper(storekeeper)
+                        .imageUrl(url)
+                        .build())
+                .toList();
+
+        storekeeper.getImages().clear();
+        storekeeper.getImages().addAll(imageEntities);
         try {
             StorekeeperEntity saved = storekeeperRepository.save(storekeeper);
             log.info("[CREATE STOREKEEPER] Storekeeper saved with ID={}", saved.getId());
-
-            // Save image URLs as entities
-            List<StorekeeperImageEntity> imageEntities = imgUrls.stream()
-                    .map(url -> StorekeeperImageEntity.builder()
-                            .storekeeper(saved)
-                            .imageUrl(url)
-                            .build())
-                    .toList();
-            storekeeper.getImages().clear();
-            storekeeper.getImages().addAll(imageEntities);
-
-
             // Set default notification status ON
             notificationStatusService.initializeStatusIfAbsent();
-
-            StorekeeperEntity updated = storekeeperRepository.save(storekeeper);
-            log.info("[CREATE STOREKEEPER] Storekeeper created successfully with {} image(s)", imageEntities.size());
-            return StorekeeperResponseDTO.fromEntity(updated, imgUrls);
+            return StorekeeperResponseDTO.fromEntity(saved, imgUrls);
         } catch (Exception e) {
             log.error("[CREATE STOREKEEPER] Unexpected error while saving storekeeper", e);
             throw new UnhandledException(UNHANDLED_EXCEPTION, e);
         }
 
     }
-
 
     public StorekeeperResponseDTO updateStoreKeeper(StorekeeperRequestDTO dto) {
 

@@ -4,6 +4,7 @@ import com.code.monks.nukkad.exception.UnhandledException;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Bucket;
 import com.google.firebase.cloud.StorageClient;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
@@ -15,6 +16,7 @@ import static com.code.monks.nukkad.enums.ResponseErrorCodes.FAILED_TO_DELETE_FI
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.FAILED_TO_UPLOAD_FILE_TO_FIREBASE;
 
 @Component
+@Slf4j
 public class FirebaseFileUploadHelper {
 
     public String uploadFile(MultipartFile file, String folder) {
@@ -49,6 +51,9 @@ public class FirebaseFileUploadHelper {
                 blob.delete();
             }
         } catch (Exception e) {
+            log.error("[QR DELETE] Unexpected error during Firebase deletion for URL :", e);
+            log.error("[QR DELETE] Failed to delete QR image from Firebase, aborting delete: ", e);
+
             throw new UnhandledException(FAILED_TO_DELETE_FILE_FROM_FIREBASE, e);
         }
     }
