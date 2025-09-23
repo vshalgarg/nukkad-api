@@ -46,7 +46,7 @@ public class StorekeeperRequestDTO {
 	@NotBlank(message = "Pincode is mandatory")
     private String pincode;
 
-	private List<String> profileImgUrls;
+	private List<String> imageUrls;
 
 	public static StorekeeperEntity toEntity(StorekeeperRequestDTO dto){
 		StorekeeperEntity storekeeper = new  StorekeeperEntity();
