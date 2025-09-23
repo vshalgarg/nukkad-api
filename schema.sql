@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS storekeeper (
 
 CREATE TABLE IF NOT EXISTS storekeeper_image (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    image_url VARCHAR(200) NOT NULL,
+    image_url TEXT NOT NULL,
     storekeeper_id BIGINT NOT NULL,
 
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

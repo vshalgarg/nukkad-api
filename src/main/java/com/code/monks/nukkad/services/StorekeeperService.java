@@ -59,7 +59,7 @@ public class StorekeeperService {
         // Validate for unique fields (email, gst, etc.)
         exceptionHandleUtil.validateStorekeeperUniqueFields(storekeeper);
 
-        List<String> imgUrls = dto.getProfileImgUrls();
+        List<String> imgUrls = dto.getImageUrls();
         if (imgUrls == null) imgUrls = new ArrayList<>();
         imgUrls = imgUrls.stream()
                 .filter(url -> url != null && !url.isBlank())
@@ -77,7 +77,7 @@ public class StorekeeperService {
                             .build())
                     .toList();
             storekeeperImageRepository.saveAll(imageEntities);
-            storekeeper.setImages(imageEntities);
+            storekeeper.setImages(new ArrayList<>(imageEntities));
 
             // Set default notification status ON
             notificationStatusService.initializeStatusIfAbsent();
@@ -129,7 +129,7 @@ public class StorekeeperService {
                 log.info("[UPDATE STOREKEEPER] No existing images to delete for storekeeper ID={}", storekeeperId);
             }
 
-            List<String> imgUrls = dto.getProfileImgUrls();
+            List<String> imgUrls = dto.getImageUrls();
             if (imgUrls == null) imgUrls = new ArrayList<>();
             imgUrls = imgUrls.stream()
                     .filter(url -> url != null && !url.isBlank())
@@ -145,7 +145,7 @@ public class StorekeeperService {
 
             storekeeperImageRepository.saveAll(newImageEntities);
             log.info("[UPDATE STOREKEEPER] Stored {} new image record(s) for storekeeper ID={}", newImageEntities.size(), storekeeperId);
-            storekeeper.setImages(newImageEntities);
+            storekeeper.setImages(new ArrayList<>(newImageEntities));
 
             StorekeeperEntity updated = storekeeperRepository.save(storekeeper);
             log.info("[UPDATE STOREKEEPER] Successfully updated storekeeper ID={} with name='{}'", updated.getId(), updated.getName());
