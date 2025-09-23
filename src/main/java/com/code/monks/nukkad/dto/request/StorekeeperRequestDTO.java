@@ -1,19 +1,20 @@
 package com.code.monks.nukkad.dto.request;
 
 import com.code.monks.nukkad.entities.StorekeeperEntity;
-import com.code.monks.nukkad.enums.RoleEnum;
+import com.code.monks.nukkad.entities.StorekeeperImageEntity;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateStorekeeperRequestDTO {
+public class StorekeeperRequestDTO {
 
 	@NotBlank(message = "Name is mandatory")
 	private String name;
@@ -45,8 +46,9 @@ public class CreateStorekeeperRequestDTO {
 	@NotBlank(message = "Pincode is mandatory")
     private String pincode;
 
+	private List<String> profileImgUrls;
 
-	public static StorekeeperEntity toEntity(CreateStorekeeperRequestDTO dto){
+	public static StorekeeperEntity toEntity(StorekeeperRequestDTO dto){
 		StorekeeperEntity storekeeper = new  StorekeeperEntity();
 
 		storekeeper.setName(dto.getName());
@@ -59,9 +61,7 @@ public class CreateStorekeeperRequestDTO {
 		storekeeper.setCity(dto.getCity());
 		storekeeper.setState(dto.getState());
 		storekeeper.setPincode(dto.getPincode());
-
 		return storekeeper;
-
 	}
 }
 

@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateStorekeeperResponseDTO {
+public class StorekeeperResponseDTO {
 
     private Long id;
     private String name;
@@ -29,8 +29,8 @@ public class CreateStorekeeperResponseDTO {
     private String storeQrId;
     private List<String> imageUrls;
 
-    public static CreateStorekeeperResponseDTO fromEntity(StorekeeperEntity entity, List<String> imageUrls){
-        CreateStorekeeperResponseDTO dto = new CreateStorekeeperResponseDTO();
+    public static StorekeeperResponseDTO fromEntity(StorekeeperEntity entity, List<String> imageUrls){
+        StorekeeperResponseDTO dto = new StorekeeperResponseDTO();
 
         dto.setId(entity.getId());
         dto.setName(entity.getName());
