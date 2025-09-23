@@ -76,14 +76,16 @@ public class StorekeeperService {
                             .imageUrl(url)
                             .build())
                     .toList();
-            storekeeperImageRepository.saveAll(imageEntities);
-            storekeeper.setImages(new ArrayList<>(imageEntities));
+            storekeeper.getImages().clear();
+            storekeeper.getImages().addAll(imageEntities);
+
 
             // Set default notification status ON
             notificationStatusService.initializeStatusIfAbsent();
 
+            StorekeeperEntity updated = storekeeperRepository.save(storekeeper);
             log.info("[CREATE STOREKEEPER] Storekeeper created successfully with {} image(s)", imageEntities.size());
-            return StorekeeperResponseDTO.fromEntity(saved, imgUrls);
+            return StorekeeperResponseDTO.fromEntity(updated, imgUrls);
         } catch (Exception e) {
             log.error("[CREATE STOREKEEPER] Unexpected error while saving storekeeper", e);
             throw new UnhandledException(UNHANDLED_EXCEPTION, e);
@@ -143,10 +145,9 @@ public class StorekeeperService {
                             .build())
                     .toList();
 
-            storekeeperImageRepository.saveAll(newImageEntities);
             log.info("[UPDATE STOREKEEPER] Stored {} new image record(s) for storekeeper ID={}", newImageEntities.size(), storekeeperId);
-            storekeeper.setImages(new ArrayList<>(newImageEntities));
-
+            storekeeper.getImages().clear();
+            storekeeper.getImages().addAll(newImageEntities);
             StorekeeperEntity updated = storekeeperRepository.save(storekeeper);
             log.info("[UPDATE STOREKEEPER] Successfully updated storekeeper ID={} with name='{}'", updated.getId(), updated.getName());
             return StorekeeperResponseDTO.fromEntity(updated, imgUrls);
