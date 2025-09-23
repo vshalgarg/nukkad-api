@@ -1,6 +1,8 @@
 package com.code.monks.nukkad.controllers;
 
 import com.code.monks.nukkad.constants.UrlConstants;
+import com.code.monks.nukkad.dto.request.UpdateUploadQrCodeReqDTO;
+import com.code.monks.nukkad.dto.request.UploadQrCodeReqDTO;
 import com.code.monks.nukkad.dto.response.DeleteQrCodeResponseDto;
 import com.code.monks.nukkad.dto.response.StorekeeperQrCodeResponseDTO;
 import com.code.monks.nukkad.dto.response.UpdateStorekeeperQrResponseDTO;
@@ -21,10 +23,10 @@ public class StorekeeperQrCodeController {
     private final StorekeeperQrCodeService qrService;
 
     @PostMapping(UrlConstants.STOREKEEPER_QR_CODE.UPLOAD)
-    public ResponseEntity<UploadQrCodeResponseDto> upload(@RequestPart MultipartFile[] qrCodes) {
-        log.info("[QR UPLOAD] Received request to upload {} QR code(s)", qrCodes.length);
+    public ResponseEntity<UploadQrCodeResponseDto> upload(@RequestBody UploadQrCodeReqDTO uploadQrCodeReqDTO) {
+        log.info("[QR UPLOAD] Received request to upload {} QR code(s)", uploadQrCodeReqDTO.getQrCodes());
 
-        UploadQrCodeResponseDto response = qrService.uploadQrCodes(qrCodes);
+        UploadQrCodeResponseDto response = qrService.uploadQrCodes(uploadQrCodeReqDTO);
 
         log.info("[QR UPLOAD] {}", response.getMessage());
         return ResponseEntity.ok(response);
@@ -40,10 +42,10 @@ public class StorekeeperQrCodeController {
     @PutMapping(UrlConstants.STOREKEEPER_QR_CODE.UPDATE)
     public ResponseEntity<UpdateStorekeeperQrResponseDTO> update(
             @PathVariable Long id,
-            @RequestPart MultipartFile qrImage) {
+            @RequestBody UpdateUploadQrCodeReqDTO reqDTO) {
 
         log.info("[QR UPDATE] Request to update QR code ID={}", id);
-        UpdateStorekeeperQrResponseDTO response = qrService.updateQr(id, qrImage);
+        UpdateStorekeeperQrResponseDTO response = qrService.updateQr(id, reqDTO);
         log.info("[QR UPDATE] {}", response);
 
         return ResponseEntity.ok(response);
