@@ -92,7 +92,8 @@ CREATE TABLE IF NOT EXISTS storekeeper_image (
 
 CREATE TABLE IF NOT EXISTS storekeeper_qr_code (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    qr_image_url VARCHAR(200) NOT NULL,
+    qr_image_url TEXT NOT
+     NULL,
     is_default BOOLEAN NOT NULL DEFAULT FALSE,
     storekeeper_id BIGINT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

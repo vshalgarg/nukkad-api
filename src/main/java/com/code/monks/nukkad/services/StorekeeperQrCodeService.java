@@ -12,14 +12,12 @@ import com.code.monks.nukkad.entities.StorekeeperQrCodeEntity;
 import com.code.monks.nukkad.exception.DefaultQrCodeNotUpdatedException;
 import com.code.monks.nukkad.exception.MaxQrLimitExceededException;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
-import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.StorekeeperQrCodeRepository;
 import com.code.monks.nukkad.repositories.StorekeeperRepository;
 import com.code.monks.nukkad.utils.FirebaseFileUploadHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
