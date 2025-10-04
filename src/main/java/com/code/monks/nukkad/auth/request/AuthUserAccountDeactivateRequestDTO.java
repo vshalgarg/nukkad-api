@@ -7,5 +7,5 @@ import lombok.Data;
 @AllArgsConstructor
 public class AuthUserAccountDeactivateRequestDTO {
 
-    private String username;
+    private String firebaseToken;
 }

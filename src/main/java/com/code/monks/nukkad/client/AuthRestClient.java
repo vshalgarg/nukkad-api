@@ -102,11 +102,11 @@ public class AuthRestClient {
 		}
 }
 
-	public AuthUserAccountDeactivateResponseDTO callUserAccountDeactivateResponse(String mobileNumber) {
+	public AuthUserAccountDeactivateResponseDTO callUserAccountDeactivateResponse(String firebaseToken) {
 		String url = authHost + userAccountDeactivateUrl;
 		log.info("[AUTH SERVICE] Calling deactivation endpoint: {}", url);
 
-		AuthUserAccountDeactivateRequestDTO authDto = new AuthUserAccountDeactivateRequestDTO(mobileNumber);
+		AuthUserAccountDeactivateRequestDTO authDto = new AuthUserAccountDeactivateRequestDTO(firebaseToken);
 		log.info("[AUTH SERVICE] Request payload: {}", authDto);
 
 		Map<String, String> headers = new HashMap<>();

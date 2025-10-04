@@ -1,5 +1,6 @@
 package com.code.monks.nukkad.controllers;
 
+import com.code.monks.nukkad.dto.request.DeactivateAndDeleteUserReqDTO;
 import com.code.monks.nukkad.dto.request.SendOtpRequestDTO;
 import com.code.monks.nukkad.dto.request.VerifyRequestDTO;
 import com.code.monks.nukkad.dto.response.SendOtpResponseDTO;
@@ -42,10 +43,10 @@ public class OtpController {
 	}
 
 	@PutMapping(OTP.DEACTIVATE_USER_ACCOUNT)
-	public ResponseEntity<UserAccountDeactivateResponseDTO> deactivateAccount() {
+	public ResponseEntity<UserAccountDeactivateResponseDTO> deactivateAccount(DeactivateAndDeleteUserReqDTO dto) {
 		log.info("[OTP CONTROLLER] Received request to deactivate user account");
 
-		UserAccountDeactivateResponseDTO response = otpService.deactivateAccount();
+		UserAccountDeactivateResponseDTO response = otpService.deactivateAccount(dto.getFirebaseToken());
 
 		log.info("[OTP CONTROLLER] Deactivation response: {}", response);
 		return ResponseEntity.ok(response);
