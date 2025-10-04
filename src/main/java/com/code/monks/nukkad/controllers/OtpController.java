@@ -43,9 +43,8 @@ public class OtpController {
 	}
 
 	@PutMapping(OTP.DEACTIVATE_USER_ACCOUNT)
-	public ResponseEntity<UserAccountDeactivateResponseDTO> deactivateAccount(DeactivateAndDeleteUserReqDTO dto) {
+	public ResponseEntity<UserAccountDeactivateResponseDTO> deactivateAccount(@RequestBody DeactivateAndDeleteUserReqDTO dto) {
 		log.info("[OTP CONTROLLER] Received request to deactivate user account");
-
 		UserAccountDeactivateResponseDTO response = otpService.deactivateAccount(dto.getFirebaseToken());
 
 		log.info("[OTP CONTROLLER] Deactivation response: {}", response);
