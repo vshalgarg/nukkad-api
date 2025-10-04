@@ -114,11 +114,11 @@ public class OtpService {
 		);
 	}
 
-	public UserAccountDeactivateResponseDTO deactivateAccount() {
+	public UserAccountDeactivateResponseDTO deactivateAccount(String firebaseToken) {
 		String mobileNumber = UserContextHolder.getUser().getMobileNumber();
 		log.info("[DEACTIVATE ACCOUNT] Request received to deactivate account for mobile number: {}", mobileNumber);
 
-		AuthUserAccountDeactivateResponseDTO authResponse = authRestClient.callUserAccountDeactivateResponse(mobileNumber);
+		AuthUserAccountDeactivateResponseDTO authResponse = authRestClient.callUserAccountDeactivateResponse(firebaseToken);
 		log.info("[DEACTIVATE ACCOUNT] Response from Auth Service: {}", authResponse);
 
 		String message = authResponse.getMessage();
