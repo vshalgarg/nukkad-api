@@ -10,7 +10,6 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
-import java.util.List;
 
 import static com.code.monks.nukkad.constants.UrlConstants.ORDER.*;
 
@@ -66,15 +64,11 @@ public class MyOrderController
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping(ORDER_HISTORY_BY_STATUS)
-    public ResponseEntity<GetOrderHistoryByStatusResponseDTO> getOrderHistoryByStatus(
+    @GetMapping(ORDER_COUNT_BY_STATUS)
+    public ResponseEntity<OrderCountByStatusResponseDTO> getOrderCountsByStatus(
             @RequestParam(name = "order_status") OrderStatusEnum status
     ){
-        GetOrderHistoryByStatusResponseDTO response = orderService.getOrderHistoryByStatus(status);
-        if (response.getOrders() == null || response.getOrders().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
-
+        OrderCountByStatusResponseDTO response = orderService.getOrderCountByStatus(status);
         return ResponseEntity.ok(response);
     }
 }

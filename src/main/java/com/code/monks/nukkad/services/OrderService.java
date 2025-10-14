@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.ORDER_NOT_FOUND;
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.UNHANDLED_EXCEPTION;
@@ -389,17 +390,27 @@ public class OrderService {
         );
     }
 
-    public GetOrderHistoryByStatusResponseDTO getOrderHistoryByStatus(OrderStatusEnum status) {
+    public OrderCountByStatusResponseDTO getOrderCountByStatus(OrderStatusEnum status) {
 
-        List<OrderEntity> orders = orderRepository.findByStatus(status);
-        GetOrderHistoryByStatusResponseDTO response = new GetOrderHistoryByStatusResponseDTO();
-        response.setStatus(status);
-        response.setOrders(orders);
-        if (orders == null || orders.isEmpty()) {
-            response.setMessage("No orders found with status: " + status);
-        } else {
-            response.setMessage("Orders fetched successfully for status: " + status);
+        Long userId = UserContextHolder.getUser().getId();
+        List<RoleEnum> roles = UserContextHolder.getUser().getRoles();
+
+        long count = 0L;
+        RoleEnum currentRole = null;
+        if (roles.contains(RoleEnum.CUSTOMER)) {
+            currentRole = RoleEnum.CUSTOMER;
+            count = orderRepository.countByCustomerIdAndStatus(userId, status);
+        } else if (roles.contains(RoleEnum.STOREKEEPER)) {
+            currentRole = RoleEnum.STOREKEEPER;
+            count = orderRepository.countByStoreKeeperIdAndStatus(userId, status);
         }
+
+        OrderCountByStatusResponseDTO response = new OrderCountByStatusResponseDTO();
+        response.setUserId(userId);
+        response.setUserRole(currentRole);
+        response.setStatus(status);
+        response.setCount(count);
+        response.setMessage("Order count fetched successfully for userId: " + userId + " (" + currentRole + ")");
         return response;
     }
 }

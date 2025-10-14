@@ -74,7 +74,7 @@ public static class ADDRESS{
 		public static final String GET_ORDER_BY_STOREKEEPER ="/v1/order/orderByStoreKeeper";
 		public static final String UPDATE_STATUS = "/v1/order/updateByStatus/{id}";
 		public static final String ORDER_HISTORY ="/v1/order/history";
-		public static final String ORDER_HISTORY_BY_STATUS ="/v1/order/history/status";
+		public static final String ORDER_COUNT_BY_STATUS ="/v1/order/count/status";
 		public static final String DISPATCH_ORDER ="/v1/order/dispatchOrder";
 	}
 
