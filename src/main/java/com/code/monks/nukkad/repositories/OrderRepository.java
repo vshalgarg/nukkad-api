@@ -85,6 +85,6 @@ HAVING
             Pageable pageable
     );
 
-    List<OrderEntity> findByStatus(OrderStatusEnum status);
-
+    long countByCustomerIdAndStatus(Long customerId, OrderStatusEnum status);
+    long countByStoreKeeperIdAndStatus(Long storeKeeperId, OrderStatusEnum status);
 }
