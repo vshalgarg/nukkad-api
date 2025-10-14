@@ -388,4 +388,18 @@ public class OrderService {
                 "Your order has been dispatched successfully."
         );
     }
+
+    public GetOrderHistoryByStatusResponseDTO getOrderHistoryByStatus(OrderStatusEnum status) {
+
+        List<OrderEntity> orders = orderRepository.findByStatus(status);
+        GetOrderHistoryByStatusResponseDTO response = new GetOrderHistoryByStatusResponseDTO();
+        response.setStatus(status);
+        response.setOrders(orders);
+        if (orders == null || orders.isEmpty()) {
+            response.setMessage("No orders found with status: " + status);
+        } else {
+            response.setMessage("Orders fetched successfully for status: " + status);
+        }
+        return response;
+    }
 }
