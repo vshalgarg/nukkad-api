@@ -85,4 +85,6 @@ HAVING
             Pageable pageable
     );
 
+    List<OrderEntity> findByStatus(OrderStatusEnum status);
+
 }

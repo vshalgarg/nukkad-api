@@ -2,10 +2,7 @@
 package com.code.monks.nukkad.controllers;
 
 import com.code.monks.nukkad.constants.UrlConstants;
-import com.code.monks.nukkad.dto.response.GetOrderByStoreKeeperResponseDTO;
-import com.code.monks.nukkad.dto.response.GetOrdersResponseDTO;
-import com.code.monks.nukkad.dto.response.GetUserHistoryByStatusAndDateResponseDTO;
-import com.code.monks.nukkad.dto.response.PagedOrderHistoryResponseDTO;
+import com.code.monks.nukkad.dto.response.*;
 import com.code.monks.nukkad.enums.OrderStatusEnum;
 import com.code.monks.nukkad.enums.OrderStatusFilterEnum;
 import com.code.monks.nukkad.services.OrderService;
@@ -18,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,8 +23,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 import java.util.List;
-import static com.code.monks.nukkad.constants.UrlConstants.ORDER.GET_ORDER_BY_STOREKEEPER;
-import static com.code.monks.nukkad.constants.UrlConstants.ORDER.ORDER_HISTORY;
+
+import static com.code.monks.nukkad.constants.UrlConstants.ORDER.*;
 
 @RequestMapping(UrlConstants.ORDER.BASE)
 @RestController
@@ -68,4 +66,15 @@ public class MyOrderController
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping(ORDER_HISTORY_BY_STATUS)
+    public ResponseEntity<GetOrderHistoryByStatusResponseDTO> getOrderHistoryByStatus(
+            @RequestParam(name = "order_status") OrderStatusEnum status
+    ){
+        GetOrderHistoryByStatusResponseDTO response = orderService.getOrderHistoryByStatus(status);
+        if (response.getOrders() == null || response.getOrders().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        return ResponseEntity.ok(response);
+    }
 }
