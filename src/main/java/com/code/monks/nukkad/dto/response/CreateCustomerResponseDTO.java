@@ -19,7 +19,6 @@ public class CreateCustomerResponseDTO {
 	private String dob;
 	private String mobileNumber;
 	private Long addressId;
-	private int statusCode;
 
 	public static CreateCustomerResponseDTO fromEntity(CustomerEntity customer) {
 		CreateCustomerResponseDTO customerResponseDTO = new CreateCustomerResponseDTO();
