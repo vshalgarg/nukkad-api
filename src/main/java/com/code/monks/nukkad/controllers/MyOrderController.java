@@ -35,7 +35,7 @@ public class MyOrderController
     private OrderService orderService;
 
     @GetMapping(GET_ORDER_BY_STOREKEEPER)
-    public ResponseEntity<GetOrdersResponseDTO> getOrdersByStorekeeperId(
+    public ResponseEntity<GetOrdersResponseDTO> getOrdersByStorekeeperStatus(
             @RequestParam OrderStatusFilterEnum statusFilter,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -61,14 +61,6 @@ public class MyOrderController
         PagedOrderHistoryResponseDTO response = orderService.getUserHistoryByOptionalFilters(
                 status, startDate, endDate, minPrice, maxPrice, pageable);
 
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping(ORDER_COUNT_BY_STATUS)
-    public ResponseEntity<OrderCountByStatusResponseDTO> getOrderCountsByStatus(
-            @RequestParam(name = "order_status") OrderStatusEnum status
-    ){
-        OrderCountByStatusResponseDTO response = orderService.getOrderCountByStatus(status);
         return ResponseEntity.ok(response);
     }
 }
