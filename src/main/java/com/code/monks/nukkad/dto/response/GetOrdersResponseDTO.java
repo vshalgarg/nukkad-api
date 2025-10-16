@@ -17,4 +17,7 @@ public class GetOrdersResponseDTO {
     private int totalPages;
     private int currentPage;
     private int pageSize;
+    private int pendingOrdersCount;
+    private int inprogressOrdersCount;
+    private int deliveredOrdersCount;
 }

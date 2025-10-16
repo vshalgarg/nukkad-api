@@ -15,6 +15,7 @@ public class GetUserHistoryByStatusAndDateResponseDTO {
 //    private String customerName;
     private AddressSnapshotDTO address;
     private Long storeKeeperId;
+    private String storekeeperNumber;
     private String storeName;
     private List<ItemDetailsDTO> items;
     private OrderStatusEnum orderStatus;
@@ -38,6 +39,7 @@ public class GetUserHistoryByStatusAndDateResponseDTO {
         // StoreKeeper Info
         if (order.getStoreKeeper() != null) {
             dto.setStoreKeeperId(order.getStoreKeeper().getId());
+            dto.setStorekeeperNumber(order.getStoreKeeper().getContactNumber());
             dto.setStoreName(order.getStoreKeeper().getStoreName());
             dto.setStoreKeeperNote(order.getStoreKeeperNote());
         }

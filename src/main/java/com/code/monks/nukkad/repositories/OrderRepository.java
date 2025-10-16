@@ -85,6 +85,15 @@ HAVING
             Pageable pageable
     );
 
-    long countByCustomerIdAndStatus(Long customerId, OrderStatusEnum status);
-    long countByStoreKeeperIdAndStatus(Long storeKeeperId, OrderStatusEnum status);
+    @Query("SELECT COUNT(o) FROM OrderEntity o WHERE o.storeKeeper.id = :storekeeperId AND o.status IN :statuses")
+    int countByStoreKeeperIdAndStatuses(@Param("storekeeperId") Long storekeeperId,
+                                        @Param("statuses") List<OrderStatusEnum> statuses);
+
+    @Query("SELECT COUNT(o) FROM OrderEntity o " +
+            "WHERE o.storeKeeper.id = :storekeeperId " +
+            "AND o.status = com.code.monks.nukkad.enums.OrderStatusEnum.DELIVERED " +
+            "AND o.updatedAt >= :startOfDay")
+    int countTodayDeliveredOrders(@Param("storekeeperId") Long storekeeperId,
+                                  @Param("startOfDay") LocalDateTime startOfDay);
+
 }

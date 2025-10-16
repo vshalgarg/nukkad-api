@@ -237,10 +237,18 @@ public class OrderService {
         String title = "Order #" + order.getId();
         String statusText = newStatus.name().toLowerCase().replace("_", " ");
 
+        String message;
+        if (newStatus == OrderStatusEnum.CANCELLED) {
+            message = "Your order has been " + statusText;
+        } else {
+            message = "Your order has been " + statusText + " successfully";
+        }
+
         notifyUser(
                 order.getCustomer().getId(),
-                RoleEnum.CUSTOMER, title,
-                "Your order has been " + statusText + " successfully"
+                RoleEnum.CUSTOMER,
+                title,
+                message
         );
     }
 
@@ -311,12 +319,26 @@ public class OrderService {
                 .map(GetOrderByStoreKeeperResponseDTO::toEntity)
                 .toList();
 
+        int pendingCount = orderRepository.countByStoreKeeperIdAndStatuses(
+                storekeeperId, List.of(OrderStatusEnum.PENDING));
+
+        int inProgressCount = orderRepository.countByStoreKeeperIdAndStatuses(
+                storekeeperId, List.of(OrderStatusEnum.IN_PROGRESS, OrderStatusEnum.DISPATCHED));
+
+        // Count today’s delivered orders (since midnight)
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        int deliveredCount = orderRepository.countTodayDeliveredOrders(storekeeperId, startOfDay);
+
+
         return GetOrdersResponseDTO.builder()
                 .orders(orderDTOs)
                 .totalOrders(pagedOrders.getTotalElements())
                 .totalPages(pagedOrders.getTotalPages())
                 .currentPage(pagedOrders.getNumber())
                 .pageSize(pagedOrders.getSize())
+                .pendingOrdersCount(pendingCount)
+                .inprogressOrdersCount(inProgressCount)
+                .deliveredOrdersCount(deliveredCount)
                 .build();
     }
 
@@ -388,29 +410,5 @@ public class OrderService {
                 title,
                 "Your order has been dispatched successfully."
         );
-    }
-
-    public OrderCountByStatusResponseDTO getOrderCountByStatus(OrderStatusEnum status) {
-
-        Long userId = UserContextHolder.getUser().getId();
-        List<RoleEnum> roles = UserContextHolder.getUser().getRoles();
-
-        long count = 0L;
-        RoleEnum currentRole = null;
-        if (roles.contains(RoleEnum.CUSTOMER)) {
-            currentRole = RoleEnum.CUSTOMER;
-            count = orderRepository.countByCustomerIdAndStatus(userId, status);
-        } else if (roles.contains(RoleEnum.STOREKEEPER)) {
-            currentRole = RoleEnum.STOREKEEPER;
-            count = orderRepository.countByStoreKeeperIdAndStatus(userId, status);
-        }
-
-        OrderCountByStatusResponseDTO response = new OrderCountByStatusResponseDTO();
-        response.setUserId(userId);
-        response.setUserRole(currentRole);
-        response.setStatus(status);
-        response.setCount(count);
-        response.setMessage("Order count fetched successfully for userId: " + userId + " (" + currentRole + ")");
-        return response;
     }
 }
