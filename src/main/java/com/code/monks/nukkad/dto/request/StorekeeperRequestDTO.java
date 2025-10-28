@@ -26,7 +26,6 @@ public class StorekeeperRequestDTO {
 	@Pattern(regexp = "^[0-9]{10}$", message = "Contact Number must be a 10-digit number")
 	private String contactNumber;
 
-	@NotBlank(message = "GST_IN is mandatory")
 	private String gstNum;
 
 	@NotBlank(message = "Address Line 1 is mandatory")
