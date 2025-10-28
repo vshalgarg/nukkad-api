@@ -317,7 +317,7 @@ public class OrderService {
             // fetch only today's delivered orders
             log.info("[STOREKEEPER ORDERS] Fetching only TODAY’S delivered orders for storeKeeperId={} (from={})",
                     storekeeperId, startOfDay);
-            pagedOrders = orderRepository.findTodayDeliveredOrders(storekeeperId, startOfDay, pageable);
+            pagedOrders = orderRepository.findTodayDeliveredOrders(storekeeperId, startOfDay, OrderStatusEnum.DELIVERED, pageable);
         } else {
             List<OrderStatusEnum> statuses = statusFilter.getStatusEnums();
             log.info("[STOREKEEPER ORDERS] Fetching orders for storeKeeperId={} with statuses={} (paginated)",

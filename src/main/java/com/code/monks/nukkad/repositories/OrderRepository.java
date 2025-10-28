@@ -99,12 +99,14 @@ HAVING
     @Query("""
     SELECT o FROM OrderEntity o
     WHERE o.storeKeeper.id = :storekeeperId
-      AND o.status = 'DELIVERED'
+      AND o.status = :status
       AND o.updatedAt >= :startOfDay
     ORDER BY o.createdAt DESC
 """)
     Page<OrderEntity> findTodayDeliveredOrders(@Param("storekeeperId") Long storekeeperId,
                                                @Param("startOfDay") LocalDateTime startOfDay,
+                                               @Param("status") OrderStatusEnum status,
                                                Pageable pageable);
+
 
 }
