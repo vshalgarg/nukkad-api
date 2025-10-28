@@ -96,4 +96,15 @@ HAVING
     int countTodayDeliveredOrders(@Param("storekeeperId") Long storekeeperId,
                                   @Param("startOfDay") LocalDateTime startOfDay);
 
+    @Query("""
+    SELECT o FROM OrderEntity o
+    WHERE o.storekeeper.id = :storekeeperId
+      AND o.status = 'DELIVERED'
+      AND o.updatedAt >= :startOfDay
+    ORDER BY o.createdAt DESC
+""")
+    Page<OrderEntity> findTodayDeliveredOrders(@Param("storekeeperId") Long storekeeperId,
+                                               @Param("startOfDay") LocalDateTime startOfDay,
+                                               Pageable pageable);
+
 }
