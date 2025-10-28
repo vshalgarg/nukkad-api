@@ -305,13 +305,28 @@ public class OrderService {
 
     public GetOrdersResponseDTO getOrdersByStorekeeper(OrderStatusFilterEnum statusFilter, int page, int size) {
         Long storekeeperId = UserContextHolder.getUser().getId();
-        log.info("[STOREKEEPER ORDERS] Fetching orders for storeKeeperId={} with status filter={} and page={}, size={}",
+        log.info("[STOREKEEPER ORDERS] Starting fetch for storeKeeperId={} | statusFilter={} | page={} | size={}",
                 storekeeperId, statusFilter, page, size);
 
-        List<OrderStatusEnum> statuses = statusFilter.getStatusEnums();
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        Page<OrderEntity> pagedOrders = orderRepository.findByStoreKeeperIdAndStatuses(storekeeperId, statuses, pageable);
+        Page<OrderEntity> pagedOrders;
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+
+        if (statusFilter == OrderStatusFilterEnum.DELIVERED) {
+            // fetch only today's delivered orders
+            log.info("[STOREKEEPER ORDERS] Fetching only TODAY’S delivered orders for storeKeeperId={} (from={})",
+                    storekeeperId, startOfDay);
+            pagedOrders = orderRepository.findTodayDeliveredOrders(storekeeperId, startOfDay, pageable);
+        } else {
+            List<OrderStatusEnum> statuses = statusFilter.getStatusEnums();
+            log.info("[STOREKEEPER ORDERS] Fetching orders for storeKeeperId={} with statuses={} (paginated)",
+                    storekeeperId, statuses);
+            pagedOrders = orderRepository.findByStoreKeeperIdAndStatuses(storekeeperId, statuses, pageable);
+        }
+
+        log.info("[STOREKEEPER ORDERS] Retrieved {} orders from database | totalElements={} | totalPages={}",
+                pagedOrders.getNumberOfElements(), pagedOrders.getTotalElements(), pagedOrders.getTotalPages());
 
         List<GetOrderByStoreKeeperResponseDTO> orderDTOs = pagedOrders
                 .getContent()
@@ -319,6 +334,7 @@ public class OrderService {
                 .map(GetOrderByStoreKeeperResponseDTO::toEntity)
                 .toList();
 
+        log.debug("[STOREKEEPER ORDERS] Calculating order counts for dashboard summary...");
         int pendingCount = orderRepository.countByStoreKeeperIdAndStatuses(
                 storekeeperId, List.of(OrderStatusEnum.PENDING));
 
@@ -326,11 +342,9 @@ public class OrderService {
                 storekeeperId, List.of(OrderStatusEnum.IN_PROGRESS, OrderStatusEnum.DISPATCHED));
 
         // Count today’s delivered orders (since midnight)
-        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         int deliveredCount = orderRepository.countTodayDeliveredOrders(storekeeperId, startOfDay);
 
-
-        return GetOrdersResponseDTO.builder()
+        GetOrdersResponseDTO response = GetOrdersResponseDTO.builder()
                 .orders(orderDTOs)
                 .totalOrders(pagedOrders.getTotalElements())
                 .totalPages(pagedOrders.getTotalPages())
@@ -340,6 +354,11 @@ public class OrderService {
                 .inprogressOrdersCount(inProgressCount)
                 .deliveredOrdersCount(deliveredCount)
                 .build();
+
+        log.info("[STOREKEEPER ORDERS] << Completed order fetch | storeKeeperId={} | totalOrders={} | pending={} | inProgress={} | deliveredToday={}",
+                storekeeperId, pagedOrders.getTotalElements(), pendingCount, inProgressCount, deliveredCount);
+
+        return response;
     }
 
 
