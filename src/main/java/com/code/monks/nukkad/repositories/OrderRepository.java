@@ -98,7 +98,7 @@ HAVING
 
     @Query("""
     SELECT o FROM OrderEntity o
-    WHERE o.storekeeper.id = :storekeeperId
+    WHERE o.storeKeeper.id = :storekeeperId
       AND o.status = 'DELIVERED'
       AND o.updatedAt >= :startOfDay
     ORDER BY o.createdAt DESC
