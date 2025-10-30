@@ -109,8 +109,8 @@ public class CustomerController {
 	}
 
 	@GetMapping(GET_DEFAULT_STORE)
-	public ResponseEntity<DefaultStoreResponseDTO> getDefaultStore() {
-		DefaultStoreResponseDTO response = customerService.getDefaultStore();
+	public ResponseEntity<GetDefaultStoreResponseDTO> getDefaultStore() {
+		GetDefaultStoreResponseDTO response = customerService.getDefaultStore();
 		return ResponseEntity.ok(response);
 	}
 }
