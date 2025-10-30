@@ -309,7 +309,10 @@ public class CustomerService {
 			log.warn("[DELETE STORE] Storekeeper not associated with customerId={}", customerId);
 			return new DeleteStoreResponseDto("Store not associated with customer.");
 
-		} catch (ResourceNotFoundException e) {
+		} catch (AccessDeniedException e) {
+			throw new AccessDeniedException(CAN_NOT_DELETE_DEFAULT_STORE);
+		}
+		catch (ResourceNotFoundException e) {
 			throw e;
 
 		} catch (Exception e) {
