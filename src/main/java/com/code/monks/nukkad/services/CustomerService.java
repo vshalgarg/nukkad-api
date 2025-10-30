@@ -349,7 +349,8 @@ public class CustomerService {
 		Long contextUser = UserContextHolder.getUser().getId();
 		log.info("Setting default store. customerId={}, storekeeperId={}", contextUser, storekeeperId);
 
-		CustomerEntity currCustomer = customerRepository.findByCustomerId(contextUser);
+		CustomerEntity currCustomer = customerRepository.findById(contextUser)
+				.orElseThrow(() -> new ResourceNotFoundException(CUSTOMER_NOT_FOUND, contextUser));
 		StorekeeperEntity storekeeper = storekeeperRepository.findById(storekeeperId)
 				.orElseThrow(() -> {
 					log.error("[Storekeeper not found. ID={}", storekeeperId);
@@ -371,9 +372,9 @@ public class CustomerService {
 	public DefaultStoreResponseDTO getDefaultStore() {
 		Long customerId = UserContextHolder.getUser().getId();
 		log.info("Fetching default store for customerId={}", customerId);
-		CustomerEntity customer = customerRepository.findByCustomerId(customerId);
-
-		StorekeeperEntity store = customer.getDefaultStore();
+		CustomerEntity currCustomer = customerRepository.findById(customerId)
+				.orElseThrow(() -> new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId));
+		StorekeeperEntity store = currCustomer.getDefaultStore();
 		if (store == null) {
 			throw new ResourceNotFoundException(DEFAULT_STORE_NOT_SET);
 		}
