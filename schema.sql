@@ -49,8 +49,10 @@ CREATE TABLE IF NOT EXISTS customer (
     email_id VARCHAR(50) NOT NULL UNIQUE,
     dob VARCHAR(15) NOT NULL,
     mobile_number VARCHAR(30) NOT NULL,
+    default_store_id BIGINT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_customer_default_store FOREIGN KEY (default_store_id) REFERENCES storekeeper(id),
 
     INDEX idx_customer_mobile (mobile_number),
     INDEX idx_customer_name_dob (name, dob),

@@ -41,8 +41,9 @@ public enum ResponseErrorCodes {
 	ERROR_TO_CONVERT_STRING_TO_JAVA_OBJECT(1032,"Error deserializing JSON to AddressSnapshotDTO"),
 	FAILED_TO_UPLOAD_FILE_TO_FIREBASE(1033,"Failed to upload file to Firebase"),
 	FAILED_TO_DELETE_FILE_FROM_FIREBASE(1034,"FAILED_TO_DELETE_FILE_FROM_FIREBASE"),
-	STORE_NOT_FOUND(1035,"Store not found with ");
-
+	STORE_NOT_FOUND(1035,"Store not found with "),
+	STORE_NOT_LINKED_WITH_CUSTOMER(1036,"Storekeeper is not linked with this customer"),
+	DEFAULT_STORE_NOT_SET(1037,"No default store set for this customer");
 
 	private int responseCode;
 	private String message;

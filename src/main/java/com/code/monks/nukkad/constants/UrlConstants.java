@@ -38,6 +38,9 @@ public class UrlConstants {
 		public static final String GET_MY_STORE_BY_STORE_QR_ID = "/v1/get/store/by/store/qr/id";
 		public static final String DELETE_STORE = "/v1/delete/store";
 
+	 public static final String SET_DEFAULT_STORE = "/v1/set/default/store/{storekeeperId}";
+	 public static final String GET_DEFAULT_STORE = "/v1/get/default/store";
+
  }
 
  public static class OTP{

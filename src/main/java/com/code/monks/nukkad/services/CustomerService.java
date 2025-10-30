@@ -345,4 +345,44 @@ public class CustomerService {
 		}
 	}
 
+    public SetDefaultStoreResponseDTO setDefaultStore(Long storekeeperId) {
+		Long contextUser = UserContextHolder.getUser().getId();
+		log.info("Setting default store. customerId={}, storekeeperId={}", contextUser, storekeeperId);
+
+		CustomerEntity currCustomer = customerRepository.findById(contextUser)
+				.orElseThrow(() -> new ResourceNotFoundException(CUSTOMER_NOT_FOUND, contextUser));
+		StorekeeperEntity storekeeper = storekeeperRepository.findById(storekeeperId)
+				.orElseThrow(() -> {
+					log.error("[Storekeeper not found. ID={}", storekeeperId);
+					return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, storekeeperId);
+				});
+		boolean linked = currCustomer.getStorekeepers().stream()
+				.anyMatch(s -> s.getId().equals(storekeeperId));
+		if (!linked) {
+			throw new ResourceNotFoundException(STORE_NOT_LINKED_WITH_CUSTOMER);
+		}
+
+		currCustomer.setDefaultStore(storekeeper);
+		 customerRepository.save(currCustomer);
+		log.info("Default store set successfully for customerId={}, storekeeperId={}", contextUser, storekeeperId);
+
+		return new SetDefaultStoreResponseDTO("Default store set successfully");
+	}
+
+	public DefaultStoreResponseDTO getDefaultStore() {
+		Long customerId = UserContextHolder.getUser().getId();
+		log.info("Fetching default store for customerId={}", customerId);
+		CustomerEntity currCustomer = customerRepository.findById(customerId)
+				.orElseThrow(() -> new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId));
+		StorekeeperEntity store = currCustomer.getDefaultStore();
+		if (store == null) {
+			throw new ResourceNotFoundException(DEFAULT_STORE_NOT_SET);
+		}
+
+		log.info("Default store fetched successfully for customerId={}, storekeeperId={}", customerId, store.getId());
+		return new DefaultStoreResponseDTO(
+				store.getId(),
+				store.getStoreName()
+		);
+	}
 }
