@@ -51,4 +51,8 @@ public class CustomerEntity extends UserEntity {
     @JoinColumn(name = "customer_id", referencedColumnName = "id", insertable = false, updatable = false)
     private List<AddressEntity> addresses = new ArrayList<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "default_store_id")
+    private StorekeeperEntity defaultStore;
+
 }
