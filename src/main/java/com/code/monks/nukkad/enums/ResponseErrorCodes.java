@@ -43,7 +43,8 @@ public enum ResponseErrorCodes {
 	FAILED_TO_DELETE_FILE_FROM_FIREBASE(1034,"FAILED_TO_DELETE_FILE_FROM_FIREBASE"),
 	STORE_NOT_FOUND(1035,"Store not found with "),
 	STORE_NOT_LINKED_WITH_CUSTOMER(1036,"Storekeeper is not linked with this customer"),
-	DEFAULT_STORE_NOT_SET(1037,"No default store set for this customer");
+	DEFAULT_STORE_NOT_SET(1037,"No default store set for this customer"),
+	CAN_NOT_DELETE_DEFAULT_STORE(1038,"Cannot delete default store. Please set another store as default before deleting.");
 
 	private int responseCode;
 	private String message;

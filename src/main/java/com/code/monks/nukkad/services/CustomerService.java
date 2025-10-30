@@ -295,7 +295,7 @@ public class CustomerService {
 			if (customer.getDefaultStore() != null &&
 					customer.getDefaultStore().getId().equals(storekeeperId)) {
 				log.warn("[DELETE STORE] Attempt to delete default store (storekeeperId={}) for customerId={}", storekeeperId, customerId);
-				return new DeleteStoreResponseDto("Cannot delete default store. Please set another store as default before deleting.");
+				throw new AccessDeniedException(CAN_NOT_DELETE_DEFAULT_STORE);
 			}
 
 			// Remove if linked
