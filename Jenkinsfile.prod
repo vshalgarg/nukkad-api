@@ -4,10 +4,10 @@ pipeline {
     environment {
         APP_NAME      = 'nukkad-api-prod'
         IMAGE_NAME    = 'nukkad-api-prod'
-        REMOTE_PATH   = "/home/ec2-user/apps/${APP_NAME}"
+        REMOTE_PATH   = "${E2E_REMOTE_PATH_BASE}/${APP_NAME}"
         SSH_USER      = "${E2E_SSH_USER}"
         SSH_HOST      = "${E2E_SSH_HOST}"
-        DB_PASSWORD   = credentials('')
+        DB_PASSWORD   = credentials('E2E_DB_PSWD_NUKKAD')
     }
 
     stages {
@@ -71,7 +71,7 @@ pipeline {
 
                         docker run -d --name ${IMAGE_NAME} \\
                             --network backend-net \\
-                            -p 8084:8084 \\
+                            -p 8084:8080 \\
                             -e SPRING_PROFILES_ACTIVE=prod \\
                             -e spring.datasource.password=\${DB_PASSWORD} \\
                             -e FIREBASE_CREDENTIAL_PATH=/app/firebase.json \\
