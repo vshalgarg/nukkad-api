@@ -39,7 +39,9 @@ public class AuthFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
         log.info("[AUTH FILTER] request.getRequestURI() = {}", path);
-        return path.contains("/otp/v1/otp/send/login") || path.contains("/otp/v1/otp/verify/login");
+        return path.contains("/otp/v1/otp/send/login") ||
+                path.contains("/otp/v1/otp/verify/login") ||
+                path.contains("/admin/v1/login");
     }
 
 
@@ -52,6 +54,10 @@ public class AuthFilter extends OncePerRequestFilter {
         try {
             String authHeader = request.getHeader("Authorization");
 
+            if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+                filterChain.doFilter(request, response);
+                return;
+            }
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 if (isMockEnabled && isLocalProfileActive()) {
                     log.warn("[AUTH FILTER] No token found. Injecting dummy user (LOCAL ONLY).");

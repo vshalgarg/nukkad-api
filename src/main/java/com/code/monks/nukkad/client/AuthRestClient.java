@@ -1,13 +1,8 @@
 package com.code.monks.nukkad.client;
 
-import com.code.monks.nukkad.auth.request.AuthSendOtpRequestDTO;
-import com.code.monks.nukkad.auth.request.AuthTokenRequestDto;
-import com.code.monks.nukkad.auth.request.AuthUserAccountDeactivateRequestDTO;
-import com.code.monks.nukkad.auth.request.AuthVerifyFirebaseTokenRequestDTO;
-import com.code.monks.nukkad.auth.response.AuthSendOtpResponseDTO;
-import com.code.monks.nukkad.auth.response.AuthTokenResponseDto;
-import com.code.monks.nukkad.auth.response.AuthUserAccountDeactivateResponseDTO;
-import com.code.monks.nukkad.auth.response.AuthVerifyOtpResponseDTO;
+import com.code.monks.nukkad.admin.request.AdminLoginRequestDto;
+import com.code.monks.nukkad.auth.request.*;
+import com.code.monks.nukkad.auth.response.*;
 import com.code.monks.nukkad.dto.User;
 import com.code.monks.nukkad.dto.request.SendOtpRequestDTO;
 import com.code.monks.nukkad.enums.RoleEnum;
@@ -47,6 +42,9 @@ public class AuthRestClient {
 
 	@Value("${auth.userAccountDeactivate.url}")
 	private String userAccountDeactivateUrl;
+
+	@Value("${auth.login.url}")
+	private String adminLoginURL;
 
 	@Autowired
 	public AuthRestClient(GenericRestClient genericRestClient) {
@@ -156,6 +154,29 @@ public class AuthRestClient {
 
 		} catch (Exception ex) {
 			throw ex;
+		}
+	}
+
+	public AuthAdminLoginResponseDTO callAdminLoginApi(AdminLoginRequestDto loginRequestDto) {
+		String url = authHost + adminLoginURL;
+		log.info("[AUTH SERVICE] Calling Admin Login endpoint: {}", url);
+
+		AuthAdminLoginRequestDTO authRequestDTO =
+				new AuthAdminLoginRequestDTO(loginRequestDto.getEmail(), loginRequestDto.getPassword());
+
+		Map<String, String> headers = new HashMap<>();
+		updateHeadersForClientNameAndSecret(headers);
+
+		try {
+			AuthAdminLoginResponseDTO authLoginResponse = genericRestClient.postForEntity(
+					url, authRequestDTO, headers, AuthAdminLoginResponseDTO.class, HttpMethod.POST);
+
+			log.info("[AUTH SERVICE] Admin login successful for email: {}", loginRequestDto.getEmail());
+			return authLoginResponse;
+
+		} catch (Exception e) {
+			log.error("[AUTH SERVICE] Error calling Admin Login API: {}", e.getMessage(), e);
+			throw e;
 		}
 	}
 
