@@ -2,83 +2,84 @@ pipeline {
     agent any
 
     environment {
-        APP_NAME = 'nukkad-api-prod'
-        IMAGE_NAME = 'nukkad-api-prod'
-        SSH_USER = 'ec2-user'
-        SSH_HOST = '13.51.70.16'
-        REMOTE_PATH = '/home/ec2-user/apps/nukkad-api-prod'
+        APP_NAME      = 'nukkad-api-prod'
+        IMAGE_NAME    = 'nukkad-api-prod'
+        REMOTE_PATH   = "${E2E_REMOTE_PATH_BASE}/${APP_NAME}"
+        SSH_USER      = "${E2E_SSH_USER}"
+        SSH_HOST      = "${E2E_SSH_HOST}"
+        DB_PASSWORD   = credentials('E2E_DB_PSWD_NUKKAD')
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo "Checking out prod branch from Git..."
                 git branch: 'prod', url: 'git@github.com:vshalgarg/nukkad-api.git'
             }
         }
 
         stage('Build JAR') {
             steps {
-                echo "Building using Maven..."
                 sh './mvnw clean package -DskipTests'
             }
         }
 
-      stage('Build Docker Image') {
-                  steps {
-                      sh "docker build -t ${IMAGE_NAME}:latest ."
-                  }
-              }
-
-        stage('Save Docker Image') {
+        stage('Build Docker Image') {
             steps {
-                echo "Saving Docker image to tar file..."
-                sh "docker save ${IMAGE_NAME}:latest -o ${IMAGE_NAME}.tar"
-            }
-        }
-
-        stage('Transfer Docker Image to EC2') {
-            steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'aws-ec2-ssh', keyFileVariable: 'SSH_KEY')]) {
-                    sh '''
-                        echo "Creating remote deployment directory..."
-                        ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST "mkdir -p $REMOTE_PATH"
-
-                        echo "Transferring Docker image to EC2..."
-                        rsync -avz --progress -e "ssh -i $SSH_KEY" ${IMAGE_NAME}.tar ${SSH_USER}@${SSH_HOST}:${REMOTE_PATH}/
-                    '''
+                withCredentials([
+                    file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
+                ]) {
+                    sh """
+                        cp "$FIREBASE_CRED_FILE" firebase.json
+                        docker build -t ${IMAGE_NAME}:latest .
+                        rm -f firebase.json
+                    """
                 }
             }
         }
 
-        stage('Run Docker Container on EC2') {
+        stage('Save Docker Image') {
+            steps {
+                sh "docker save ${IMAGE_NAME}:latest -o ${IMAGE_NAME}.tar"
+            }
+        }
+
+        stage('Transfer Docker Image') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'e2e-ssh', keyFileVariable: 'SSH_KEY')]) {
+                    sh """
+                        ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \$SSH_USER@\$SSH_HOST "mkdir -p \$REMOTE_PATH"
+                        rsync -avz --progress -e "ssh -i \$SSH_KEY" ${IMAGE_NAME}.tar \$SSH_USER@\$SSH_HOST:\$REMOTE_PATH/
+                    """
+                }
+            }
+        }
+
+        stage('Deploy on E2E') {
             steps {
                 withCredentials([
-                    sshUserPrivateKey(credentialsId: 'aws-ec2-ssh', keyFileVariable: 'SSH_KEY'),
-                    string(credentialsId: 'NUKKAD_MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD')
+                    sshUserPrivateKey(credentialsId: 'e2e-ssh', keyFileVariable: 'SSH_KEY'),
+                    file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
                 ]) {
                     sh """
-                        ssh -i \$SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST << 'EOF'
-                            cd $REMOTE_PATH
+                        ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \$SSH_USER@\$SSH_HOST << 'EOF'
+                        cd \$REMOTE_PATH
+                        cp "$FIREBASE_CRED_FILE" firebase.json
+                        docker load -i ${IMAGE_NAME}.tar
 
-                            echo "Loading Docker image..."
-                            docker load -i ${IMAGE_NAME}.tar
+                        docker stop ${IMAGE_NAME} || true
+                        docker rm ${IMAGE_NAME} || true
 
-                            echo "Stopping existing container..."
-                            docker stop ${IMAGE_NAME} || true
-                            docker rm ${IMAGE_NAME} || true
+                        docker run -d --name ${IMAGE_NAME} \\
+                            --network backend-net \\
+                            -p 8084:8080 \\
+                            -e SPRING_PROFILES_ACTIVE=prod \\
+                            -e spring.datasource.password=\${DB_PASSWORD} \\
+                            -e FIREBASE_CREDENTIAL_PATH=/app/firebase.json \\
+                            --restart unless-stopped \\
+                            ${IMAGE_NAME}:latest
 
-                            echo "Starting new Docker container..."
-                            docker run -d --name ${IMAGE_NAME} \\
-                                --network backend-net \\
-                                -p 8084:8084 \\
-                                -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILE} \\
-                                -e spring.datasource.password=\${MYSQL_PASSWORD} \\
-                                --restart unless-stopped \\
-                                ${IMAGE_NAME}:latest
-
-                            echo "Container deployed successfully."
-                            exit 0
+                        rm -f firebase.json
+                        exit 0
 EOF
                     """
                 }
@@ -88,10 +89,10 @@ EOF
 
     post {
         success {
-            echo "nukkad-api production deployment successful!"
+            echo "${APP_NAME} deployment successful!"
         }
         failure {
-            echo "nukkad-api production deployment failed."
+            echo "${APP_NAME} deployment failed!"
         }
     }
 }
