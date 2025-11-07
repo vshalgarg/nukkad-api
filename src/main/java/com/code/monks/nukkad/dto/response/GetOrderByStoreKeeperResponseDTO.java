@@ -3,6 +3,7 @@ package com.code.monks.nukkad.dto.response;
 
 import com.code.monks.nukkad.entities.*;
 import com.code.monks.nukkad.enums.OrderStatusEnum;
+import com.code.monks.nukkad.utils.DateTimeUtils;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -24,8 +25,8 @@ public class GetOrderByStoreKeeperResponseDTO {
     public static GetOrderByStoreKeeperResponseDTO toEntity(OrderEntity entity ) {
         GetOrderByStoreKeeperResponseDTO responseDTO = new GetOrderByStoreKeeperResponseDTO();
         responseDTO.setOrderId(entity.getId());
-        responseDTO.setOrderDate(entity.getCreatedAt());
-        responseDTO.setUpdatedAt(entity.getUpdatedAt());
+        responseDTO.setOrderDate(DateTimeUtils.utcToLocal(entity.getCreatedAt()));
+        responseDTO.setUpdatedAt(DateTimeUtils.utcToLocal(entity.getUpdatedAt()));
         
         // Customer Info
         if (entity.getCustomer() != null) {
