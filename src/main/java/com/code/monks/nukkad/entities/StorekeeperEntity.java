@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-@EqualsAndHashCode(onlyExplicitlyIncluded = true ,callSuper = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true ,callSuper = false)
 @Entity
 @Table(name = "storekeeper")
 @Data
