@@ -6,6 +6,7 @@ import com.code.monks.nukkad.entities.ItemEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,7 +20,7 @@ public class GetCartItemResponseDTO {
     private Long cartId;
     private Long itemId;
     private String itemName;
-    private int quantity;
+    private BigDecimal quantity;
     private String selectedUnit;
     private List<String> allUnits;
     private List<String> imageUrls;

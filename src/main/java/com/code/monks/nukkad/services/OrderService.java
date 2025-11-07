@@ -253,7 +253,7 @@ public class OrderService {
     }
 
 
-    public PagedOrderHistoryResponseDTO getUserHistoryByOptionalFilters(
+    public PagedOrderHistoryResponseDTO getOrderHistoryByOptionalFilters(
             OrderStatusEnum status,
             LocalDate startDate,
             LocalDate endDate,

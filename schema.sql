@@ -173,7 +173,7 @@ CREATE TABLE IF NOT EXISTS cart_item (
     cart_id BIGINT NOT NULL,
     customer_id BIGINT NOT NULL,
     item_id INT NOT NULL,
-    quantity INT NOT NULL,
+    quantity DECIMAL(10, 2) NOT NULL,
     unit VARCHAR(10),
 
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -218,7 +218,7 @@ CREATE TABLE IF NOT EXISTS order_item (
     order_id BIGINT NOT NULL,
     item_id INT NOT NULL,
     item_name VARCHAR(50),
-    quantity INT NOT NULL,
+    quantity DECIMAL(10, 2) NOT NULL,
     unit VARCHAR(50),
     price DOUBLE,
 
