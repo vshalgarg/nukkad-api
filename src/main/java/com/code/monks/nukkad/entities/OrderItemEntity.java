@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.math.BigDecimal;
+
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "order_item")
@@ -28,7 +30,7 @@ public class OrderItemEntity extends  BaseEntity{
     private String itemName;
 
     @Column(name = "quantity")
-    private int quantity;
+    private BigDecimal quantity;
 
     @Column(name = "unit")
     private String unit;

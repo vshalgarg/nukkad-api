@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -90,7 +91,11 @@ public class CartItemService {
 
                 if (existingItem.isPresent()) {
                     CartItemEntity cartItem = existingItem.get();
-                    cartItem.setQuantity(cartItem.getQuantity() + itemReq.getQuantity());
+
+                    BigDecimal currentQty = cartItem.getQuantity() != null ? cartItem.getQuantity() : BigDecimal.ZERO;
+                    BigDecimal newQty = itemReq.getQuantity() != null ? itemReq.getQuantity() : BigDecimal.ZERO;
+                    cartItem.setQuantity(currentQty.add(newQty));
+
                     itemIds.add(itemId);
                     log.info("[ADD TO CART] Updated existing cart item. itemId={}, newQty={}, cartItemId={}",
                             itemId, cartItem.getQuantity(), cartItem.getId());
@@ -180,7 +185,7 @@ public class CartItemService {
         Long customerId = UserContextHolder.getRequiredUser().getId();
         Long itemId = dto.getItemId();
         String newUnit = dto.getUnit();
-        Integer newQty = dto.getQuantity();
+        BigDecimal newQty = dto.getQuantity();
 
         log.info("[UPDATE CART ITEM] customerId={}, itemId={}, newUnit={}, newQty={}", customerId, itemId, newUnit, newQty);
 

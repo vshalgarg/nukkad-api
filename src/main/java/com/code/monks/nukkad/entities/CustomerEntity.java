@@ -12,9 +12,10 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class CustomerEntity extends UserEntity {
 
+    @EqualsAndHashCode.Include
     @Id
     @Column(name = "id")
     private Long id;

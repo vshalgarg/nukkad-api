@@ -2,6 +2,7 @@ package com.code.monks.nukkad.dto.response;
 
 import com.code.monks.nukkad.entities.*;
 import com.code.monks.nukkad.enums.OrderStatusEnum;
+import com.code.monks.nukkad.utils.DateTimeUtils;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -12,7 +13,7 @@ import java.util.List;
 public class GetUserHistoryByStatusAndDateResponseDTO {
     private Long orderId;
     private LocalDateTime orderDate;
-//    private String customerName;
+    private LocalDateTime deliveryAt;
     private AddressSnapshotDTO address;
     private Long storeKeeperId;
     private String storekeeperNumber;
@@ -25,15 +26,10 @@ public class GetUserHistoryByStatusAndDateResponseDTO {
         GetUserHistoryByStatusAndDateResponseDTO dto = new GetUserHistoryByStatusAndDateResponseDTO();
 
         dto.setOrderId(order.getId());
-        dto.setOrderDate(order.getCreatedAt());
         dto.setOrderStatus(order.getStatus());
 
-//        // Customer Info
-//        if (order.getCustomer() != null) {
-//            dto.setCustomerName(order.getCustomer().getName());
-//        }
-
-        // Address Info from snapshot text field
+        dto.setOrderDate(DateTimeUtils.utcToLocal(order.getCreatedAt()));
+        dto.setDeliveryAt(DateTimeUtils.utcToLocal(order.getUpdatedAt()));
         dto.setAddress(order.getDeliveryAddressSnapshot());
 
         // StoreKeeper Info
