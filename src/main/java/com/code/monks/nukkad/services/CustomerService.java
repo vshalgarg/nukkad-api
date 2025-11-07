@@ -167,8 +167,11 @@ public class CustomerService {
 						return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, storeQrId);
 					});
 
-			// Check if already linked
-			if (!customer.getStorekeepers().contains(storekeeper)) {
+			boolean alreadyLinked = customer.getStorekeepers()
+					.stream()
+					.anyMatch(sk -> sk.getId().equals(storekeeper.getId()));
+
+			if (!alreadyLinked) {
 				customer.getStorekeepers().add(storekeeper);
 				customerRepository.save(customer);
 				log.info("[ADD STORE] Storekeeper successfully linked. customerId={}, storekeeperId={}", customerId, storekeeper.getId());
