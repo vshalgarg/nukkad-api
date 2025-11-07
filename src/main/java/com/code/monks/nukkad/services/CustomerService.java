@@ -13,20 +13,14 @@ import com.code.monks.nukkad.repositories.AddressRepository;
 import com.code.monks.nukkad.repositories.CustomerRepository;
 import com.code.monks.nukkad.repositories.StorekeeperRepository;
 import com.code.monks.nukkad.utils.FirebaseFileUploadHelper;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
 import org.springframework.dao.DataIntegrityViolationException;
 import com.code.monks.nukkad.utils.ExceptionHandleUtil;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import static com.code.monks.nukkad.dto.response.CreateCustomerResponseDTO.setAddress;
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
@@ -173,8 +167,11 @@ public class CustomerService {
 						return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, storeQrId);
 					});
 
-			// Check if already linked
-			if (!customer.getStorekeepers().contains(storekeeper)) {
+			boolean alreadyLinked = customer.getStorekeepers()
+					.stream()
+					.anyMatch(sk -> sk.getId().equals(storekeeper.getId()));
+
+			if (!alreadyLinked) {
 				customer.getStorekeepers().add(storekeeper);
 				customerRepository.save(customer);
 				log.info("[ADD STORE] Storekeeper successfully linked. customerId={}, storekeeperId={}", customerId, storekeeper.getId());
@@ -297,18 +294,28 @@ public class CustomerService {
 						return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, storekeeperId);
 					});
 
+			// Prevent deleting default store
+			if (customer.getDefaultStore() != null &&
+					customer.getDefaultStore().getId().equals(storekeeperId)) {
+				log.warn("[DELETE STORE] Attempt to delete default store (storekeeperId={}) for customerId={}", storekeeperId, customerId);
+				throw new AccessDeniedException(CAN_NOT_DELETE_DEFAULT_STORE);
+			}
+
 			// Remove if linked
 			if (customer.getStorekeepers().contains(storekeeper)) {
 				customer.getStorekeepers().remove(storekeeper);
 				customerRepository.save(customer);
 				log.info("[DELETE STORE] Storekeeper unlinked successfully from customerId={}", customerId);
 				return new DeleteStoreResponseDto("Store removed from customer.");
-			} else {
-				log.warn("[DELETE STORE] Storekeeper not associated with customerId={}", customerId);
-				return new DeleteStoreResponseDto("Store not associated with customer.");
 			}
 
-		} catch (ResourceNotFoundException e) {
+			log.warn("[DELETE STORE] Storekeeper not associated with customerId={}", customerId);
+			return new DeleteStoreResponseDto("Store not associated with customer.");
+
+		} catch (AccessDeniedException e) {
+			throw new AccessDeniedException(CAN_NOT_DELETE_DEFAULT_STORE);
+		}
+		catch (ResourceNotFoundException e) {
 			throw e;
 
 		} catch (Exception e) {
@@ -345,4 +352,44 @@ public class CustomerService {
 		}
 	}
 
+    public SetDefaultStoreResponseDTO setDefaultStore(Long storekeeperId) {
+		Long contextUser = UserContextHolder.getUser().getId();
+		log.info("Setting default store. customerId={}, storekeeperId={}", contextUser, storekeeperId);
+
+		CustomerEntity currCustomer = customerRepository.findById(contextUser)
+				.orElseThrow(() -> new ResourceNotFoundException(CUSTOMER_NOT_FOUND, contextUser));
+		StorekeeperEntity storekeeper = storekeeperRepository.findById(storekeeperId)
+				.orElseThrow(() -> {
+					log.error("[Storekeeper not found. ID={}", storekeeperId);
+					return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, storekeeperId);
+				});
+		boolean linked = currCustomer.getStorekeepers().stream()
+				.anyMatch(s -> s.getId().equals(storekeeperId));
+		if (!linked) {
+			throw new ResourceNotFoundException(STORE_NOT_LINKED_WITH_CUSTOMER);
+		}
+
+		currCustomer.setDefaultStore(storekeeper);
+		 customerRepository.save(currCustomer);
+		log.info("Default store set successfully for customerId={}, storekeeperId={}", contextUser, storekeeperId);
+
+		return new SetDefaultStoreResponseDTO("Default store set successfully");
+	}
+
+	public GetDefaultStoreResponseDTO getDefaultStore() {
+		Long customerId = UserContextHolder.getUser().getId();
+		log.info("Fetching default store for customerId={}", customerId);
+		CustomerEntity currCustomer = customerRepository.findById(customerId)
+				.orElseThrow(() -> new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId));
+		StorekeeperEntity store = currCustomer.getDefaultStore();
+		if (store == null) {
+			throw new ResourceNotFoundException(DEFAULT_STORE_NOT_SET);
+		}
+
+		log.info("Default store fetched successfully for customerId={}, storekeeperId={}", customerId, store.getId());
+		return new GetDefaultStoreResponseDTO(
+				store.getId(),
+				store.getStoreName()
+		);
+	}
 }

@@ -12,9 +12,10 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class CustomerEntity extends UserEntity {
 
+    @EqualsAndHashCode.Include
     @Id
     @Column(name = "id")
     private Long id;
@@ -50,5 +51,9 @@ public class CustomerEntity extends UserEntity {
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "customer_id", referencedColumnName = "id", insertable = false, updatable = false)
     private List<AddressEntity> addresses = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "default_store_id")
+    private StorekeeperEntity defaultStore;
 
 }

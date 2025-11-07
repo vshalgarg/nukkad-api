@@ -51,7 +51,6 @@ CREATE TABLE IF NOT EXISTS customer (
     mobile_number VARCHAR(30) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
     INDEX idx_customer_mobile (mobile_number),
     INDEX idx_customer_name_dob (name, dob),
     INDEX idx_customer_created_at (created_at)
@@ -276,3 +275,12 @@ CREATE TABLE user_notifications (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+-- Add the new column
+ALTER TABLE customer ADD COLUMN default_store_id BIGINT NULL;
+
+-- Add the foreign key constraint
+ALTER TABLE customer ADD CONSTRAINT fk_customer_default_store
+FOREIGN KEY (default_store_id) REFERENCES storekeeper(id);
+
+ALTER TABLE cart_item MODIFY COLUMN quantity DECIMAL(10,2) NOT NULL;
+ALTER TABLE order_item MODIFY COLUMN quantity DECIMAL(10,2) NOT NULL;

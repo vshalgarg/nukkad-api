@@ -12,13 +12,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true ,callSuper = false)
 @Entity
 @Table(name = "storekeeper")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class StorekeeperEntity extends UserEntity{
+	@EqualsAndHashCode.Include
 	@Id
 	@Column(name = "id")
     private Long id;

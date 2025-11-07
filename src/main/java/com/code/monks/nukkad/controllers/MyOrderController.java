@@ -56,9 +56,9 @@ public class MyOrderController
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"));
 
-        PagedOrderHistoryResponseDTO response = orderService.getUserHistoryByOptionalFilters(
+        PagedOrderHistoryResponseDTO response = orderService.getOrderHistoryByOptionalFilters(
                 status, startDate, endDate, minPrice, maxPrice, pageable);
 
         return ResponseEntity.ok(response);

@@ -1,10 +1,10 @@
 package com.code.monks.nukkad.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -14,7 +14,7 @@ public class ItemDetailsDTO {
   private Long itemId;
   private String itemName;
   private String unit;
-  private int quantity;
+  private BigDecimal quantity;
   private Double price;
   private List<String> imageUrls;
 }

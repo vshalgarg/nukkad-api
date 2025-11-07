@@ -28,22 +28,23 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                withCredentials([
-		  string(credentialsId: 'NUKKAD_MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
-		  file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
-		]) {
-		    sh """
-		    cp $FIREBASE_CRED_FILE firebase.json
-
-		    docker build -t ${IMAGE_NAME}:${TAG} .
-
-		    rm -f firebase.json  
-		    """
-		}
+    stage('Build Docker Image') {
+        steps {
+            withCredentials([
+                string(credentialsId: 'NUKKAD_MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
+                file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
+            ]) {
+                sh """
+                    # Copy to temp directory first
+                    cp "$FIREBASE_CRED_FILE" /tmp/firebase.json
+                    # Use the copied file in Docker build
+                    docker build -t ${IMAGE_NAME}:${TAG} --build-arg FIREBASE_CRED_FILE=/tmp/firebase.json .
+                    # Clean up
+                    rm -f /tmp/firebase.json
+                """
             }
         }
+    }
 
         stage('Push to Registry') {
             steps {
@@ -65,27 +66,32 @@ pipeline {
             }
         }
 
-        stage('Run New Container') {
-            steps {
-            	withCredentials([string(credentialsId: 'NUKKAD_MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
-            			file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')]) {
-		        sh """
-			cp "$FIREBASE_CRED_FILE" firebase.json
+      stage('Run New Container') {
+          steps {
+              withCredentials([
+                  string(credentialsId: 'NUKKAD_MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
+                  file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
+              ]) {
+                  sh """
+                  # Use temp directory like in Build stage
+                  cp "$FIREBASE_CRED_FILE" /tmp/firebase_run.json
 
-			docker run -d --name "$CONTAINER_NAME" -p "$PORT_MAPPING" \
-			  --add-host=host.docker.internal:host-gateway \
-			  --restart unless-stopped \
-			  -e SPRING_PROFILES_ACTIVE=dev \
-			  -e spring.datasource.password="$MYSQL_PASSWORD" \
-			  -e FIREBASE_CREDENTIAL_PATH=/app/firebase.json \
-			  -v /var/log/hrms-api:/logs \
-			  "$IMAGE_NAME:$TAG"
-			  
-			rm -f firebase.json
-		      """
-	        }
-            }
-        }
+                  docker run -d --name ${CONTAINER_NAME} -p ${PORT_MAPPING} \\
+                  --add-host=host.docker.internal:host-gateway \\
+                  --restart unless-stopped \\
+                  -e SPRING_PROFILES_ACTIVE=dev \\
+                  -e spring.datasource.password=${MYSQL_PASSWORD} \\
+                  -e FIREBASE_CREDENTIAL_PATH=/app/firebase.json \\
+                  -v /tmp/firebase_run.json:/app/firebase.json:ro \\
+                  -v /var/log/hrms-api:/logs \\
+                  ${IMAGE_NAME}:${TAG}
+
+                  # Clean up
+                  rm -f /tmp/firebase_run.json
+                  """
+              }
+          }
+      }
 
 	stage('Clean Up') {
 	    steps {

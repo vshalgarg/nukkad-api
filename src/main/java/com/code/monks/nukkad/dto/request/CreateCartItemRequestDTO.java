@@ -2,6 +2,7 @@ package com.code.monks.nukkad.dto.request;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -11,7 +12,7 @@ public class CreateCartItemRequestDTO {
     @Data
     public static class CartItemRequest {
         private Long itemId;
-        private int quantity;
+        private BigDecimal quantity;
         private String unit;
     }
 }

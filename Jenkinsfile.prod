@@ -32,7 +32,7 @@ pipeline {
 		    sh """
 		    cp $FIREBASE_CRED_FILE firebase.json
 		    docker build -t ${IMAGE_NAME}:latest .
-		    rm -f firebase.json  
+		    rm -f firebase.json
 		    """
 		}
             }
@@ -43,7 +43,7 @@ pipeline {
                 sh "docker save ${IMAGE_NAME}:latest -o ${IMAGE_NAME}.tar"
             }
         }
-        
+
         stage('Transfer Docker Image') {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'e2e-ssh', keyFileVariable: 'SSH_KEY')]) {

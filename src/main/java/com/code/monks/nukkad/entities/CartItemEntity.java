@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "cart_item")
 @Data
@@ -30,7 +32,7 @@ public class CartItemEntity extends BaseEntity {
     private ItemEntity item;
 
     @Column(name = "quantity")
-    private int quantity;
+    private BigDecimal quantity;
 
     @Column(name = "unit")
     private String unit;
