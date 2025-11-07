@@ -29,17 +29,21 @@ pipeline {
 		  string(credentialsId: 'NUKKAD_MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
 		  file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
 		]) {
-		    sh '''
-		       
-		        cat "$FIREBASE_CRED_FILE" > firebase.json
-		      
-		        echo "Building Docker image: ${IMAGE_NAME}:${TAG}"
+		   sh '''
+		        set -e
+		        echo "===== Debug Info ====="
+		        pwd
+		        whoami
+		        ls -ld .
+		        echo "======================"
+
+		        echo "Copying Firebase credentials safely..."
+		        TMP_JSON=$(mktemp /tmp/firebase.XXXXXX.json)
+		        cat "$FIREBASE_CRED_FILE" > "$TMP_JSON"
+
 		        docker build -t ${IMAGE_NAME}:${TAG} .
 
-		        echo "Cleaning up Firebase credentials..."
-		        rm -f "$TARGET_JSON"
-
-		        echo "✅ Docker build complete!"
+		        rm -f "$TMP_JSON"
 		    '''
 		}
             }
