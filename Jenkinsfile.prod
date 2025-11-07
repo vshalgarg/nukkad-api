@@ -41,7 +41,7 @@ pipeline {
 		        TMP_JSON=$(mktemp /tmp/firebase.XXXXXX.json)
 		        cat "$FIREBASE_CRED_FILE" > "$TMP_JSON"
 
-		        docker build -t ${IMAGE_NAME}:${TAG} .
+		        docker build -t ${IMAGE_NAME}:latest .
 
 		        rm -f "$TMP_JSON"
 		    '''
