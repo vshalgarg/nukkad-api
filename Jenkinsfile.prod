@@ -30,16 +30,9 @@ pipeline {
 		  file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
 		]) {
 		    sh '''
-		        set -e  # stop on any error
-		        ls -ld .
-		        ls -l "$FIREBASE_CRED_FILE" || echo "Firebase file not found!"
-		        # Create absolute path for firebase.json to avoid space issues
-		        WORK_DIR="$(pwd)"
-		        TARGET_JSON="$WORK_DIR/firebase.json"
-
-		        cp "$FIREBASE_CRED_FILE" "$TARGET_JSON"
-		        ls -l "$TARGET_JSON"
-
+		       
+		        cat "$FIREBASE_CRED_FILE" > firebase.json
+		      
 		        echo "Building Docker image: ${IMAGE_NAME}:${TAG}"
 		        docker build -t ${IMAGE_NAME}:${TAG} .
 
