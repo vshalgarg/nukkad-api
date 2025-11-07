@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+	agent any
 
     environment {
         APP_NAME      = 'nukkad-api-prod'
@@ -7,13 +7,13 @@ pipeline {
         REMOTE_PATH   = "${E2E_REMOTE_PATH_BASE}/${APP_NAME}"
         SSH_USER      = "${E2E_SSH_USER}"
         SSH_HOST      = "${E2E_SSH_HOST}"
-        DB_PASSWORD   = credentials('E2E_DB_PSWD_NUKKAD')
+        DB_PASSWORD   = credentials('E2E_DB_PSWD_HRMS')  // Jenkins secret
     }
 
     stages {
-        stage('Checkout') {
+     	stage('Checkout') {
             steps {
-                git branch: 'prod', url: 'git@github.com:vshalgarg/nukkad-api.git'
+                checkout scm
             }
         }
 
@@ -26,14 +26,15 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 withCredentials([
-                    file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
-                ]) {
-                    sh """
-                        cp "$FIREBASE_CRED_FILE" firebase.json
-                        docker build -t ${IMAGE_NAME}:latest .
-                        rm -f firebase.json
-                    """
-                }
+		  string(credentialsId: 'NUKKAD_MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
+		  file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
+		]) {
+		    sh """
+		    cp $FIREBASE_CRED_FILE firebase.json
+		    docker build -t ${IMAGE_NAME}:latest .
+		    rm -f firebase.json
+		    """
+		}
             }
         }
 
@@ -47,23 +48,21 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'e2e-ssh', keyFileVariable: 'SSH_KEY')]) {
                     sh """
-                        ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \$SSH_USER@\$SSH_HOST "mkdir -p \$REMOTE_PATH"
-                        rsync -avz --progress -e "ssh -i \$SSH_KEY" ${IMAGE_NAME}.tar \$SSH_USER@\$SSH_HOST:\$REMOTE_PATH/
+                        ssh -i $SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST "mkdir -p $REMOTE_PATH"
+                        rsync -avz --progress -e "ssh -i $SSH_KEY" ${IMAGE_NAME}.tar $SSH_USER@$SSH_HOST:${REMOTE_PATH}/
                     """
                 }
             }
         }
 
-        stage('Deploy on E2E') {
+	stage('Deploy on E2E') {
             steps {
-                withCredentials([
-                    sshUserPrivateKey(credentialsId: 'e2e-ssh', keyFileVariable: 'SSH_KEY'),
-                    file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
-                ]) {
+                withCredentials([sshUserPrivateKey(credentialsId: 'e2e-ssh', keyFileVariable: 'SSH_KEY'),
+        			 file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')]) {
                     sh """
-                        ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \$SSH_USER@\$SSH_HOST << 'EOF'
-                        cd \$REMOTE_PATH
-                        cp "$FIREBASE_CRED_FILE" firebase.json
+                    	cp "$FIREBASE_CRED_FILE" firebase.json
+                        ssh -i \$SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST << 'EOF'
+                        cd $REMOTE_PATH
                         docker load -i ${IMAGE_NAME}.tar
 
                         docker stop ${IMAGE_NAME} || true
@@ -71,28 +70,31 @@ pipeline {
 
                         docker run -d --name ${IMAGE_NAME} \\
                             --network backend-net \\
-                            -p 8084:8080 \\
                             -e SPRING_PROFILES_ACTIVE=prod \\
-                            -e spring.datasource.password=\${DB_PASSWORD} \\
+                            -e spring.datasource.password=${DB_PASSWORD} \\
                             -e FIREBASE_CREDENTIAL_PATH=/app/firebase.json \\
                             --restart unless-stopped \\
                             ${IMAGE_NAME}:latest
-
-                        rm -f firebase.json
+			rm -f firebase.json
                         exit 0
-EOF
+		EOF
                     """
                 }
             }
         }
-    }
 
+	stage('Clean Up') {
+	    steps {
+		sh 'docker image prune -f'
+	    }
+	}
+    }
     post {
         success {
-            echo "${APP_NAME} deployment successful!"
+            echo "✅ Dockerized deployment successful!"
         }
         failure {
-            echo "${APP_NAME} deployment failed!"
+            echo "❌ Dockerized deployment failed."
         }
     }
 }
