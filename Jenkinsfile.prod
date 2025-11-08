@@ -69,16 +69,20 @@ pipeline {
 	stage('Deploy on E2E') {
     steps {
         withCredentials([
-            sshUserPrivateKey(credentialsId: 'e2e-ssh', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER'),
+            sshUserPrivateKey(
+                credentialsId: 'e2e-ssh',
+                keyFileVariable: 'E2E_SSH_KEY',
+                usernameVariable: 'E2E_SSH_USER'
+            ),
             file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
         ]) {
             sh '''
-                # Copy Firebase credential file to a safe temporary location
+                # Copy Firebase credential file to a temporary location
                 cp "$FIREBASE_CRED_FILE" /tmp/firebase.json
 
-                # SSH into remote host and deploy
-                ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "$SSH_USER@$SSH_HOST" << 'EOF'
-                    set -e  # stop on error
+                # SSH into the E2E host and deploy
+                ssh -i "$E2E_SSH_KEY" -o StrictHostKeyChecking=no "$E2E_SSH_USER@$SSH_HOST" << 'EOF'
+                    set -e
                     cd "$REMOTE_PATH"
 
                     echo "Loading Docker image..."
@@ -102,13 +106,12 @@ pipeline {
                     exit 0
                 EOF
 
-                # Clean up local temp file
+                # Clean up the temp Firebase file
                 rm -f /tmp/firebase.json
             '''
         }
     }
 }
-
 
 	stage('Clean Up') {
 	    steps {
