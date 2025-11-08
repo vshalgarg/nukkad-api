@@ -77,8 +77,8 @@ pipeline {
             file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
         ]) {
             sh '''
-                # Copy Firebase credential file to a temporary location
-                cp "$FIREBASE_CRED_FILE" /tmp/firebase.json
+                # Copy Firebase credential file into Jenkins workspace
+                cp "$FIREBASE_CRED_FILE" "$WORKSPACE/firebase.json"
 
                 # SSH into the E2E host and deploy
                 ssh -i "$E2E_SSH_KEY" -o StrictHostKeyChecking=no "$E2E_SSH_USER@$SSH_HOST" << 'EOF'
@@ -95,7 +95,7 @@ pipeline {
                     echo "Starting new container..."
                     docker run -d --name "${IMAGE_NAME}" \\
                         --network backend-net \\
-                        -v /tmp/firebase.json:/app/firebase.json \\
+                        -v "$WORKSPACE/firebase.json:/app/firebase.json" \\
                         -e SPRING_PROFILES_ACTIVE=prod \\
                         -e spring.datasource.password="${DB_PASSWORD}" \\
                         -e FIREBASE_CREDENTIAL_PATH=/app/firebase.json \\
@@ -106,8 +106,8 @@ pipeline {
                     exit 0
                 EOF
 
-                # Clean up the temp Firebase file
-                rm -f /tmp/firebase.json
+                # Clean up the workspace Firebase file
+                rm -f "$WORKSPACE/firebase.json"
             '''
         }
     }
