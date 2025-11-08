@@ -67,32 +67,48 @@ pipeline {
         }
 
 	stage('Deploy on E2E') {
-            steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'e2e-ssh', keyFileVariable: 'SSH_KEY'),
-        			 file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')]) {
-                    sh """
-                    	cp "$FIREBASE_CRED_FILE" firebase.json
-                        ssh -i \$SSH_KEY -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST << 'EOF'
-                        cd $REMOTE_PATH
-                        docker load -i ${IMAGE_NAME}.tar
+    steps {
+        withCredentials([
+            sshUserPrivateKey(credentialsId: 'e2e-ssh', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER'),
+            file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
+        ]) {
+            sh '''
+                # Copy Firebase credential file to a safe temporary location
+                cp "$FIREBASE_CRED_FILE" /tmp/firebase.json
 
-                        docker stop ${IMAGE_NAME} || true
-                        docker rm ${IMAGE_NAME} || true
+                # SSH into remote host and deploy
+                ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "$SSH_USER@$SSH_HOST" << 'EOF'
+                    set -e  # stop on error
+                    cd "$REMOTE_PATH"
 
-                        docker run -d --name ${IMAGE_NAME} \\
-                            --network backend-net \\
-                            -e SPRING_PROFILES_ACTIVE=prod \\
-                            -e spring.datasource.password=${DB_PASSWORD} \\
-                            -e FIREBASE_CREDENTIAL_PATH=/app/firebase.json \\
-                            --restart unless-stopped \\
-                            ${IMAGE_NAME}:latest
-			rm -f firebase.json
-                        exit 0
-		EOF
-                    """
-                }
-            }
+                    echo "Loading Docker image..."
+                    docker load -i "${IMAGE_NAME}.tar"
+
+                    echo "Stopping and removing old container if exists..."
+                    docker stop "${IMAGE_NAME}" || true
+                    docker rm "${IMAGE_NAME}" || true
+
+                    echo "Starting new container..."
+                    docker run -d --name "${IMAGE_NAME}" \\
+                        --network backend-net \\
+                        -v /tmp/firebase.json:/app/firebase.json \\
+                        -e SPRING_PROFILES_ACTIVE=prod \\
+                        -e spring.datasource.password="${DB_PASSWORD}" \\
+                        -e FIREBASE_CREDENTIAL_PATH=/app/firebase.json \\
+                        --restart unless-stopped \\
+                        "${IMAGE_NAME}:latest"
+
+                    echo "Deployment completed successfully."
+                    exit 0
+                EOF
+
+                # Clean up local temp file
+                rm -f /tmp/firebase.json
+            '''
         }
+    }
+}
+
 
 	stage('Clean Up') {
 	    steps {
