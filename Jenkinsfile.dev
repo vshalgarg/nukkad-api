@@ -1,5 +1,5 @@
 pipeline {
-	agent any
+    agent any
 
     environment {
         IMAGE_NAME = "vshalgargnpl/nukkad-api"
@@ -14,42 +14,46 @@ pipeline {
     }
 
     stages {
-     	stage('Checkout') {
+
+        stage('Checkout') {
             steps {
-             	echo 'Checking out from git'
+                echo 'Checking out from git'
                 git branch: "${params.BRANCH_NAME}",
                     url: 'git@github.com:vshalgarg/nukkad-api.git'
             }
         }
+
         stage('Build JAR') {
             steps {
-            	echo 'Building using maven'
+                echo 'Building using maven'
                 sh './mvnw clean package -DskipTests'
             }
         }
 
-    stage('Build Docker Image') {
-        steps {
-            withCredentials([
-                string(credentialsId: 'NUKKAD_MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
-                file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
-            ]) {
-                sh """
-                    # Copy to temp directory first
-                    cp "$FIREBASE_CRED_FILE" /tmp/firebase.json
-                    # Use the copied file in Docker build
-                    docker build -t ${IMAGE_NAME}:${TAG} --build-arg FIREBASE_CRED_FILE=/tmp/firebase.json .
-                    # Clean up
-                    rm -f /tmp/firebase.json
-                """
+        stage('Build Docker Image') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'NUKKAD_MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
+                    file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
+                ]) {
+                    sh(script: '''
+                        # Copy to temp directory first
+                        cp "$FIREBASE_CRED_FILE" /tmp/firebase.json
+
+                        # Use the copied file in Docker build
+                        docker build -t "$IMAGE_NAME:$TAG" --build-arg FIREBASE_CRED_FILE=/tmp/firebase.json .
+
+                        # Clean up temp file
+                        rm -f /tmp/firebase.json
+                    ''')
+                }
             }
         }
-    }
 
         stage('Push to Registry') {
             steps {
                 script {
-                	echo 'push to registry'
+                    echo 'Push to registry'
                     docker.withRegistry("https://${REGISTRY}", 'docker-credentials-id') {
                         docker.image("${IMAGE_NAME}:${TAG}").push()
                     }
@@ -59,48 +63,49 @@ pipeline {
 
         stage('Stop Existing Container') {
             steps {
-                sh """
-                docker stop ${CONTAINER_NAME} || true
-                docker rm ${CONTAINER_NAME} || true
-                """
+                sh '''
+                    docker stop "$CONTAINER_NAME" || true
+                    docker rm "$CONTAINER_NAME" || true
+                '''
             }
         }
 
-      stage('Run New Container') {
-          steps {
-              withCredentials([
-                  string(credentialsId: 'NUKKAD_MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
-                  file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
-              ]) {
-                  sh '''
-                      # Ensure workspace is clean
-                      rm -f "${WORKSPACE}/firebase_run.json"
+        stage('Run New Container') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'NUKKAD_MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
+                    file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
+                ]) {
+                    sh(script: '''
+                        # Clean workspace file if exists
+                        rm -f "${WORKSPACE}/firebase_run.json"
 
-                      # Copy Firebase credentials to workspace
-                      cp "$FIREBASE_CRED_FILE" "${WORKSPACE}/firebase_run.json"
-                      chmod 600 "${WORKSPACE}/firebase_run.json"
+                        # Copy Firebase credentials to workspace
+                        cp "$FIREBASE_CRED_FILE" "${WORKSPACE}/firebase_run.json"
+                        chmod 600 "${WORKSPACE}/firebase_run.json"
 
-                      docker run -d --name ${CONTAINER_NAME} -p ${PORT_MAPPING} \
-                        --add-host=host.docker.internal:host-gateway \
-                        --restart unless-stopped \
-                        -e SPRING_PROFILES_ACTIVE=dev \
-                        -e spring.datasource.password=${MYSQL_PASSWORD} \
-                        -e FIREBASE_CREDENTIAL_PATH=/app/firebase.json \
-                        -v ${WORKSPACE}/firebase_run.json:/app/firebase.json:ro \
-                        -v /var/log/nukkad-api:/logs \
-                        ${IMAGE_NAME}:${TAG}
+                        # Run container
+                        docker run -d --name "$CONTAINER_NAME" -p "$PORT_MAPPING" \
+                          --add-host=host.docker.internal:host-gateway \
+                          --restart unless-stopped \
+                          -e SPRING_PROFILES_ACTIVE=dev \
+                          -e spring.datasource.password="$MYSQL_PASSWORD" \
+                          -e FIREBASE_CREDENTIAL_PATH=/app/firebase.json \
+                          -v "${WORKSPACE}/firebase_run.json:/app/firebase.json:ro" \
+                          -v /var/log/nukkad-api:/logs \
+                          "$IMAGE_NAME:$TAG"
 
-                      rm -f "${WORKSPACE}/firebase_run.json"
-                  '''
-              }
-          }
-      }
+                        # Cleanup credential file
+                        rm -f "${WORKSPACE}/firebase_run.json"
+                    ''')
+                }
+            }
+        }
 
-
-	stage('Clean Up') {
-	    steps {
-		sh 'docker image prune -f'
-	    }
-	}
+        stage('Clean Up') {
+            steps {
+                sh 'docker image prune -f'
+            }
+        }
     }
 }
