@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class GetDefaultStoreResponseDTO {
 
-    private Long storeId;
+    private String storeId;
     private String storeName;
 }
