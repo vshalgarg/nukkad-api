@@ -382,13 +382,18 @@ public class CustomerService {
 		CustomerEntity currCustomer = customerRepository.findById(customerId)
 				.orElseThrow(() -> new ResourceNotFoundException(CUSTOMER_NOT_FOUND, customerId));
 		StorekeeperEntity store = currCustomer.getDefaultStore();
+		// Get default store (may be null)
 		if (store == null) {
-			throw new ResourceNotFoundException(DEFAULT_STORE_NOT_SET);
+			log.warn("CustomerId={} does not have a default store set", customerId);
+			return new GetDefaultStoreResponseDTO(
+					null,
+					null
+			);
 		}
 
 		log.info("Default store fetched successfully for customerId={}, storekeeperId={}", customerId, store.getId());
 		return new GetDefaultStoreResponseDTO(
-				store.getId(),
+				store.getStoreQrId(),
 				store.getStoreName()
 		);
 	}
