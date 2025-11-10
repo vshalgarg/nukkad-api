@@ -78,7 +78,7 @@ pipeline {
                 ]) {
                     sh(script: '''
                         # Clean workspace file if exists
-                        rm -f "${WORKSPACE}/firebase_run.json"
+                        rm -rf "${WORKSPACE}/firebase_run.json"
 
                         # Copy Firebase credentials to workspace
                         cp "$FIREBASE_CRED_FILE" "${WORKSPACE}/firebase_run.json"
