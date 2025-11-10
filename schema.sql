@@ -274,13 +274,7 @@ CREATE TABLE user_notifications (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+ALTER TABLE customer
+ADD COLUMN profile_image VARCHAR(255);
 
--- Add the new column
-ALTER TABLE customer ADD COLUMN default_store_id BIGINT NULL;
 
--- Add the foreign key constraint
-ALTER TABLE customer ADD CONSTRAINT fk_customer_default_store
-FOREIGN KEY (default_store_id) REFERENCES storekeeper(id);
-
-ALTER TABLE cart_item MODIFY COLUMN quantity DECIMAL(10,2) NOT NULL;
-ALTER TABLE order_item MODIFY COLUMN quantity DECIMAL(10,2) NOT NULL;
