@@ -1,6 +1,7 @@
 package com.code.monks.nukkad.client;
 
 import com.code.monks.nukkad.admin.request.AdminLoginRequestDto;
+import com.code.monks.nukkad.admin.request.AdminRegisterRequestDto;
 import com.code.monks.nukkad.auth.request.*;
 import com.code.monks.nukkad.auth.response.*;
 import com.code.monks.nukkad.dto.User;
@@ -45,6 +46,9 @@ public class AuthRestClient {
 
 	@Value("${auth.login.url}")
 	private String adminLoginURL;
+
+	@Value("${auth.register.url}")
+	private String adminRegisterURL;
 
 	@Autowired
 	public AuthRestClient(GenericRestClient genericRestClient) {
@@ -176,6 +180,32 @@ public class AuthRestClient {
 
 		} catch (Exception e) {
 			log.error("[AUTH SERVICE] Error calling Admin Login API: {}", e.getMessage(), e);
+			throw e;
+		}
+	}
+
+	public AuthAdminRegisterResponseDTO  callAdminRegisterApi(AdminRegisterRequestDto registerRequestDto) {
+		String url = authHost + adminRegisterURL;
+		log.info("[AUTH SERVICE] Calling Admin Register endpoint: {}", url);
+
+		AuthAdminRegisterRequestDTO authRequestDTO = new AuthAdminRegisterRequestDTO(
+				registerRequestDto.getEmail(),
+				registerRequestDto.getPassword(),
+				registerRequestDto.getRoles()
+		);
+
+		Map<String, String> headers = new HashMap<>();
+		updateHeadersForClientNameAndSecret(headers);
+
+		try {
+			AuthAdminRegisterResponseDTO  response = genericRestClient.postForEntity(
+					url, authRequestDTO, headers, AuthAdminRegisterResponseDTO.class, HttpMethod.POST);
+
+			log.info("[AUTH SERVICE] Admin registered successfully for email: {}", registerRequestDto.getEmail());
+			return response;
+
+		} catch (Exception e) {
+			log.error("[AUTH SERVICE] Error calling Admin Register API: {}", e.getMessage(), e);
 			throw e;
 		}
 	}

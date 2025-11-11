@@ -1,8 +1,11 @@
 package com.code.monks.nukkad.services.impl;
 
 import com.code.monks.nukkad.admin.request.AdminLoginRequestDto;
+import com.code.monks.nukkad.admin.request.AdminRegisterRequestDto;
 import com.code.monks.nukkad.admin.response.AdminLoginResponseDto;
+import com.code.monks.nukkad.admin.response.AdminRegisterResponseDto;
 import com.code.monks.nukkad.auth.response.AuthAdminLoginResponseDTO;
+import com.code.monks.nukkad.auth.response.AuthAdminRegisterResponseDTO;
 import com.code.monks.nukkad.client.AuthRestClient;
 import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.mapper.AdminMapper;
@@ -30,5 +33,22 @@ public class AdminServiceImpl implements AdminService {
             AdminLoginResponseDto responseDto = AdminMapper.toAdminLoginResponseDto(authLoginResponse);
             log.debug("[ADMIN SERVICE] Login response prepared for admin: {}", loginRequestDto.getEmail());
             return responseDto;
+    }
+
+    @Override
+    public AdminRegisterResponseDto register(AdminRegisterRequestDto registerRequestDto) {
+        log.info("[ADMIN SERVICE] Register request received for email: {}", registerRequestDto.getEmail());
+
+        AuthAdminRegisterResponseDTO authResponse = authRestClient.callAdminRegisterApi(registerRequestDto);
+
+        String message = switch (authResponse.getStatus()) {
+            case ACTIVE -> "Admin registered successfully and activated.";
+            case INACTIVE -> "Admin registered successfully but inactive.";
+        };
+
+        log.info("[ADMIN SERVICE] Registration completed for username: {}, Status: {}",
+                registerRequestDto.getEmail(), authResponse.getStatus());
+
+        return new AdminRegisterResponseDto(message);
     }
 }

@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.code.monks.nukkad.constants.UrlConstants.ADMIN.LOGIN;
+import static com.code.monks.nukkad.constants.UrlConstants.ADMIN.REGISTER;
+
 @Slf4j
 @Component
 public class AuthFilter extends OncePerRequestFilter {
@@ -41,7 +44,9 @@ public class AuthFilter extends OncePerRequestFilter {
         log.info("[AUTH FILTER] request.getRequestURI() = {}", path);
         return path.contains("/otp/v1/otp/send/login") ||
                 path.contains("/otp/v1/otp/verify/login") ||
-                path.contains("/admin/v1/login");
+                path.contains("/admin/v1/login") ||
+                path.contains(REGISTER) ||
+                path.contains(LOGIN);
     }
 
 

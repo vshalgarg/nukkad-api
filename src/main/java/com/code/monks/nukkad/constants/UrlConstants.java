@@ -8,6 +8,7 @@ public class UrlConstants {
 	public static class ADMIN{
 		public static final String BASE = CONTEXT + "/api/admin";
 		public static final String LOGIN = "/v1/login";
+		public static final String REGISTER="/v1/register";
 	}
 
 	public static class CATEGORY {
