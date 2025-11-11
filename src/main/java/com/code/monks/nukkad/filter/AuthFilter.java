@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.code.monks.nukkad.constants.UrlConstants.ADMIN.LOGIN;
+import static com.code.monks.nukkad.constants.UrlConstants.ADMIN.REGISTER;
+
 @Slf4j
 @Component
 public class AuthFilter extends OncePerRequestFilter {
@@ -39,7 +42,11 @@ public class AuthFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
         log.info("[AUTH FILTER] request.getRequestURI() = {}", path);
-        return path.contains("/otp/v1/otp/send/login") || path.contains("/otp/v1/otp/verify/login");
+        return path.contains("/otp/v1/otp/send/login") ||
+                path.contains("/otp/v1/otp/verify/login") ||
+                path.contains("/admin/v1/login") ||
+                path.contains(REGISTER) ||
+                path.contains(LOGIN);
     }
 
 
@@ -52,6 +59,10 @@ public class AuthFilter extends OncePerRequestFilter {
         try {
             String authHeader = request.getHeader("Authorization");
 
+            if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+                filterChain.doFilter(request, response);
+                return;
+            }
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 if (isMockEnabled && isLocalProfileActive()) {
                     log.warn("[AUTH FILTER] No token found. Injecting dummy user (LOCAL ONLY).");
