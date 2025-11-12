@@ -207,11 +207,11 @@ public class ItemService {
 
 		try {
 			// Check if user is CUSTOMER
-			if (!user.getRoles().contains(RoleEnum.CUSTOMER)) {
-				log.warn("[ACCESS DENIED] UserId={} with roles={} is not allowed to access items by category",
-						user.getId(), user.getRoles());
-				throw new AccessDeniedException(ACCESS_DENIED_FOR_STOREKEEPER_EXCEPTION);
-			}
+//			if (!user.getRoles().contains(RoleEnum.CUSTOMER)) {
+//				log.warn("[ACCESS DENIED] UserId={} with roles={} is not allowed to access items by category",
+//						user.getId(), user.getRoles());
+//				throw new AccessDeniedException(ACCESS_DENIED_FOR_STOREKEEPER_EXCEPTION);
+//			}
 
 			// Validate category
 			categoryRepository.findById(categoryId)
