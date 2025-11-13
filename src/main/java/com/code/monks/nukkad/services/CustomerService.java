@@ -387,12 +387,14 @@ public class CustomerService {
 			log.warn("CustomerId={} does not have a default store set", customerId);
 			return new GetDefaultStoreResponseDTO(
 					null,
+					null,
 					null
 			);
 		}
 
 		log.info("Default store fetched successfully for customerId={}, storekeeperId={}", customerId, store.getId());
 		return new GetDefaultStoreResponseDTO(
+				store.getId(),
 				store.getStoreQrId(),
 				store.getStoreName()
 		);
