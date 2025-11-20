@@ -44,7 +44,8 @@ public enum ResponseErrorCodes {
 	STORE_NOT_FOUND(1035,"Store not found with "),
 	STORE_NOT_LINKED_WITH_CUSTOMER(1036,"Storekeeper is not linked with this customer"),
 	DEFAULT_STORE_NOT_SET(1037,"No default store set for this customer"),
-	CAN_NOT_DELETE_DEFAULT_STORE(1038,"Cannot delete default store. Please set another store as default before deleting.");
+	CAN_NOT_DELETE_DEFAULT_STORE(1038,"Cannot delete default store. Please set another store as default before deleting."),
+	DUPLICATE_PRODUCT_FOUND(1039,"Duplicate product name detected");
 
 	private int responseCode;
 	private String message;

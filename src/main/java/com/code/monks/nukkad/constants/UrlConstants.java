@@ -9,6 +9,7 @@ public class UrlConstants {
 		public static final String BASE = CONTEXT + "/api/admin";
 		public static final String LOGIN = "/v1/login";
 		public static final String REGISTER="/v1/register";
+		public static final String UPLOAD_EXCEL_FILE="/v1/upload/file";
 	}
 
 	public static class CATEGORY {
@@ -19,6 +20,7 @@ public class UrlConstants {
 		public static final String UPDATE = "/v1/update";
 		public static final String GET_ALL = "/v1/get";
 		public static final String GET_BY_ID = "/v1/get/{id}";
+		public static final String DELETE_BY_ID ="/v1/deleteBy/id/{id}";
 	}
 	
 	public static class ITEM{
@@ -29,6 +31,7 @@ public class UrlConstants {
 		public static final String GET_BY_ID = "/v1/get_by_id/{id}";
 		public static final String UPDATE = "/v1/update/{id}";
 		public static final String GET_BY_CATEGORY = "/v1/get_by_category/{categoryId}";
+		public static final String DELETE_BY_ID ="/v1/deleteBy/id/{id}";
 
 
 	}
