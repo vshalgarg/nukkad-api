@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import static com.code.monks.nukkad.constants.UrlConstants.CATEGORY;
+import static com.code.monks.nukkad.constants.UrlConstants.CATEGORY.DELETE_BY_ID;
 import static com.code.monks.nukkad.constants.UrlConstants.CATEGORY.GET_BY_ID;
 
 @Slf4j
@@ -53,5 +54,12 @@ public class CategoryController {
 		log.info("[GET CATEGORY BY ID] Fetching category with id: {}", id);
 		CreateCategoryResponseDTO response = categoryService.getById(id);
 		return ResponseEntity.ok(response);
+	}
+
+	@DeleteMapping(DELETE_BY_ID)
+	public ResponseEntity<Void> deleteCategoryById(@PathVariable Long id) {
+		log.info("[DELETE CATEGORY BY ID] Deleting category with id: {}", id);
+		categoryService.deleteById(id);
+		return ResponseEntity.noContent().build();
 	}
 }

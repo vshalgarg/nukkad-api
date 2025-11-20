@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import static com.code.monks.nukkad.constants.UrlConstants.ITEM;
+import static com.code.monks.nukkad.constants.UrlConstants.ITEM.DELETE_BY_ID;
 import static com.code.monks.nukkad.constants.UrlConstants.ITEM.GET_BY_CATEGORY;
 
 @Slf4j
@@ -76,5 +77,10 @@ public class ItemController {
 		GetItemsByCategoryResponseDTO response = itemService.getItemsByCategory(categoryId, pageable);
 		return ResponseEntity.ok(response);
 	}
-
+	@DeleteMapping(DELETE_BY_ID)
+	public ResponseEntity<Void> deleteItemById(@PathVariable Long id) {
+		log.info("[DELETE ITEM] Deleting item with ID: {}", id);
+		itemService.deleteItem(id);
+		return ResponseEntity.noContent().build();
+	}
 }

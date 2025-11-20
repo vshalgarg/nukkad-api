@@ -176,6 +176,16 @@ public class   CategoryService {
 		}
 	}
 
+	public void deleteById(Long id) {
+		CategoryEntity category = categoryRepository.findById(id)
+				.orElseThrow(() -> {
+					log.warn("Category not found for ID={}", id);
+					return new ResourceNotFoundException(CATEGORY_NOT_FOUND, id);
+				});
+		
+		categoryRepository.delete(category);
+		log.info("[DELETE CATEGORY REQUEST SUCCESS] deleted category with ID: {}", id);
+	}
 }
 
 

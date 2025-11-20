@@ -247,6 +247,14 @@ public class ItemService {
 		}
 	}
 
-
+	public void deleteItem(Long id) {
+		ItemEntity item = itemRepository.findById(id)
+				.orElseThrow(() -> {
+					log.warn("[ITEM NOT FOUND] itemId={} not found", id);
+					return new ResourceNotFoundException(ITEM_NOT_FOUND, id);
+				});
+		itemRepository.delete(item);
+		log.info("[DELETE ITEM REQUEST SUCCESS] deleted item with ID: {}", id);
+	}
 }
 
