@@ -11,6 +11,7 @@ import com.code.monks.nukkad.dto.request.ItemExcelDTO;
 import com.code.monks.nukkad.dto.response.DeleteCustomerResponseDTO;
 import com.code.monks.nukkad.dto.response.DeleteStorekeeperResponseDTO;
 import com.code.monks.nukkad.dto.response.UploadExcelFileResponseDto;
+import com.code.monks.nukkad.enums.ResponseErrorCodes;
 import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.services.AdminService;
 import lombok.RequiredArgsConstructor;
@@ -25,10 +26,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.code.monks.nukkad.constants.UrlConstants.ADMIN.*;
-import static com.code.monks.nukkad.enums.ResponseErrorCodes.FAILED_TO_PARSE_EXCEL;
 
 @RestController
 @RequestMapping(UrlConstants.ADMIN.BASE)
@@ -96,7 +98,7 @@ public class AdminController {
 
         } catch (Exception e) {
             log.error("Failed to parse Excel file", e);
-            throw new UnhandledException(FAILED_TO_PARSE_EXCEL, e);
+            throw new UnhandledException(ResponseErrorCodes.FAILED_TO_PARSE_EXCEL_FILE, e);
         }
         UploadExcelFileResponseDto responseDto =  adminService.createProductsFromExcel(dtos);
         return ResponseEntity.ok(responseDto);
