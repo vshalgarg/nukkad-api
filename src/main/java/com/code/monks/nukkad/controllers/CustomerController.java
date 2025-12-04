@@ -14,8 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.code.monks.nukkad.constants.UrlConstants.CUSTOMER;
-import static com.code.monks.nukkad.constants.UrlConstants.CUSTOMER.GET_DEFAULT_STORE;
-import static com.code.monks.nukkad.constants.UrlConstants.CUSTOMER.SET_DEFAULT_STORE;
+import static com.code.monks.nukkad.constants.UrlConstants.CUSTOMER.*;
 
 @RestController
 @RequestMapping(CUSTOMER.BASE)
@@ -111,6 +110,25 @@ public class CustomerController {
 	@GetMapping(GET_DEFAULT_STORE)
 	public ResponseEntity<GetDefaultStoreResponseDTO> getDefaultStore() {
 		GetDefaultStoreResponseDTO response = customerService.getDefaultStore();
+		return ResponseEntity.ok(response);
+	}
+
+	@GetMapping(GET_ALL_CUSTOMERS)
+	public ResponseEntity<List<GetAllCustomerResponseDTO>> getAllCustomer(){
+		log.info("🟢 Received request to fetch all customers");
+
+		List<GetAllCustomerResponseDTO> customers = customerService.getAllCustomers();
+
+		log.info("✅ Successfully returning {} customers", customers.size());
+
+		return ResponseEntity.ok(customers);
+	}
+
+	@GetMapping(GET_CUSTOMER_BY_ID)
+	public ResponseEntity<GetCustomerProfileResponseDTO> getCustomerProfileById(@PathVariable Long id){
+		GetCustomerProfileResponseDTO response = customerService.getCustomerProfileById(id);
+
+		log.info("[GET PROFILE By Id] Profile fetched for customerId={}", response.getId());
 		return ResponseEntity.ok(response);
 	}
 }

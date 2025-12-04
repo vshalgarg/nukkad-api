@@ -399,4 +399,42 @@ public class CustomerService {
 				store.getStoreName()
 		);
 	}
+
+    public List<GetAllCustomerResponseDTO> getAllCustomers() {
+		log.info("🟢 Fetching all customers from database");
+
+		List<CustomerEntity> customers = customerRepository.findAll();
+
+		log.info("Successfully fetched {} customers", customers.size());
+
+		List<GetAllCustomerResponseDTO> response = customers.stream()
+				.map(GetAllCustomerResponseDTO::convertToDTO)
+				.collect(Collectors.toList());
+
+		log.debug("🟡 Customer data converted to DTOs: {}", response);
+
+		return response;
+
+    }
+
+	public GetCustomerProfileResponseDTO getCustomerProfileById(Long id) {
+		log.info("[GET PROFILE By Id] Fetching profile for customerId={}", id);
+		try {
+			CustomerEntity customer = customerRepository.findById(id)
+					.orElseThrow(() -> {
+						log.error("[GET PROFILE By Id] Customer not found. ID={}", id);
+						return new ResourceNotFoundException(CUSTOMER_NOT_FOUND, id);
+					});
+
+			log.info("[GET PROFILE By Id] Profile fetched successfully for customerId={}", id);
+			return GetCustomerProfileResponseDTO.fromEntity(customer);
+
+		} catch (ResourceNotFoundException e) {
+			throw e;
+
+		} catch (Exception e) {
+			log.error("[GET PROFILE BY Id] Unexpected error occurred while fetching profile for customerId={}", id, e);
+			throw new UnhandledException(UNHANDLED_EXCEPTION, e);
+		}
+	}
 }

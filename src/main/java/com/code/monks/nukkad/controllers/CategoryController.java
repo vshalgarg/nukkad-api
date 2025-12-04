@@ -1,5 +1,6 @@
 package com.code.monks.nukkad.controllers;
 
+import com.code.monks.nukkad.dto.category.PaginatedCategoryResponse;
 import com.code.monks.nukkad.dto.request.BulkCreateCategoryRequestDTO;
 import com.code.monks.nukkad.dto.request.UpdateCategoryRequestDTO;
 import com.code.monks.nukkad.dto.response.BulkCreateCategoryResponseDTO;
@@ -14,8 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import static com.code.monks.nukkad.constants.UrlConstants.CATEGORY;
-import static com.code.monks.nukkad.constants.UrlConstants.CATEGORY.DELETE_BY_ID;
-import static com.code.monks.nukkad.constants.UrlConstants.CATEGORY.GET_BY_ID;
+import static com.code.monks.nukkad.constants.UrlConstants.CATEGORY.*;
 
 @Slf4j
 @RestController
@@ -61,5 +61,14 @@ public class CategoryController {
 		log.info("[DELETE CATEGORY BY ID] Deleting category with id: {}", id);
 		categoryService.deleteById(id);
 		return ResponseEntity.noContent().build();
+	}
+
+	@GetMapping(GET_ALL_CATEGORIES)
+	public ResponseEntity<PaginatedCategoryResponse> getAllCategories(
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int size) {
+
+		PaginatedCategoryResponse response = categoryService.getAllCategories(page, size);
+		return ResponseEntity.ok(response);
 	}
 }

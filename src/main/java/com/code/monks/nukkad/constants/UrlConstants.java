@@ -10,6 +10,9 @@ public class UrlConstants {
 		public static final String LOGIN = "/v1/login";
 		public static final String REGISTER="/v1/register";
 		public static final String UPLOAD_EXCEL_FILE="/v1/upload/file";
+		public static final String UPLOAD_JSON_FILE="/v1/upload/json";
+		public static final String DELETE_CUSTOMER="/v1/delete/customer/{id}";
+		public static final String DELETE_STOREKEEPER="/v1/delete/storekeeper/{id}";
 	}
 
 	public static class CATEGORY {
@@ -21,6 +24,7 @@ public class UrlConstants {
 		public static final String GET_ALL = "/v1/get";
 		public static final String GET_BY_ID = "/v1/get/{id}";
 		public static final String DELETE_BY_ID ="/v1/deleteBy/id/{id}";
+		public static final String GET_ALL_CATEGORIES="/v1/get/all";
 	}
 	
 	public static class ITEM{
@@ -49,6 +53,8 @@ public class UrlConstants {
 
 	 public static final String SET_DEFAULT_STORE = "/v1/set/default/store/{storekeeperId}";
 	 public static final String GET_DEFAULT_STORE = "/v1/get/default/store";
+	 public static final String GET_ALL_CUSTOMERS= "v1/get/all";
+	 public static final String GET_CUSTOMER_BY_ID="v1/get/byId/{id}";
 
  }
 
@@ -67,6 +73,8 @@ public static class STOREKEEPER{
 		public static final String CREATE = "/v1/profile/save";
 		public static  final String UPDATE = "/v1/profile/update";
 		public static  final String GET_PROFILE = "/v1/get/profile";
+		public static final String GET_ALL_STOREKEEPERS="v1/get/all";
+	    public static final String GET_STOREKEEPER_BY_ID="v1/getBy/id/{id}";
 }
 
 public static class ADDRESS{

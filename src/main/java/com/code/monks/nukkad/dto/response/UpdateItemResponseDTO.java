@@ -17,7 +17,7 @@ public class UpdateItemResponseDTO {
     public static UpdateItemResponseDTO fromEntity(ItemEntity item) {
         return new UpdateItemResponseDTO(
                 item.getId(),
-                item.getName(),
+                item.getName(), 
                 Arrays.asList(item.getUnit().getUnits()),
                 item.getCategories().stream().map(CategoryEntity::getId).toList()
         );

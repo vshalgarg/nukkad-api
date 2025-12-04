@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Entity(name = "item")
-@Data
+@Getter@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class ItemEntity extends BaseEntity {
@@ -19,14 +19,17 @@ public class ItemEntity extends BaseEntity {
 	@Column(name = "id")
 	private Long id;
 
-	@Column(name = "name")
+	@Column(name = "name", unique = true)
 	private String name;
 
 	@Convert(converter = UnitEnumToCodeConverter.class)
 	@Column(name  = "unit")
 	private UnitEnum unit;
 
-	@OneToMany( mappedBy = "item", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "item",
+			cascade = CascadeType.ALL,
+			orphanRemoval = true,
+			fetch = FetchType.LAZY)
 	private List<CategoryItemImageEntity> images = new ArrayList<>();
 
 	@ManyToMany(fetch = FetchType.LAZY)

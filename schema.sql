@@ -274,7 +274,21 @@ CREATE TABLE user_notifications (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+ALTER TABLE customer ADD COLUMN default_store_id BIGINT NULL;
+
+ALTER TABLE customer ADD CONSTRAINT fk_customer_default_store
+FOREIGN KEY (default_store_id) REFERENCES storekeeper(id);
+
+ALTER TABLE cart_item MODIFY COLUMN quantity DECIMAL(10,2) NOT NULL;
+
+ALTER TABLE order_item MODIFY COLUMN quantity DECIMAL(10,2) NOT NULL;
+
 ALTER TABLE customer
 ADD COLUMN profile_image VARCHAR(255);
+
+ALTER TABLE category_item_image
+MODIFY COLUMN image_url TEXT NOT NULL;
+
 
 

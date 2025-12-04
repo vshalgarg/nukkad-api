@@ -8,7 +8,7 @@ import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity(name = "category")
-@Data
+@Getter@Setter
 public class CategoryEntity extends BaseEntity {
 
 	@Id
