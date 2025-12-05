@@ -2,6 +2,8 @@ package com.code.monks.nukkad.services;
 
 import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.User;
+import com.code.monks.nukkad.dto.category.CategoryDto;
+import com.code.monks.nukkad.dto.category.PaginatedCategoryResponse;
 import com.code.monks.nukkad.dto.request.CreateCategoryRequestDTO;
 import com.code.monks.nukkad.dto.request.UpdateCategoryRequestDTO;
 import com.code.monks.nukkad.dto.response.BulkCreateCategoryResponseDTO;
@@ -10,6 +12,7 @@ import com.code.monks.nukkad.dto.response.GetAllCategoryResponseDTO;
 import com.code.monks.nukkad.dto.response.UpdateCategoryResponseDTO;
 import com.code.monks.nukkad.entities.CategoryEntity;
 import com.code.monks.nukkad.entities.CategoryItemImageEntity;
+import com.code.monks.nukkad.entities.ItemEntity;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.exception.AccessDeniedException;
 import com.code.monks.nukkad.exception.DuplicateResourceException;
@@ -18,6 +21,10 @@ import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.CategoryRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -182,9 +189,39 @@ public class   CategoryService {
 					log.warn("Category not found for ID={}", id);
 					return new ResourceNotFoundException(CATEGORY_NOT_FOUND, id);
 				});
+		for (ItemEntity item : category.getItems()) {
+			item.getCategories().remove(category);
+		}
+
+		category.getItems().clear();
 		
 		categoryRepository.delete(category);
 		log.info("[DELETE CATEGORY REQUEST SUCCESS] deleted category with ID: {}", id);
+	}
+
+	public PaginatedCategoryResponse getAllCategories(int page, int size) {
+		log.info("Fetching categories - Page: {}, Size: {}", page, size);
+
+		Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+		Page<CategoryEntity> categoryPage = categoryRepository.findAll(pageable);
+
+		List<CategoryDto> categoryDtos = categoryPage.getContent().stream()
+				.map(CategoryDto::fromEntity)
+				.toList();
+
+		log.info("Found {} categories on page {}", categoryDtos.size(), page);
+
+		PaginatedCategoryResponse response = new PaginatedCategoryResponse();
+		response.setContent(categoryDtos);
+		response.setTotalPages(categoryPage.getTotalPages());
+		response.setTotalElements(categoryPage.getTotalElements());
+		response.setNumber(categoryPage.getNumber());
+		response.setSize(categoryPage.getSize());
+
+		log.debug("Returning Paginated Response: totalPages={}, totalElements={}, currentPage={}",
+				response.getTotalPages(), response.getTotalElements(), response.getNumber());
+
+		return response;
 	}
 }
 

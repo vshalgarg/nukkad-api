@@ -5,9 +5,15 @@ import com.code.monks.nukkad.admin.request.AdminRegisterRequestDto;
 import com.code.monks.nukkad.admin.response.AdminLoginResponseDto;
 import com.code.monks.nukkad.admin.response.AdminRegisterResponseDto;
 import com.code.monks.nukkad.constants.UrlConstants;
+import com.code.monks.nukkad.dto.jsonUpload.Categories;
+import com.code.monks.nukkad.dto.jsonUpload.ImportJsonDataResponse;
 import com.code.monks.nukkad.dto.request.ItemExcelDTO;
+import com.code.monks.nukkad.dto.response.DeleteCustomerResponseDTO;
+import com.code.monks.nukkad.dto.response.DeleteStorekeeperResponseDTO;
+import com.code.monks.nukkad.dto.response.UploadExcelFileResponseDto;
+import com.code.monks.nukkad.enums.ResponseErrorCodes;
+import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.services.AdminService;
-import com.code.monks.nukkad.services.ItemService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;
@@ -20,7 +26,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.code.monks.nukkad.constants.UrlConstants.ADMIN.*;
 
@@ -47,7 +55,7 @@ public class AdminController {
     }
 
     @PostMapping(UPLOAD_EXCEL_FILE)
-    public ResponseEntity<Map<String, String>> uploadExcel(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<UploadExcelFileResponseDto> uploadExcel(@RequestParam("file") MultipartFile file) {
         List<ItemExcelDTO> dtos = new ArrayList<>();
 
         try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
@@ -90,21 +98,37 @@ public class AdminController {
 
         } catch (Exception e) {
             log.error("Failed to parse Excel file", e);
-
-            Map<String, String> error = new HashMap<>();
-            error.put("message", "Failed to parse Excel file");
-            error.put("error", e.getMessage());
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+            throw new UnhandledException(ResponseErrorCodes.FAILED_TO_PARSE_EXCEL_FILE, e);
         }
+        UploadExcelFileResponseDto responseDto =  adminService.createProductsFromExcel(dtos);
+        return ResponseEntity.ok(responseDto);
+    }
 
-        adminService.bulkCreateFromExcel(dtos);
 
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Excel imported successfully");
-        response.put("totalImported", String.valueOf(dtos.size()));
+    @PostMapping(UPLOAD_JSON_FILE)
+    public ResponseEntity<ImportJsonDataResponse> importProductsToExistingCategories(
+             @RequestBody Categories categoriesRequest) {
+       return new ResponseEntity<>(adminService.importProductsToExistingCategories(categoriesRequest), HttpStatus.CREATED);
+    }
 
+@DeleteMapping(DELETE_CUSTOMER)
+public ResponseEntity<DeleteCustomerResponseDTO> deleteCustomerById(@PathVariable Long id){
+    DeleteCustomerResponseDTO response = adminService.deleteCustomerById(id);
+    if (response.isSuccess()) {
         return ResponseEntity.ok(response);
+    } else {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+}
+
+    @DeleteMapping(DELETE_STOREKEEPER)
+    public ResponseEntity<DeleteStorekeeperResponseDTO> deleteStorekeeperById(@PathVariable Long id){
+        DeleteStorekeeperResponseDTO response = adminService.deleteStorekeeperById(id);
+        if (response.isSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
     }
 
     // Utility to fetch string value from a cell safely

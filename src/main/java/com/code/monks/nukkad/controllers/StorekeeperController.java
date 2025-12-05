@@ -1,18 +1,22 @@
 package com.code.monks.nukkad.controllers;
 
 import com.code.monks.nukkad.dto.request.StorekeeperRequestDTO;
-import com.code.monks.nukkad.dto.response.StorekeeperResponseDTO;
+import com.code.monks.nukkad.dto.response.GetAllStorekeepersResponseDTO;
 import com.code.monks.nukkad.dto.response.GetStorekeeperProfileResponseDTO;
+import com.code.monks.nukkad.dto.response.StorekeeperResponseDTO;
 import com.code.monks.nukkad.services.StorekeeperService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 import static com.code.monks.nukkad.constants.UrlConstants.STOREKEEPER;
+import static com.code.monks.nukkad.constants.UrlConstants.STOREKEEPER.GET_ALL_STOREKEEPERS;
+import static com.code.monks.nukkad.constants.UrlConstants.STOREKEEPER.GET_STOREKEEPER_BY_ID;
 
 @Slf4j
 @RestController
@@ -59,4 +63,19 @@ public class StorekeeperController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping(GET_STOREKEEPER_BY_ID)
+    public ResponseEntity<GetStorekeeperProfileResponseDTO> getStorekeeperProfileById(@PathVariable long id){
+        GetStorekeeperProfileResponseDTO response = storekeeperService.getStorekeeperProfileById(id);
+
+        log.info("[GET PROFILE By Id] Profile fetched for storekeeperId={}", response.getId());
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping(GET_ALL_STOREKEEPERS)
+    public ResponseEntity<List<GetAllStorekeepersResponseDTO>> getStorekeeperProfileById(){
+        List<GetAllStorekeepersResponseDTO> response = storekeeperService.getAllStorekeepers();
+
+        log.info("[GET_ALL_STOREKEEPERS], success:true");
+        return ResponseEntity.ok(response);
+    }
 }

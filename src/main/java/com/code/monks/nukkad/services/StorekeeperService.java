@@ -3,8 +3,9 @@ package com.code.monks.nukkad.services;
 import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.User;
 import com.code.monks.nukkad.dto.request.StorekeeperRequestDTO;
-import com.code.monks.nukkad.dto.response.StorekeeperResponseDTO;
+import com.code.monks.nukkad.dto.response.GetAllStorekeepersResponseDTO;
 import com.code.monks.nukkad.dto.response.GetStorekeeperProfileResponseDTO;
+import com.code.monks.nukkad.dto.response.StorekeeperResponseDTO;
 import com.code.monks.nukkad.entities.StorekeeperEntity;
 import com.code.monks.nukkad.entities.StorekeeperImageEntity;
 import com.code.monks.nukkad.enums.RoleEnum;
@@ -19,10 +20,10 @@ import com.code.monks.nukkad.utils.FirebaseFileUploadHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
 
@@ -46,7 +47,6 @@ public class StorekeeperService {
         Long storekeeperId = UserContextHolder.getUser().getId();
         String mobileNumber = UserContextHolder.getUser().getMobileNumber();
         log.info("[CREATE STOREKEEPER] Creating storekeeper for ID={} and mobile={}", storekeeperId, mobileNumber);
-        //  Check if storekeeper already exists
         if (storekeeperRepository.existsById(storekeeperId)) {
             log.warn("[CREATE STOREKEEPER] Storekeeper profile already exists for ID={}", storekeeperId);
             throw new DuplicateResourceException(DUPLICATE_STOREKEEPER_PROFILE_FOUND_EXCEPTION);
@@ -56,7 +56,6 @@ public class StorekeeperService {
         storekeeper.setId(storekeeperId);
         storekeeper.setStoreQrId(storeQrId);
         storekeeper.setMobileNumber(mobileNumber);
-        // Validate for unique fields (email, gst, etc.)
         exceptionHandleUtil.validateStorekeeperUniqueFields(storekeeper);
 
         List<String> imgUrls = dto.getImageUrls();
@@ -78,7 +77,6 @@ public class StorekeeperService {
         try {
             StorekeeperEntity saved = storekeeperRepository.save(storekeeper);
             log.info("[CREATE STOREKEEPER] Storekeeper saved with ID={}", saved.getId());
-            // Set default notification status ON
             notificationStatusService.initializeStatusIfAbsent();
             return StorekeeperResponseDTO.fromEntity(saved, imgUrls);
         } catch (Exception e) {
@@ -195,5 +193,42 @@ public class StorekeeperService {
         } while (storekeeperRepository.existsByStoreQrId(storeQrId));
 
         return storeQrId;
+    }
+
+    public GetStorekeeperProfileResponseDTO getStorekeeperProfileById(long id) {
+
+        try {
+            StorekeeperEntity storekeeper = storekeeperRepository.findById(id)
+                    .orElseThrow(() -> {
+                        log.error("[GET PROFILE By Id] Storekeeper not found with ID={}", id);
+                        return new ResourceNotFoundException(STOREKEEPER_NOT_FOUND, id);
+                    });
+
+            log.info("[GET PROFILE By Id] Storekeeper profile found. ID={}, Name={}", storekeeper.getId(), storekeeper.getName());
+            return GetStorekeeperProfileResponseDTO.fromEntity(storekeeper);
+
+        } catch (ResourceNotFoundException ex) {
+            throw ex;
+        } catch (Exception e) {
+            log.error("[GET PROFILE By Id] Unexpected error while fetching storekeeper profile. ID={}", id, e);
+            throw new UnhandledException(UNHANDLED_EXCEPTION, e);
+        }
+    }
+
+    public List<GetAllStorekeepersResponseDTO> getAllStorekeepers() {
+
+        log.info("Fetching all storekeepers from database");
+
+        List<StorekeeperEntity> storekeepers = storekeeperRepository.findAll();
+
+        log.info("Successfully fetched {} storeKeepers", storekeepers.size());
+
+        List<GetAllStorekeepersResponseDTO> response = storekeepers.stream()
+                .map(GetAllStorekeepersResponseDTO::convertToDTO)
+                .collect(Collectors.toList());
+
+        log.debug("storekeeper data converted to DTOs: {}", response);
+
+        return response;
     }
 }
