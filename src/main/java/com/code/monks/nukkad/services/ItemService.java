@@ -10,12 +10,14 @@ import com.code.monks.nukkad.entities.CategoryItemImageEntity;
 import com.code.monks.nukkad.entities.ItemEntity;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.exception.AccessDeniedException;
+import com.code.monks.nukkad.exception.DuplicateResourceException;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
 import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.CategoryRepository;
 import com.code.monks.nukkad.repositories.ItemRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -92,10 +94,15 @@ public class ItemService {
 				log.info("[ITEM BULK CREATE] Item saved successfully: ID={}, Name='{}'", saved.getId(), saved.getName());
 				responses.add(CreateItemResponseDTO.fromEntity(saved));
 
-			} catch (IllegalArgumentException | ResourceNotFoundException ex) {
-				log.error("[ITEM BULK CREATE] Error for item '{}': {}", dto.getName(), ex.getMessage());
-				throw ex;
-			} catch (Exception e) {
+			} catch (ResourceNotFoundException ex) {
+				log.error("[ITEM BULK CREATE] CATEGORY_NOT_FOUND_TO_SAVE_ITEM_EXCEPTION '{}': {}", dto.getName(), ex.getMessage());
+				throw new ResourceNotFoundException(CATEGORY_NOT_FOUND_TO_SAVE_ITEM_EXCEPTION);
+			}
+			catch (DataIntegrityViolationException ex) {
+				log.warn("[ITEM BULK CREATE] Duplicate item detected: {}", dto.getName());
+				throw new DuplicateResourceException(DUPLICATE_PRODUCT_FOUND);
+			}
+			catch (Exception e) {
 				log.error("[ITEM BULK CREATE] Unexpected error while processing item '{}': {}", dto.getName(), e.getMessage(), e);
 				throw new UnhandledException(UNHANDLED_EXCEPTION,e);
 			}
