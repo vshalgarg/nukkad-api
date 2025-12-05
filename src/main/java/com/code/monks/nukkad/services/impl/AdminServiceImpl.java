@@ -85,10 +85,8 @@ public class AdminServiceImpl implements AdminService {
     public ImportJsonDataResponse importProductsToExistingCategories(Categories categoriesRequest) {
         log.info("Starting import of {} categories with products", categoriesRequest.getCategories().size());
 
-        //validation - 1 query
         validateAllProductNamesUnique(categoriesRequest);
 
-        // All category fetch
         Set<String> categoryNames = categoriesRequest.getCategories().stream()
                 .map(Category::getCategoryName)
                 .collect(Collectors.toSet());
@@ -100,7 +98,6 @@ public class AdminServiceImpl implements AdminService {
         int totalImagesProcessed = 0;
         List<String> processedCategories = new ArrayList<>();
 
-        // Safe processing (validation already done)
         for (Category categoryData : categoriesRequest.getCategories()) {
             String categoryName = categoryData.getCategoryName();
             CategoryEntity category = validateCategoryExists(categoryMap, categoryName);
@@ -140,7 +137,6 @@ public class AdminServiceImpl implements AdminService {
         List<String> existingNames = itemRepository.findExistingNames(allProductNames);
 
         if (!existingNames.isEmpty()) {
-            // First duplicate ka naam user-friendly message ke liye
             String duplicateName = existingNames.get(0);
             throw new DuplicateResourceException(
                     ResponseErrorCodes.DUPLICATE_PRODUCT_FOUND,
@@ -192,10 +188,7 @@ public class AdminServiceImpl implements AdminService {
                     .build();
         }
 
-        // Fetch all customers who have this storekeeper
         List<CustomerEntity> customers = customerRepository.findAllByStorekeepers_Id(id);
-
-        // Remove the storekeeper from each customer's storekeepers list
         for (CustomerEntity customer : customers) {
             customer.getStorekeepers().removeIf(sk -> sk.getId().equals(id));
         }
@@ -250,7 +243,6 @@ public class AdminServiceImpl implements AdminService {
         return new UploadExcelFileResponseDto("Successfully uploaded excel file in db", dtos.size());
     }
 
-    //Excel specific
     private void validateExcelProductNamesUnique(List<ItemExcelDTO> dtos) {
         if (dtos.isEmpty()) return;
 

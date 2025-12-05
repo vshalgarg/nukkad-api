@@ -36,7 +36,6 @@ public class CustomerService {
 	private final ExceptionHandleUtil exceptionHandleUtil;
 	private final NotificationStatusService notificationStatusService;
 	private final FirebaseFileUploadHelper firebaseFileUploadHelper;
-	private final ObjectMapper objectMapper;
 
 	public CreateCustomerResponseDTO createCustomer(CreateCustomerRequestDTO dto) {
 
@@ -401,7 +400,7 @@ public class CustomerService {
 	}
 
     public List<GetAllCustomerResponseDTO> getAllCustomers() {
-		log.info("🟢 Fetching all customers from database");
+		log.info("Fetching all customers from database");
 
 		List<CustomerEntity> customers = customerRepository.findAll();
 
@@ -411,7 +410,7 @@ public class CustomerService {
 				.map(GetAllCustomerResponseDTO::convertToDTO)
 				.collect(Collectors.toList());
 
-		log.debug("🟡 Customer data converted to DTOs: {}", response);
+		log.debug("Customer data converted to DTOs: {}", response);
 
 		return response;
 

@@ -47,7 +47,6 @@ public class StorekeeperService {
         Long storekeeperId = UserContextHolder.getUser().getId();
         String mobileNumber = UserContextHolder.getUser().getMobileNumber();
         log.info("[CREATE STOREKEEPER] Creating storekeeper for ID={} and mobile={}", storekeeperId, mobileNumber);
-        //  Check if storekeeper already exists
         if (storekeeperRepository.existsById(storekeeperId)) {
             log.warn("[CREATE STOREKEEPER] Storekeeper profile already exists for ID={}", storekeeperId);
             throw new DuplicateResourceException(DUPLICATE_STOREKEEPER_PROFILE_FOUND_EXCEPTION);
@@ -57,7 +56,6 @@ public class StorekeeperService {
         storekeeper.setId(storekeeperId);
         storekeeper.setStoreQrId(storeQrId);
         storekeeper.setMobileNumber(mobileNumber);
-        // Validate for unique fields (email, gst, etc.)
         exceptionHandleUtil.validateStorekeeperUniqueFields(storekeeper);
 
         List<String> imgUrls = dto.getImageUrls();
@@ -79,7 +77,6 @@ public class StorekeeperService {
         try {
             StorekeeperEntity saved = storekeeperRepository.save(storekeeper);
             log.info("[CREATE STOREKEEPER] Storekeeper saved with ID={}", saved.getId());
-            // Set default notification status ON
             notificationStatusService.initializeStatusIfAbsent();
             return StorekeeperResponseDTO.fromEntity(saved, imgUrls);
         } catch (Exception e) {
