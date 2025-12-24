@@ -2,6 +2,7 @@ package com.code.monks.nukkad.filter;
 
 import com.code.monks.nukkad.auth.request.AuthTokenRequestDto;
 import com.code.monks.nukkad.client.AuthRestClient;
+import com.code.monks.nukkad.constants.UrlConstants;
 import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.User;
 import com.code.monks.nukkad.enums.RoleEnum;
@@ -45,6 +46,7 @@ public class AuthFilter extends OncePerRequestFilter {
         return path.contains("/otp/v1/otp/send/login") ||
                 path.contains("/otp/v1/otp/verify/login") ||
                 path.contains("/admin/v1/login") ||
+                path.contains(UrlConstants.EXCEPTION_LOG.BASE + UrlConstants.EXCEPTION_LOG.ADD_EXCEPTION_LOG) ||
                 path.contains(REGISTER) ||
                 path.contains(LOGIN);
     }
