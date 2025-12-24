@@ -290,5 +290,18 @@ ADD COLUMN profile_image VARCHAR(255);
 ALTER TABLE category_item_image
 MODIFY COLUMN image_url TEXT NOT NULL;
 
+CREATE TABLE exception_log (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
+    message TEXT,
+    request_path VARCHAR(512),
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    INDEX idx_request_path (request_path),
+    INDEX idx_created_at (created_at)
+);
+
 
 

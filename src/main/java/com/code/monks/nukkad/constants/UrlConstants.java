@@ -4,7 +4,6 @@ public class UrlConstants {
 
 	public static final String CONTEXT = "/nukkad";
 
-
 	public static class ADMIN{
 		public static final String BASE = CONTEXT + "/api/admin";
 		public static final String LOGIN = "/v1/login";
@@ -134,6 +133,11 @@ public static class ADDRESS{
 		public static final String SET_STATUS = "/v1/set/status";
 		public static final String GET_NOTIFICATIONS = "/v1/get/notifications";
 		public static final String DELETE_ALL_NOTIFICATIONS = "/v1/delete/notifications";
+	}
+
+	public static class EXCEPTION_LOG{
+		public static final String BASE = CONTEXT + "/api/v1/exception_log";
+		public static final String ADD_EXCEPTION_LOG = "/add";
 	}
 
 	private UrlConstants() {
