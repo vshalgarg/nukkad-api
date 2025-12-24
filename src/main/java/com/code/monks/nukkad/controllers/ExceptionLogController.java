@@ -3,7 +3,7 @@ package com.code.monks.nukkad.controllers;
 import com.code.monks.nukkad.dto.request.ExceptionLogRequestDTO;
 import com.code.monks.nukkad.dto.response.ExceptionLogResponseDTO;
 import com.code.monks.nukkad.services.ExceptionLogService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +16,7 @@ import static com.code.monks.nukkad.constants.UrlConstants.EXCEPTION_LOG.BASE;
 
 @RestController
 @RequestMapping(BASE)
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
 public class ExceptionLogController {
 

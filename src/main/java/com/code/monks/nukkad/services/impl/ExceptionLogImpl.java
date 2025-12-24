@@ -6,13 +6,15 @@ import com.code.monks.nukkad.entities.ExceptionLogEntity;
 import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.ExceptionLogRepository;
 import com.code.monks.nukkad.services.ExceptionLogService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.UNHANDLED_EXCEPTION;
 
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Service
 public class ExceptionLogImpl implements ExceptionLogService {
 
     private final ExceptionLogRepository exceptionLogRepository;
