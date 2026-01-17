@@ -23,6 +23,7 @@ import java.util.List;
 
 import static com.code.monks.nukkad.constants.UrlConstants.ADMIN.LOGIN;
 import static com.code.monks.nukkad.constants.UrlConstants.ADMIN.REGISTER;
+import static com.code.monks.nukkad.constants.UrlConstants.OTP.VERIFY_OTP;
 
 @Slf4j
 @Component
@@ -48,7 +49,8 @@ public class AuthFilter extends OncePerRequestFilter {
                 path.contains("/admin/v1/login") ||
                 path.contains(UrlConstants.EXCEPTION_LOG.BASE + UrlConstants.EXCEPTION_LOG.ADD_EXCEPTION_LOG) ||
                 path.contains(REGISTER) ||
-                path.contains(LOGIN);
+                path.contains(LOGIN) ||
+                path.contains(VERIFY_OTP);
     }
 
 

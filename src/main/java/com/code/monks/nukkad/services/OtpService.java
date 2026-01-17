@@ -1,11 +1,14 @@
 package com.code.monks.nukkad.services;
 
+import com.code.monks.nukkad.auth.request.AuthVerifyOtpRequestDto;
+import com.code.monks.nukkad.auth.request.AuthVerifyOtpResponseWithoutFirebase;
 import com.code.monks.nukkad.auth.response.AuthSendOtpResponseDTO;
 import com.code.monks.nukkad.auth.response.AuthUserAccountDeactivateResponseDTO;
 import com.code.monks.nukkad.auth.response.AuthVerifyOtpResponseDTO;
 import com.code.monks.nukkad.client.AuthRestClient;
 import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.request.SendOtpRequestDTO;
+import com.code.monks.nukkad.dto.request.VerifyOtpRequestDto;
 import com.code.monks.nukkad.dto.request.VerifyRequestDTO;
 import com.code.monks.nukkad.dto.response.SendOtpResponseDTO;
 import com.code.monks.nukkad.dto.response.UserAccountDeactivateResponseDTO;
@@ -113,6 +116,41 @@ public class OtpService {
 				code
 		);
 	}
+
+	public VerifyOtpResponseDTO verifyLoginOtpWithoutFirebase(VerifyOtpRequestDto verifyRequestDTO) {
+		log.info("[VERIFY OTP] Verifying OTP without Firebase");
+
+		AuthVerifyOtpRequestDto authRequest = new AuthVerifyOtpRequestDto();
+		authRequest.setPhoneNumber(verifyRequestDTO.getPhoneNumber());
+		authRequest.setVerificationCode(verifyRequestDTO.getVerificationCode());
+
+		AuthVerifyOtpResponseWithoutFirebase authResponse =
+				authRestClient.verifyOtpWithoutFirebase(authRequest);
+
+		Long userId = authResponse.getUserId();
+		List<String> roles = authResponse.getRoles();
+		log.info("roles : {}",roles);
+
+		boolean firstTimeLogin = false;
+
+		if (roles.contains(RoleEnum.CUSTOMER.name())) {
+			firstTimeLogin = !customerRepository.existsById(userId);
+		} else if (roles.contains(RoleEnum.STOREKEEPER.name())) {
+			firstTimeLogin = !storekeeperRepository.existsById(userId);
+		}
+
+		final int code = firstTimeLogin ? 1501 : 1502;
+		log.info("[VERIFY OTP] OTP verified. userId: {}, firstTimeLogin: {}, code: {}", userId, firstTimeLogin, code);
+		return new VerifyOtpResponseDTO(
+				authResponse.getUserId(),
+				authResponse.getUsername(),
+				authResponse.getRoles(),
+				authResponse.getToken(),
+				authResponse.getStatus(),
+				code
+		);
+	}
+
 
 	public UserAccountDeactivateResponseDTO deactivateAccount(String firebaseToken) {
 		String mobileNumber = UserContextHolder.getUser().getMobileNumber();

@@ -50,6 +50,9 @@ public class AuthRestClient {
 	@Value("${auth.register.url}")
 	private String adminRegisterURL;
 
+	@Value("${auth.verify.otp.url}")
+	private String verifyOtpUrl;
+
 	@Autowired
 	public AuthRestClient(GenericRestClient genericRestClient) {
 		this.genericRestClient = genericRestClient;
@@ -103,6 +106,28 @@ public class AuthRestClient {
 			throw ex;
 		}
 }
+
+	public AuthVerifyOtpResponseWithoutFirebase verifyOtpWithoutFirebase(AuthVerifyOtpRequestDto verifyOtpRequestDto) {
+		String url = authHost + verifyOtpUrl;
+
+		Map<String, String> headers = new HashMap<>();
+		updateHeadersForClientNameAndSecret(headers);
+
+		try {
+			AuthVerifyOtpResponseWithoutFirebase response = genericRestClient.postForEntity(
+					url, verifyOtpRequestDto, headers, AuthVerifyOtpResponseWithoutFirebase.class, HttpMethod.POST
+			);
+
+			if (response.getUserId() == null) {
+				throw new ExternalServiceException("Invalid  response from Auth");
+			}
+			return response;
+
+		} catch (Exception ex) {
+			log.error("[ExternalServiceException] Failed to verify otp Error: {}", ex.getMessage());
+			throw ex;
+		}
+	}
 
 	public AuthUserAccountDeactivateResponseDTO callUserAccountDeactivateResponse(String firebaseToken) {
 		String url = authHost + userAccountDeactivateUrl;
