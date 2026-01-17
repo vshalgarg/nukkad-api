@@ -2,6 +2,7 @@ package com.code.monks.nukkad.controllers;
 
 import com.code.monks.nukkad.dto.request.DeactivateAndDeleteUserReqDTO;
 import com.code.monks.nukkad.dto.request.SendOtpRequestDTO;
+import com.code.monks.nukkad.dto.request.VerifyOtpRequestDto;
 import com.code.monks.nukkad.dto.request.VerifyRequestDTO;
 import com.code.monks.nukkad.dto.response.SendOtpResponseDTO;
 import com.code.monks.nukkad.dto.response.UserAccountDeactivateResponseDTO;
@@ -39,6 +40,13 @@ public class OtpController {
 		VerifyOtpResponseDTO response = otpService.verifyLoginOtp(request);
 
 		log.info("[VERIFY LOGIN] Verification result for firebaseToken: {}", request.getFirebaseToken());
+		return ResponseEntity.ok(response);
+	}
+
+	@PostMapping(OTP.VERIFY_OTP)
+	public ResponseEntity<VerifyOtpResponseDTO> verifyOtp(@RequestBody VerifyOtpRequestDto request) {
+		log.info("[VERIFY LOGIN] Request received with phone number: {}", request.getPhoneNumber());
+		VerifyOtpResponseDTO response = otpService.verifyLoginOtpWithoutFirebase(request);
 		return ResponseEntity.ok(response);
 	}
 
