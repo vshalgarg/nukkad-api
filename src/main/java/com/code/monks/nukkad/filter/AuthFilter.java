@@ -50,7 +50,8 @@ public class AuthFilter extends OncePerRequestFilter {
                 path.contains(UrlConstants.EXCEPTION_LOG.BASE + UrlConstants.EXCEPTION_LOG.ADD_EXCEPTION_LOG) ||
                 path.contains(REGISTER) ||
                 path.contains(LOGIN) ||
-                path.contains(VERIFY_OTP);
+                path.contains(VERIFY_OTP) ||
+                path.contains("/nukkad/api/admin/export-json");
     }
 
 
