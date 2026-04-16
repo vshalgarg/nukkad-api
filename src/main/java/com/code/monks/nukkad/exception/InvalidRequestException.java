@@ -12,4 +12,8 @@ public class InvalidRequestException  extends RuntimeException{
        super(error.getMessage());
        this.error = error;
    }
+    public InvalidRequestException(ResponseErrorCodes error, String customMessage) {
+        super(customMessage);  // ← uses our fullErrorReport as the message
+        this.error = error;
+    }
 }

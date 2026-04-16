@@ -9,7 +9,9 @@ import com.code.monks.nukkad.dto.jsonUpload.ImportJsonDataResponse;
 import com.code.monks.nukkad.dto.request.ItemExcelDTO;
 import com.code.monks.nukkad.dto.response.DeleteCustomerResponseDTO;
 import com.code.monks.nukkad.dto.response.DeleteStorekeeperResponseDTO;
+import com.code.monks.nukkad.dto.response.GetImageSyncStatusResponse;
 import com.code.monks.nukkad.dto.response.UploadExcelFileResponseDto;
+import com.code.monks.nukkad.enums.ImageUploadStatus;
 
 import java.util.List;
 
@@ -22,4 +24,10 @@ public interface AdminService {
 
     DeleteCustomerResponseDTO deleteCustomerById(Long id);
     DeleteStorekeeperResponseDTO deleteStorekeeperById(Long id);
+
+    GetImageSyncStatusResponse getImageSyncStatus(
+            ImageUploadStatus status,
+            Long lastSeenId
+    );
+
 }

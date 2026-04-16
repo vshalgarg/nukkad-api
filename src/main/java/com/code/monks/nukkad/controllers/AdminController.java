@@ -10,10 +10,13 @@ import com.code.monks.nukkad.dto.jsonUpload.ImportJsonDataResponse;
 import com.code.monks.nukkad.dto.request.ItemExcelDTO;
 import com.code.monks.nukkad.dto.response.DeleteCustomerResponseDTO;
 import com.code.monks.nukkad.dto.response.DeleteStorekeeperResponseDTO;
+import com.code.monks.nukkad.dto.response.GetImageSyncStatusResponse;
 import com.code.monks.nukkad.dto.response.UploadExcelFileResponseDto;
+import com.code.monks.nukkad.enums.ImageUploadStatus;
 import com.code.monks.nukkad.enums.ResponseErrorCodes;
 import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.services.AdminService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;
@@ -107,8 +110,22 @@ public class AdminController {
 
     @PostMapping(UPLOAD_JSON_FILE)
     public ResponseEntity<ImportJsonDataResponse> importProductsToExistingCategories(
-             @RequestBody Categories categoriesRequest) {
+             @Valid @RequestBody Categories categoriesRequest) {
        return new ResponseEntity<>(adminService.importProductsToExistingCategories(categoriesRequest), HttpStatus.CREATED);
+    }
+
+    @GetMapping(IMAGE_SYNC_STATUS)
+    public ResponseEntity<GetImageSyncStatusResponse> getImageSyncStatus(
+            @RequestParam ImageUploadStatus status,
+            @RequestParam(defaultValue = "0") Long lastSeenId) {
+
+        log.info("[ADMIN CONTROLLER] Image sync status requested. "
+                + "Status: {}, lastSeenId: {}", status, lastSeenId);
+
+        GetImageSyncStatusResponse response = adminService
+                .getImageSyncStatus(status, lastSeenId);//method called
+
+        return ResponseEntity.ok(response);
     }
 
 @DeleteMapping(DELETE_CUSTOMER)
@@ -120,7 +137,6 @@ public ResponseEntity<DeleteCustomerResponseDTO> deleteCustomerById(@PathVariabl
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 }
-
     @DeleteMapping(DELETE_STOREKEEPER)
     public ResponseEntity<DeleteStorekeeperResponseDTO> deleteStorekeeperById(@PathVariable Long id){
         DeleteStorekeeperResponseDTO response = adminService.deleteStorekeeperById(id);

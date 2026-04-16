@@ -47,9 +47,11 @@ public enum ResponseErrorCodes {
 	CAN_NOT_DELETE_DEFAULT_STORE(1038,"Cannot delete default store. Please set another store as default before deleting."),
 	DUPLICATE_PRODUCT_FOUND(1039,"Duplicate product name detected"),
 	FAILED_UPLOAD_EXCEL_FILE(1040, "error occur during upload excel file"),
-	FAILED_TO_PARSE_EXCEL_FILE(1041,"Failed to parse Excel file");
+	FAILED_TO_PARSE_EXCEL_FILE(1041,"Failed to parse Excel file"),
+    FIREBASE_UPLOAD_FAILED(1042, "Failed to upload image to Firebase Storage"),
+    IMAGE_DOWNLOAD_FAILED(1043, "Failed to download image from source URL");
 
-	private int responseCode;
+    private int responseCode;
 	private String message;
 
 }

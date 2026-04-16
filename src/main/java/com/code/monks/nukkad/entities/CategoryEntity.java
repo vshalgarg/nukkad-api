@@ -8,13 +8,14 @@ import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity(name = "category")
-@Getter@Setter
+@Getter
+@Setter
 public class CategoryEntity extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
-	private int id;
+	private long id;
 
 	@Column(name = "name", nullable = false, unique = true)
 	private String name;
@@ -26,6 +27,5 @@ public class CategoryEntity extends BaseEntity {
 
 	@ManyToMany(mappedBy = "categories")
 	private List<ItemEntity> items = new ArrayList<>();
-
 
 }

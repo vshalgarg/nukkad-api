@@ -1,5 +1,6 @@
 package com.code.monks.nukkad.services;
 
+import com.code.monks.nukkad.constants.FirebaseConstants;
 import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.User;
 import com.code.monks.nukkad.dto.category.CategoryDto;
@@ -13,12 +14,14 @@ import com.code.monks.nukkad.dto.response.UpdateCategoryResponseDTO;
 import com.code.monks.nukkad.entities.CategoryEntity;
 import com.code.monks.nukkad.entities.CategoryItemImageEntity;
 import com.code.monks.nukkad.entities.ItemEntity;
+import com.code.monks.nukkad.repositories.ItemRepository;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.exception.AccessDeniedException;
 import com.code.monks.nukkad.exception.DuplicateResourceException;
 import com.code.monks.nukkad.exception.ResourceNotFoundException;
 import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.repositories.CategoryRepository;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -38,6 +41,10 @@ import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
 @Slf4j
 @AllArgsConstructor
 public class   CategoryService {
+
+    private final FirebaseStorageService firebaseStorageService; // ← add
+
+    private final ItemRepository itemRepository;
 
 	private final CategoryRepository categoryRepository;
 
@@ -66,11 +73,17 @@ public class   CategoryService {
 				category.setName(dto.getName());
 
 				if (dto.getImageUrl() != null && !dto.getImageUrl().isBlank()) {
+
+                    String firebaseUrl = firebaseStorageService
+                            .uploadImageFromUrl(dto.getImageUrl(), FirebaseConstants.CATEGORY_IMAGE_TYPE);//folder/categories/category_123456.png ✅
+
 					CategoryItemImageEntity image = new CategoryItemImageEntity();
-					image.setImageUrl(dto.getImageUrl());
+
+                    image.setImageUrl(firebaseUrl);
 					category.setImage(image);
-					log.debug("[CATEGORY BULK CREATE] Image set for '{}': {}", dto.getName(), dto.getImageUrl());
-				}
+
+                    log.debug("[CATEGORY UPDATE] Image uploaded to Firebase: {}", firebaseUrl);
+                }
 
 				CategoryEntity saved = categoryRepository.save(category);
 				responseList.add(CreateCategoryResponseDTO.fromEntity(saved));
@@ -117,11 +130,17 @@ public class   CategoryService {
 
 			// Update image if present
 			if (dto.getImageUrl() != null && !dto.getImageUrl().isBlank()) {
+
+                String firebaseUrl = firebaseStorageService
+                        .uploadImageFromUrl(dto.getImageUrl(),FirebaseConstants.CATEGORY_IMAGE_TYPE);
+
 				CategoryItemImageEntity image = new CategoryItemImageEntity();
-				image.setImageUrl(dto.getImageUrl());
+				image.setImageUrl(firebaseUrl);
 				category.setImage(image);
-				log.debug("[CATEGORY UPDATE] Category image URL updated to '{}'", dto.getImageUrl());
-			}
+//
+                log.debug("[CATEGORY BULK CREATE] Image uploaded to Firebase for '{}': {}",
+                        dto.getName(), firebaseUrl);
+            }
 
 			CategoryEntity saved = categoryRepository.save(category);
 			log.info("[CATEGORY UPDATE] Category successfully updated. ID={}, Name='{}'", saved.getId(), saved.getName());
@@ -158,8 +177,6 @@ public class   CategoryService {
 		}
 	}
 
-
-
 	public CreateCategoryResponseDTO getById(Long id) {
 		log.info("[CATEGORY FETCH] Fetch request received for category ID={}", id);
 
@@ -183,21 +200,23 @@ public class   CategoryService {
 		}
 	}
 
-	public void deleteById(Long id) {
-		CategoryEntity category = categoryRepository.findById(id)
-				.orElseThrow(() -> {
-					log.warn("Category not found for ID={}", id);
-					return new ResourceNotFoundException(CATEGORY_NOT_FOUND, id);
-				});
-		for (ItemEntity item : category.getItems()) {
-			item.getCategories().remove(category);
-		}
+    @Transactional
+    public void deleteById(Long id) {
 
-		category.getItems().clear();
-		
-		categoryRepository.delete(category);
-		log.info("[DELETE CATEGORY REQUEST SUCCESS] deleted category with ID: {}", id);
-	}
+        CategoryEntity category = categoryRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Category not found for ID={}", id);
+                    return new ResourceNotFoundException(CATEGORY_NOT_FOUND, id);
+                });
+
+            //1. We DON'T delete the items.
+            // 2. We just delete the category.
+            // Because of ManyToMany, JPA will automatically delete the rows in
+            // the JOIN TABLE (the links), but keep the items safe.
+        categoryRepository.delete(category);
+
+        log.info("[DELETE CATEGORY REQUEST SUCCESS] deleted category with ID: {}", id);
+    }
 
 	public PaginatedCategoryResponse getAllCategories(int page, int size) {
 		log.info("Fetching categories - Page: {}, Size: {}", page, size);

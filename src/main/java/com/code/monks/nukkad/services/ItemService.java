@@ -8,6 +8,7 @@ import com.code.monks.nukkad.dto.response.*;
 import com.code.monks.nukkad.entities.CategoryEntity;
 import com.code.monks.nukkad.entities.CategoryItemImageEntity;
 import com.code.monks.nukkad.entities.ItemEntity;
+import com.code.monks.nukkad.enums.ImageUploadStatus;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.exception.AccessDeniedException;
 import com.code.monks.nukkad.exception.DuplicateResourceException;
@@ -39,14 +40,29 @@ public class ItemService {
 	private final ItemRepository itemRepository;
 	private final CategoryRepository categoryRepository;
 
+    //private helper method-single private helper called everywhere instead
+    private void requireAdminRole(String context) {
+        User user = UserContextHolder.getRequiredUser();
+        if (!user.getRoles().contains(RoleEnum.ADMIN)) {
+            log.warn("[{}] Access denied: User is not ADMIN (userId={})", context, user.getId());
+            throw new AccessDeniedException(ACCESS_DENIED_FOR_ADMIN_EXCEPTION);
+        }
+    }
+   //single private helper used in both methods,both bugs fixed here in one place(in createBulkItems
+   // and updateItem, AND createBulkItems was missing:)
+    private CategoryItemImageEntity buildImageEntity(String url, ItemEntity item) {
+        CategoryItemImageEntity image = new CategoryItemImageEntity();
+        image.setImageUrl(url);
+        image.setItem(item);
+        image.setUploadStatus(ImageUploadStatus.PENDING);
+        image.setRetryCount(0);
+        return image;
+    }
+//service methods
 	public BulkCreateItemResponseDTO createBulkItems(List<CreateItemRequestDTO> requestList) {
-		User admin = UserContextHolder.getRequiredUser();
-		if (!admin.getRoles().contains(RoleEnum.ADMIN)) {
-			log.warn("[ITEM BULK CREATE] Access denied: User role does not include ADMIN (userId={})", admin.getId());
-			throw new AccessDeniedException(ACCESS_DENIED_FOR_ADMIN_EXCEPTION);
-		}
+        requireAdminRole("ITEM BULK CREATE");
 
-		log.info("[ITEM BULK CREATE] Starting bulk item creation. Total items to process: {}", requestList.size());
+        log.info("[ITEM BULK CREATE] Starting bulk item creation. Total items to process: {}", requestList.size());
 
 		List<CreateItemResponseDTO> responses = new ArrayList<>();
 
@@ -55,12 +71,16 @@ public class ItemService {
 
 			try {
 
-				if (dto.getCategoryIds() == null || dto.getCategoryIds().isEmpty()) {
+                if (itemRepository.existsByName(dto.getName()))
+                {
+                    log.warn("[ITEM BULK CREATE] Duplicate item found in DB: {}", dto.getName());
+                    continue;
+                }
+				if (dto.getCategoryIds() == null || dto.getCategoryIds().isEmpty())
+                {
 					log.warn("[ITEM BULK CREATE] Item '{}' skipped - No category IDs provided", dto.getName());
 					throw new IllegalArgumentException("Item must be associated with at least one category.");
 				}
-
-
 				List<CategoryEntity> categories = categoryRepository.findAllById(dto.getCategoryIds());
 				if (categories.size() != dto.getCategoryIds().size()) {
 					log.error("[ITEM BULK CREATE] Item '{}' has invalid/missing categories. Expected={}, Found={}",
@@ -68,28 +88,19 @@ public class ItemService {
 					throw new ResourceNotFoundException(CATEGORY_NOT_FOUND_TO_SAVE_ITEM_EXCEPTION);
 				}
 
-
 				ItemEntity item = new ItemEntity();
 				item.setName(dto.getName());
 				item.setUnit(dto.getUnit());
 				item.setCategories(categories);
 				log.debug("[ITEM BULK CREATE] Basic fields and categories set for item '{}'", dto.getName());
 
-
 				if (dto.getImageUrls() != null && !dto.getImageUrls().isEmpty()) {
-					List<CategoryItemImageEntity> images = dto.getImageUrls().stream()
-							.map(url -> {
-								CategoryItemImageEntity image = new CategoryItemImageEntity();
-								image.setImageUrl(url);
-								image.setItem(item);
-								return image;
-							})
-							.toList();
+                    List<CategoryItemImageEntity> images = dto.getImageUrls().stream()
+                            .map(url -> buildImageEntity(url, item))
+                            .toList();
 					item.setImages(images);
 					log.debug("[ITEM BULK CREATE] Attached {} image(s) to item '{}'", images.size(), dto.getName());
 				}
-
-
 				ItemEntity saved = itemRepository.save(item);
 				log.info("[ITEM BULK CREATE] Item saved successfully: ID={}, Name='{}'", saved.getId(), saved.getName());
 				responses.add(CreateItemResponseDTO.fromEntity(saved));
@@ -102,111 +113,58 @@ public class ItemService {
 				log.warn("[ITEM BULK CREATE] Duplicate item detected: {}", dto.getName());
 				throw new DuplicateResourceException(DUPLICATE_PRODUCT_FOUND);
 			}
-			catch (Exception e) {
-				log.error("[ITEM BULK CREATE] Unexpected error while processing item '{}': {}", dto.getName(), e.getMessage(), e);
-				throw new UnhandledException(UNHANDLED_EXCEPTION,e);
-			}
-		}
-
-		log.info("[ITEM BULK CREATE] Successfully created {} item(s)", responses.size());
-		return new BulkCreateItemResponseDTO(responses);
+        }
+            log.info("[ITEM BULK CREATE] Successfully created {} item(s)", responses.size());
+            return new BulkCreateItemResponseDTO(responses);
 	}
-
-
-
 	public Page<GetAllItemResponseDTO> getAllItems(int page, int size, String sortBy) {
-		User admin = UserContextHolder.getRequiredUser();
-		if (!admin.getRoles().contains(RoleEnum.ADMIN)) {
-			log.warn("[ITEM FETCH ALL] Access denied: User role does not include ADMIN (userId={})", admin.getId());
-			throw new AccessDeniedException(ACCESS_DENIED_FOR_ADMIN_EXCEPTION);
-		}
-
+        requireAdminRole("ITEM FETCH ALL");
 		log.info("[ITEM FETCH ALL] Fetching items from DB with pagination - page: {}, size: {}, sortBy: {}", page, size, sortBy);
 
-		try {
-			Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-			Page<ItemEntity> itemPage = itemRepository.findAll(pageable);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+        Page<ItemEntity> itemPage = itemRepository.findAll(pageable);
 
-			if (itemPage.isEmpty()) {
-				log.warn("[ITEM FETCH ALL] No items found in DB.");
-				return Page.empty();
-			}
-
-			log.info("[ITEM FETCH ALL] Found {} item(s)", itemPage.getTotalElements());
-
-			return itemPage.map(GetAllItemResponseDTO::fromEntity);
-
-		} catch (Exception e) {
-			log.error("[ITEM FETCH ALL] Unexpected error while fetching items", e);
-			throw new UnhandledException(UNHANDLED_EXCEPTION, e);
-		}
-	}
-
-
+        if (itemPage.isEmpty()) {
+            log.warn("[ITEM FETCH ALL] No items found in DB.");
+            return Page.empty();
+        }
+        log.info("[ITEM FETCH ALL] Found {} item(s)", itemPage.getTotalElements());
+        return itemPage.map(GetAllItemResponseDTO::fromEntity);
+    }
 
 	public CreateItemResponseDTO getItemById(Long id) {
-		User admin = UserContextHolder.getRequiredUser();
-		if (!admin.getRoles().contains(RoleEnum.ADMIN)) {
-			log.warn("[ITEM UPDATE] Access denied: User role does not include ADMIN");
-			throw new AccessDeniedException(ACCESS_DENIED_FOR_ADMIN_EXCEPTION);
-		}
 
+        requireAdminRole("ITEM FETCH BY ID");
 		log.info("Fetching item by ID: {}", id);
-		try {
-			ItemEntity item = itemRepository.findById(id)
-					.orElseThrow(() -> new ResourceNotFoundException(ITEM_NOT_FOUND, (long) id));
-			return CreateItemResponseDTO.fromEntity(item);
-		} catch (ResourceNotFoundException e) {
-			log.warn("Item not found with ID: {}", id);
-			throw e;
-		} catch (Exception e) {
-			log.error("Unhandled exception while fetching item with ID: {}", id, e);
-			throw new UnhandledException(UNHANDLED_EXCEPTION,e);
-		}
+
+        ItemEntity item = itemRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(ITEM_NOT_FOUND, id));
+        return CreateItemResponseDTO.fromEntity(item);
 	}
 
 	public UpdateItemResponseDTO updateItem(Long id, UpdateItemRequestDTO dto) {
-		User admin = UserContextHolder.getRequiredUser();
-		if (!admin.getRoles().contains(RoleEnum.ADMIN)) {
-			log.warn("[ITEM UPDATE] Access denied: User role does not include ADMIN");
-			throw new AccessDeniedException(ACCESS_DENIED_FOR_ADMIN_EXCEPTION);
-		}
 
 		log.info("Attempting to update item with ID: {}", id);
-		try {
-			ItemEntity item = itemRepository.findById(id)
-					.orElseThrow(() -> new ResourceNotFoundException(ITEM_NOT_FOUND));
+        ItemEntity item = itemRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(ITEM_NOT_FOUND));
 
-			item.setName(dto.getName());
-			item.setUnit(dto.getUnit());
-			item.getImages().clear();
+        item.setName(dto.getName());
+        item.setUnit(dto.getUnit());
 
-			if (dto.getImageUrls() != null && !dto.getImageUrls().isEmpty()) {
-				List<CategoryItemImageEntity> images = dto.getImageUrls().stream()
-						.map(url -> {
-							CategoryItemImageEntity image = new CategoryItemImageEntity();
-							image.setImageUrl(url);
-							image.setItem(item);
-							return image;
-						})
-						.toList();
-				item.getImages().addAll(images);
-			}
+        if (dto.getImageUrls() != null) {
+            item.getImages().clear();
+            List<CategoryItemImageEntity> images = dto.getImageUrls().stream()
+                    .map(url -> buildImageEntity(url, item))
+                    .toList();
 
-			List<CategoryEntity> categories = categoryRepository.findAllById(dto.getCategoryIds());
-			item.setCategories(categories);
-
-			ItemEntity updated = itemRepository.save(item);
-			log.info("Item successfully updated: {}", updated);
-			return UpdateItemResponseDTO.fromEntity(updated);
-		} catch (ResourceNotFoundException e) {
-			log.warn("Item not found during update with ID: {}", id);
-			throw e;
-		} catch (Exception e) {
-			log.error("Unhandled exception while updating item with ID: {}", id, e);
-			throw new UnhandledException(UNHANDLED_EXCEPTION, e);
-		}
-	}
+            item.setImages(images);
+        }
+        List<CategoryEntity> categories = categoryRepository.findAllById(dto.getCategoryIds());
+        item.setCategories(categories);
+        ItemEntity updated = itemRepository.save(item);
+        log.info("Item successfully updated: {}", updated);
+        return UpdateItemResponseDTO.fromEntity(updated);
+    }
 
 	public GetItemsByCategoryResponseDTO getItemsByCategory(Long categoryId, Pageable pageable) {
 		User user = UserContextHolder.getRequiredUser();
@@ -255,11 +213,13 @@ public class ItemService {
 	}
 
 	public void deleteItem(Long id) {
-		ItemEntity item = itemRepository.findById(id)
-				.orElseThrow(() -> {
-					log.warn("[ITEM NOT FOUND] itemId={} not found", id);
-					return new ResourceNotFoundException(ITEM_NOT_FOUND, id);
-				});
+        requireAdminRole("ITEM DELETE");
+
+        ItemEntity item = itemRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("[ITEM NOT FOUND] itemId={} not found", id);
+                    return new ResourceNotFoundException(ITEM_NOT_FOUND, id);
+                });
 		itemRepository.delete(item);
 		log.info("[DELETE ITEM REQUEST SUCCESS] deleted item with ID: {}", id);
 	}

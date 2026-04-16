@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class UpdateCategoryResponseDTO {
-    private int id;
+    private Long id;
     private String name;
     private String imageUrl;
 

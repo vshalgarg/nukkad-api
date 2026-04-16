@@ -27,34 +27,32 @@ public class FirebaseFileUploadHelper {
             Blob blob = bucket.create(fileName, file.getBytes(), file.getContentType());
 
             // Manually build Firebase-style public download URL
-            String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString())
+            String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8)
                     .replace("+", "%20");
 
             return String.format("https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media",
                     bucket.getName(), encodedFileName);
 
-        } catch (IOException e) {
-            throw new UnhandledException(FAILED_TO_UPLOAD_FILE_TO_FIREBASE, e);
+        } catch (IOException ioException) {
+            throw new UnhandledException(FAILED_TO_UPLOAD_FILE_TO_FIREBASE, ioException);
         }
     }
-
     public void deleteFile(String fileUrl) {
         try {
             Bucket bucket = StorageClient.getInstance().bucket();
 
             // Extract object name from the Firebase URL
             String objectName = fileUrl.substring(fileUrl.indexOf("/o/") + 3, fileUrl.indexOf("?alt="));
-            objectName = URLDecoder.decode(objectName, StandardCharsets.UTF_8.name());
+            objectName = URLDecoder.decode(objectName, StandardCharsets.UTF_8);
 
             Blob blob = bucket.get(objectName);
             if (blob != null) {
                 blob.delete();
             }
-        } catch (Exception e) {
-            log.error("[QR DELETE] Unexpected error during Firebase deletion for URL :", e);
-            log.error("[QR DELETE] Failed to delete QR image from Firebase, aborting delete: ", e);
-
-            throw new UnhandledException(FAILED_TO_DELETE_FILE_FROM_FIREBASE, e);
+        } catch (Exception exception) {
+            log.error("[QR DELETE] Unexpected error during Firebase deletion for URL :", exception);
+            log.error("[QR DELETE] Failed to delete QR image from Firebase, aborting delete: ", exception);
+            throw new UnhandledException(FAILED_TO_DELETE_FILE_FROM_FIREBASE, exception);
         }
     }
 }

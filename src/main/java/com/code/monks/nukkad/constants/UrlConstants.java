@@ -12,6 +12,7 @@ public class UrlConstants {
 		public static final String UPLOAD_JSON_FILE="/v1/upload/json";
 		public static final String DELETE_CUSTOMER="/v1/delete/customer/{id}";
 		public static final String DELETE_STOREKEEPER="/v1/delete/storekeeper/{id}";
+        public static final String IMAGE_SYNC_STATUS   = "/v1/image/sync/status";
 	}
 
 	public static class CATEGORY {

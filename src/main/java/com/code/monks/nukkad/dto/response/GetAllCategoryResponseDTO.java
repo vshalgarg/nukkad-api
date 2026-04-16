@@ -8,7 +8,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class GetAllCategoryResponseDTO {
 
-	private int id;
+	private Long id;
 	private String name;
 	private String imageUrl;
 

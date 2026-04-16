@@ -1,6 +1,7 @@
 package com.code.monks.nukkad.dto.response;
 
 import com.code.monks.nukkad.entities.CategoryEntity;
+
 import com.code.monks.nukkad.entities.CategoryItemImageEntity;
 import com.code.monks.nukkad.entities.ItemEntity;
 import com.code.monks.nukkad.enums.UnitEnum;
@@ -8,7 +9,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+
 import java.util.stream.Collectors;
 
 @Data
@@ -19,16 +22,16 @@ public class GetAllItemResponseDTO {
     private String name;
    private List<String> unit;
     private List<String> imageUrls;
-    private List<Integer> categoryIds;
+    private List<Long> categoryIds;
 
     public static GetAllItemResponseDTO fromEntity(ItemEntity itemEntity) {
         UnitEnum unitEnum = itemEntity.getUnit();
 
-
-        List<Integer> categoryIds = itemEntity.getCategories()
-                .stream()
+        List<Long> categoryIds = itemEntity.getCategories() != null
+                ? itemEntity.getCategories().stream()
                 .map(CategoryEntity::getId)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList())
+                : Collections.emptyList();
 
         List<String> imageUrls = itemEntity.getImages()
                 .stream()

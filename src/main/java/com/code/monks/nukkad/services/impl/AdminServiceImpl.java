@@ -14,30 +14,36 @@ import com.code.monks.nukkad.dto.jsonUpload.Products;
 import com.code.monks.nukkad.dto.request.ItemExcelDTO;
 import com.code.monks.nukkad.dto.response.DeleteCustomerResponseDTO;
 import com.code.monks.nukkad.dto.response.DeleteStorekeeperResponseDTO;
+import com.code.monks.nukkad.dto.response.GetImageSyncStatusResponse;
 import com.code.monks.nukkad.dto.response.UploadExcelFileResponseDto;
 import com.code.monks.nukkad.entities.CategoryEntity;
 import com.code.monks.nukkad.entities.CategoryItemImageEntity;
 import com.code.monks.nukkad.entities.CustomerEntity;
 import com.code.monks.nukkad.entities.ItemEntity;
+import java.util.stream.IntStream;
+import com.code.monks.nukkad.enums.ImageUploadStatus;
 import com.code.monks.nukkad.enums.ResponseErrorCodes;
 import com.code.monks.nukkad.enums.UnitEnum;
 import com.code.monks.nukkad.exception.DuplicateResourceException;
-import com.code.monks.nukkad.exception.ResourceNotFoundException;
+import com.code.monks.nukkad.exception.InvalidRequestException;
 import com.code.monks.nukkad.exception.UnhandledException;
 import com.code.monks.nukkad.mapper.AdminMapper;
-import com.code.monks.nukkad.repositories.CategoryRepository;
-import com.code.monks.nukkad.repositories.CustomerRepository;
-import com.code.monks.nukkad.repositories.ItemRepository;
-import com.code.monks.nukkad.repositories.StorekeeperRepository;
+import com.code.monks.nukkad.repositories.*;
 import com.code.monks.nukkad.services.AdminService;
+import com.code.monks.nukkad.services.BatchPersistenceService;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
 
@@ -51,6 +57,12 @@ public class AdminServiceImpl implements AdminService {
     private final CategoryRepository categoryRepository;
     private final CustomerRepository customerRepository;
     private final StorekeeperRepository storekeeperRepository;
+    private final BatchPersistenceService batchPersistenceService;
+    private final CategoryItemImageRepository categoryItemImageRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @Override
     public AdminLoginResponseDto login(AdminLoginRequestDto loginRequestDto) {
 
@@ -81,81 +93,217 @@ public class AdminServiceImpl implements AdminService {
         return new AdminRegisterResponseDto(message);
     }
 
-    @Transactional
-    public ImportJsonDataResponse importProductsToExistingCategories(Categories categoriesRequest) {
-        log.info("Starting import of {} categories with products", categoriesRequest.getCategories().size());
+    @Override
+    public ImportJsonDataResponse importProductsToExistingCategories(
+            Categories categoriesRequest) {
 
-        validateAllProductNamesUnique(categoriesRequest);
+        // validation call
+        validateJsonStructure(categoriesRequest);
 
-        Set<String> categoryNames = categoriesRequest.getCategories().stream()
+        log.info("[ADMIN SERVICE] Starting bulk JSON import. Categories: {}",
+                categoriesRequest.getCategories().size());
+
+        Set<String> categoryNames = categoriesRequest
+                .getCategories()
+                .stream()
                 .map(Category::getCategoryName)
                 .collect(Collectors.toSet());
 
-        Map<String, CategoryEntity> categoryMap = categoryRepository.findAllByNameIn(categoryNames)
-                .stream().collect(Collectors.toMap(CategoryEntity::getName, Function.identity()));
-
-        int totalProductsProcessed = 0;
-        int totalImagesProcessed = 0;
-        List<String> processedCategories = new ArrayList<>();
-
-        for (Category categoryData : categoriesRequest.getCategories()) {
-            String categoryName = categoryData.getCategoryName();
-            CategoryEntity category = validateCategoryExists(categoryMap, categoryName);
-
-            int categoryProductsCount = 0;
-            for (Products productData : categoryData.getProducts()) {
-                ItemEntity product = createProductEntity(productData, category);
-                List<CategoryItemImageEntity> images = createProductImages(product, productData.getImageUrls());
-
-                itemRepository.save(product);
-                totalProductsProcessed++;
-                totalImagesProcessed += images.size();
-                categoryProductsCount++;
-            }
-
-            processedCategories.add(categoryName + "(" + categoryProductsCount + ")");
-        }
-
-        String successMessage = String.format(
-                "Successfully imported %d products with %d images across %d categories: %s",
-                totalProductsProcessed, totalImagesProcessed, processedCategories.size(),
-                processedCategories
-        );
-
-        log.info(successMessage);
-        return new ImportJsonDataResponse(successMessage);
-    }
-
-    private void validateAllProductNamesUnique(Categories categoriesRequest) {
-        Set<String> allProductNames = categoriesRequest.getCategories().stream()
-                .flatMap(cat -> cat.getProducts().stream())
+        Set<String> allProductNames = categoriesRequest
+                .getCategories()
+                .stream()
+                .flatMap(category -> category.getProducts().stream())
                 .map(Products::getName)
                 .collect(Collectors.toSet());
 
-        if (allProductNames.isEmpty()) return;
+        Map<String, CategoryEntity> categoryMap = categoryRepository
+                .findAllByNameIn(categoryNames)
+                .stream()
+                .collect(Collectors.toMap(
+                        CategoryEntity::getName,
+                        Function.identity()
+                ));
 
-        List<String> existingNames = itemRepository.findExistingNames(allProductNames);
+        Map<String, Set<String>> existingProductCategoryMap = new HashMap<>();
+        if (!allProductNames.isEmpty()) {
+            List<Object[]> existingProducts = itemRepository
+                    .findExistingProductsWithCategory(allProductNames);
 
-        if (!existingNames.isEmpty()) {
-            String duplicateName = existingNames.get(0);
-            throw new DuplicateResourceException(
-                    ResponseErrorCodes.DUPLICATE_PRODUCT_FOUND,
-                    String.format("Duplicate product found: '%s'. Please remove duplicate or rename before import.", duplicateName)
-            );
+            for (Object[] row : existingProducts) {
+                existingProductCategoryMap
+                        .computeIfAbsent((String) row[0], productName -> new HashSet<>())
+                        .add((String) row[1]);
+
+            }
         }
-    }
 
-    private CategoryEntity validateCategoryExists(Map<String, CategoryEntity> categoryMap, String categoryName) {
+        List<ItemEntity> productBatch = new ArrayList<>();
+
+        int totalProductsProcessed=0;
+        int totalImagesQueued = 0;
+        final int BATCH_SIZE = 100;
+
+        for (Category categoryData : categoriesRequest.getCategories()) {
+            String categoryName = categoryData.getCategoryName();
+            CategoryEntity category = getOrCreateCategory(categoryMap, categoryName);//category creation method called
+
+            for (Products productData : categoryData.getProducts()) {
+                String productName = productData.getName();
+
+                Set<String> dbCategories = existingProductCategoryMap
+                        .getOrDefault(productName, new HashSet<>());
+                if (dbCategories.contains(categoryName)) {
+                    log.info("[ADMIN SERVICE] Skipping '{}' — already exists "
+                            + "in category '{}'.", productName, categoryName);
+                    continue;
+                }
+
+                if (!dbCategories.isEmpty()) {
+                    log.info("[ADMIN SERVICE] Product '{}' exists in other "
+                                    + "categories {} — linking to new category '{}'.",
+                             productName, dbCategories, categoryName);
+                             ItemEntity existingItem = itemRepository
+                            .findByName(productName)
+                            .orElseThrow(() -> new UnhandledException(ResponseErrorCodes.UNHANDLED_EXCEPTION,
+                                    new RuntimeException("Critical: Product " + productName + " not found in DB")
+                            ));
+
+                      existingItem.getCategories().add(category);
+                      Set<String> existingImageUrls = categoryItemImageRepository
+                              .findImageUrlsByItemId(existingItem.getId());
+
+                    int newImagesAdded = 0;
+                    for (String imageUrl : productData.getImageUrls()) {
+                        if (!existingImageUrls.contains(imageUrl)) {
+                            CategoryItemImageEntity newImage = new CategoryItemImageEntity();
+                            newImage.setImageUrl(imageUrl);
+                            newImage.setItem(existingItem);
+                            newImage.setUploadStatus(ImageUploadStatus.PENDING);
+                            newImage.setRetryCount(0);
+                            existingItem.addImage(newImage);
+                            newImagesAdded++;
+                            log.info("[ADMIN SERVICE] New image queued for "
+                                            + "existing product '{}' → '{}'",
+                                              productName, imageUrl);
+                        } else {
+                            log.debug("[ADMIN SERVICE] Image already exists "
+                                            + "for product '{}' → '{}' skipped.",
+                                               productName, imageUrl);
+                        }
+                    }
+                    totalImagesQueued += newImagesAdded;
+                    if (!productBatch.contains(existingItem)) {
+                        productBatch.add(existingItem);}
+                } else {
+                    ItemEntity newItem = createProductEntity(productData, category);
+                    createProductImages(newItem, productData.getImageUrls());
+                    totalImagesQueued += productData.getImageUrls().size();
+                    productBatch.add(newItem);
+                }
+
+                if (productBatch.size() >= BATCH_SIZE) {
+                    batchPersistenceService.saveBatch(productBatch);
+                    totalProductsProcessed += productBatch.size();
+                    productBatch.clear();
+                    categoryMap.replaceAll((name, cat)
+                            -> batchPersistenceService.reattachCategory(cat));
+                }
+            }
+        }
+        if (!productBatch.isEmpty()) {
+            batchPersistenceService.saveBatch(productBatch);
+            totalProductsProcessed += productBatch.size();
+        }
+        log.info("[ADMIN SERVICE] Import complete.Products processed: {}, Images queued: {}",
+                totalProductsProcessed, totalImagesQueued);
+
+        return new ImportJsonDataResponse(
+                "Successfully processed " + totalProductsProcessed + " products. "
+                        + totalImagesQueued + " images queued for background upload."
+        );
+    }
+    private CategoryEntity getOrCreateCategory(Map<String, CategoryEntity> categoryMap, String categoryName) {
         CategoryEntity category = categoryMap.get(categoryName);
         if (category == null) {
-            throw new ResourceNotFoundException(
-                    ResponseErrorCodes.CATEGORY_NOT_FOUND,
-                    "Category not found: '" + categoryName + "'"
-            );
+            category = new CategoryEntity();
+            category.setName(categoryName);
+            category = categoryRepository.save(category);
+            categoryMap.put(categoryName, category);
+            log.info("Created new category: {}", categoryName);
         }
         return category;
     }
+    private ItemEntity createProductEntity(Products productData, CategoryEntity category) {
+        ItemEntity product = new ItemEntity();
+        product.setName(productData.getName());
+        product.setUnit(productData.getUnit());
+        product.setCategories(new ArrayList<>());
+        product.getCategories().add(category);
+        product.setImages(new ArrayList<>());
+        return product;
+    }
+    private void createProductImages(ItemEntity product, List<String> imageUrls) {
+        for (String imageUrl : imageUrls) {
+            CategoryItemImageEntity image = new CategoryItemImageEntity();
+            image.setImageUrl(imageUrl);
+            image.setItem(product);
+            image.setUploadStatus(ImageUploadStatus.PENDING); // For your Keyset Pagination worker
+            image.setRetryCount(0);
+            product.addImage(image);
+        }
+    }
+    @Override
+    public GetImageSyncStatusResponse getImageSyncStatus(
+            ImageUploadStatus status,
+            Long lastSeenId) {
 
+        log.info("[ADMIN SERVICE] Image sync status requested. "
+                + "Status filter: {}, lastSeenId: {}", status, lastSeenId);
+
+        long totalPending    = categoryItemImageRepository
+                .countByUploadStatus(ImageUploadStatus.PENDING);
+        long totalProcessing = categoryItemImageRepository
+                .countByUploadStatus(ImageUploadStatus.PROCESSING);
+        long totalUploaded   = categoryItemImageRepository
+                .countByUploadStatus(ImageUploadStatus.UPLOADED);
+        long totalFailed     = categoryItemImageRepository
+                .countByUploadStatus(ImageUploadStatus.FAILED);
+
+        List<CategoryItemImageEntity> images = categoryItemImageRepository
+                .findByStatusAfterIdForAdmin(status, lastSeenId);
+
+        List<GetImageSyncStatusResponse.ImageSyncItemDto> imageDtos = images.stream()
+                .map(image -> GetImageSyncStatusResponse.ImageSyncItemDto.builder()
+                        .id(image.getId())
+                        .imageUrl(image.getImageUrl())
+                        .uploadStatus(image.getUploadStatus())
+                        .retryCount(image.getRetryCount())
+                        .lastSyncedAt(image.getLastSyncedAt())
+                        .productName(image.getItem() != null ? image.getItem().getName()
+                                : "Unknown").build()).toList();
+
+        long newLastSeenId = images.isEmpty()
+                ? lastSeenId
+                : images.get(images.size() - 1)
+                .getId();
+
+        boolean hasMore = images.size() == 20;
+
+        log.info("[ADMIN SERVICE] Sync status — PENDING: {}, PROCESSING: {}, "
+                        + "UPLOADED: {}, FAILED: {}, page size: {}, hasMore: {}",
+                totalPending, totalProcessing, totalUploaded,
+                totalFailed, images.size(), hasMore);
+
+        return GetImageSyncStatusResponse.builder()
+                .totalPending(totalPending)
+                .totalProcessing(totalProcessing)
+                .totalUploaded(totalUploaded)
+                .totalFailed(totalFailed)
+                .images(imageDtos)
+                .lastSeenId(newLastSeenId)
+                .hasMore(hasMore)
+                .build();
+    }
     @Override
     public DeleteCustomerResponseDTO deleteCustomerById(Long id) {
 
@@ -175,7 +323,6 @@ public class AdminServiceImpl implements AdminService {
                 .success(true)
                 .build();
     }
-
     @Transactional
     @Override
     public DeleteStorekeeperResponseDTO deleteStorekeeperById(Long id) {
@@ -187,23 +334,18 @@ public class AdminServiceImpl implements AdminService {
                     .success(false)
                     .build();
         }
-
         List<CustomerEntity> customers = customerRepository.findAllByStorekeepers_Id(id);
         for (CustomerEntity customer : customers) {
             customer.getStorekeepers().removeIf(sk -> sk.getId().equals(id));
         }
         customerRepository.saveAll(customers);
-
         storekeeperRepository.deleteById(id);
-
         return DeleteStorekeeperResponseDTO.builder()
                 .storekeeperId(id)
                 .message("Storekeeper deleted successfully")
                 .success(true)
                 .build();
     }
-
-
     @Transactional
     public UploadExcelFileResponseDto createProductsFromExcel(List<ItemExcelDTO> dtos) {
         log.info("Starting bulk create of items from Excel. Number of items: {}", dtos.size());
@@ -262,25 +404,136 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-    private ItemEntity createProductEntity(Products productData, CategoryEntity category) {
-        ItemEntity product = new ItemEntity();
-        product.setName(productData.getName());
-        product.setUnit(productData.getUnit());
-        product.setCategories(List.of(category));
-        product.setImages(new ArrayList<>());
-        return product;
+    private void validateJsonStructure(Categories categoriesRequest) {
+
+        log.info("[JSON VALIDATION] Starting duplicate and warning checks. "
+                        + "Total categories in JSON: {}",
+                categoriesRequest.getCategories().size());
+
+        List<String> errors = new ArrayList<>();
+
+        if (categoriesRequest.getCategories() == null
+                || categoriesRequest.getCategories().isEmpty()) {
+            errors.add("Categories list is null or empty.");
+            throwIfErrors(errors);
+        }
+
+        Set<String> validUnits = Arrays.stream(UnitEnum.values())
+                .flatMap(unitEnum -> Stream.concat(
+                        Stream.of(unitEnum.name()),
+                        Arrays.stream(unitEnum.getUnits())
+                ))
+                .collect(Collectors.toSet());
+
+        Set<String> seenCategoryNames = new HashSet<>();
+
+        for (int categoryIndex = 0;
+             categoryIndex < categoriesRequest.getCategories().size();
+             categoryIndex++) {
+
+            Category currentCategory = categoriesRequest
+                    .getCategories().get(categoryIndex);
+
+            if (currentCategory.getCategoryName() == null
+                    || currentCategory.getCategoryName().isBlank()) {
+                errors.add("Category[" + categoryIndex + "] has blank or null name.");
+                continue;
+            }
+            String trimmedCategoryName = currentCategory.getCategoryName().trim();
+
+            if (!seenCategoryNames.add(trimmedCategoryName)) {
+                errors.add("Category[" + categoryIndex + "] '"
+                        + trimmedCategoryName
+                        + "' is a duplicate category name in this JSON. "
+                        + "Each category name must appear only once per import.");
+            }
+
+            if (currentCategory.getProducts() == null
+                    || currentCategory.getProducts().isEmpty()) {
+                errors.add("Category['" + trimmedCategoryName
+                        + "'] has null or empty products list.");
+                continue;
+            }
+
+            Set<String> seenProductNamesInCurrentCategory = new HashSet<>();
+            for (int productIndex = 0;
+                 productIndex < currentCategory.getProducts().size();
+                 productIndex++) {
+                Products currentProduct = currentCategory
+                        .getProducts().get(productIndex);
+
+                if (currentProduct.getName() == null
+                        || currentProduct.getName().isBlank()) {
+                    errors.add("Category['" + trimmedCategoryName
+                            + "'] → Product[" + productIndex
+                            + "] has blank or null name.");
+                    continue;
+                }
+                String trimmedProductName = currentProduct.getName().trim();
+                if (!seenProductNamesInCurrentCategory.add(trimmedProductName))
+                {
+                    log.warn("[JSON VALIDATION] Skipping duplicate product in same category — "
+                                    + "Category['{}'] → Product['{}'] at index [{}]. "
+                                    + "First occurrence will be used.",
+                            trimmedCategoryName, trimmedProductName, productIndex);
+                            continue;
+                }
+                if (currentProduct.getUnit() == null) {
+                    errors.add("Category['" + trimmedCategoryName
+                            + "'] → Product['" + trimmedProductName
+                            + "'] has null unit. Valid units: " + validUnits);
+                } else {
+                    String unitName = currentProduct.getUnit().name();
+                    if (!validUnits.contains(unitName)) {
+                        errors.add("Category['" + trimmedCategoryName
+                                + "'] → Product['" + trimmedProductName
+                                + "'] has invalid unit '"
+                                + unitName
+                                + "'. Valid units: " + validUnits);
+                }}
+                if (currentProduct.getImageUrls() == null
+                        || currentProduct.getImageUrls().isEmpty()) {
+                    errors.add("Category['" + trimmedCategoryName
+                            + "'] → Product['" + trimmedProductName
+                            + "'] has no imageUrls. "
+                            + "At least one image URL is required.");
+                    continue;
+                }
+                for (int imageIndex = 0;
+                     imageIndex < currentProduct.getImageUrls().size();
+                     imageIndex++) {
+                    String currentImageUrl = currentProduct
+                            .getImageUrls().get(imageIndex);
+                    if (currentImageUrl != null
+                            && !currentImageUrl.isBlank()
+                            && !currentImageUrl.startsWith("http://")
+                            && !currentImageUrl.startsWith("https://")
+                            && !currentImageUrl.equals("images/default.jpg")) {
+                        errors.add("Category['" + trimmedCategoryName
+                                + "'] → Product['" + trimmedProductName
+                                + "'] → imageUrl[" + imageIndex + "] '"
+                                + currentImageUrl
+                                + "' must start with http:// or https://");
+                    }
+                }
+            }
+        }
+            throwIfErrors(errors);
+            log.info("[JSON VALIDATION] PASSED — all checks passed. Proceeding to import.");
+        }
+        private void throwIfErrors (List < String > errors) {
+            if (!errors.isEmpty()) {
+                String fullErrorReport = "[JSON VALIDATION] FAILED — "
+                        + errors.size() + " error(s) found:\n"
+                        + IntStream.range(0, errors.size())
+                        .mapToObj(errorIndex ->
+                                "  [" + (errorIndex + 1) + "] " + errors.get(errorIndex))
+                        .collect(Collectors.joining("\n"));
+                log.error(fullErrorReport);
+                throw new InvalidRequestException(UNHANDLED_EXCEPTION, fullErrorReport);
+            }
+        }
     }
 
-    private List<CategoryItemImageEntity> createProductImages(ItemEntity product, List<String> imageUrls) {
-        List<CategoryItemImageEntity> images = new ArrayList<>();
-        for (String imageUrl : imageUrls) {
-            CategoryItemImageEntity image = new CategoryItemImageEntity();
-            image.setImageUrl(imageUrl);
-            image.setItem(product);
-            product.getImages().add(image);
-            images.add(image);
-        }
-        return images;
-    }
-}
+
 
