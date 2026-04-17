@@ -28,7 +28,7 @@ public class ExceptionLogController {
                 requestDTO.getMessage(), requestDTO.getRequestPath());
 
         ExceptionLogResponseDTO responseDTO = exceptionLogService.saveExceptionLog(requestDTO);
-
+ 
         log.info("Successfully saved exception log with message: {}", responseDTO.getMessage());
 
         return ResponseEntity.ok(responseDTO);
