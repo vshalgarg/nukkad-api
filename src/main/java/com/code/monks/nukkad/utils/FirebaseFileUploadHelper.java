@@ -37,6 +37,7 @@ public class FirebaseFileUploadHelper {
             throw new UnhandledException(FAILED_TO_UPLOAD_FILE_TO_FIREBASE, ioException);
         }
     }
+
     public void deleteFile(String fileUrl) {
         try {
             Bucket bucket = StorageClient.getInstance().bucket();

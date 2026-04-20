@@ -51,7 +51,7 @@ public enum ResponseErrorCodes {
     FIREBASE_UPLOAD_FAILED(1042, "Failed to upload image to Firebase Storage"),
     IMAGE_DOWNLOAD_FAILED(1043, "Failed to download image from source URL");
 
-    private int responseCode;
+	private int responseCode;
 	private String message;
 
 }

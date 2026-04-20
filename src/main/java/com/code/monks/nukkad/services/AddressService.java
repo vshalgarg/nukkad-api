@@ -79,13 +79,6 @@ public class AddressService {
                         return new ResourceNotFoundException(ADDRESS_NOT_FOUND);
                     });
 
-//
-//            // Check for default address restriction
-//            if (Boolean.TRUE.equals(address.getIsDefault())) {
-//                log.warn("[UPDATE ADDRESS] Update not allowed on default address. addressId={}, customerId={}", id, customerId);
-//                throw new DefaultAddressUpdateNotAllowedException(DEFAULT_ADDRESS_CAN_NOT_BE_CHANGE);
-//            }
-
             // Update address fields
             UpdateAddressRequestDTO.updateEntity(address, request);
             AddressEntity updated = addressRepository.save(address);
@@ -101,7 +94,6 @@ public class AddressService {
             throw new UnhandledException(UNHANDLED_EXCEPTION, e);
         }
     }
-
 
     public List<AddressResponseDTO> getAllAddresses() {
         Long customerId = UserContextHolder.getUser().getId();
@@ -155,7 +147,6 @@ public class AddressService {
             throw new UnhandledException(UNHANDLED_EXCEPTION, e);
         }
     }
-
 
     public void deleteAddress(Long addressId) {
         Long customerId = UserContextHolder.getUser().getId();

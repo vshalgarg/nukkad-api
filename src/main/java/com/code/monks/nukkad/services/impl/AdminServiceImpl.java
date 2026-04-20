@@ -14,14 +14,13 @@ import com.code.monks.nukkad.dto.jsonUpload.Products;
 import com.code.monks.nukkad.dto.request.ItemExcelDTO;
 import com.code.monks.nukkad.dto.response.DeleteCustomerResponseDTO;
 import com.code.monks.nukkad.dto.response.DeleteStorekeeperResponseDTO;
-import com.code.monks.nukkad.dto.response.GetImageSyncStatusResponse;
 import com.code.monks.nukkad.dto.response.UploadExcelFileResponseDto;
 import com.code.monks.nukkad.entities.CategoryEntity;
 import com.code.monks.nukkad.entities.CategoryItemImageEntity;
 import com.code.monks.nukkad.entities.CustomerEntity;
 import com.code.monks.nukkad.entities.ItemEntity;
 import java.util.stream.IntStream;
-import com.code.monks.nukkad.enums.ImageUploadStatus;
+import com.code.monks.nukkad.enums.ImageUploadStatusEnum;
 import com.code.monks.nukkad.enums.ResponseErrorCodes;
 import com.code.monks.nukkad.enums.UnitEnum;
 import com.code.monks.nukkad.exception.DuplicateResourceException;
@@ -37,7 +36,6 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -163,7 +161,7 @@ public class AdminServiceImpl implements AdminService {
                                     + "categories {} — linking to new category '{}'.",
                              productName, dbCategories, categoryName);
                              ItemEntity existingItem = itemRepository
-                            .findByName(productName)
+                                     .findByNameWithCategoriesAndImages(productName)
                             .orElseThrow(() -> new UnhandledException(ResponseErrorCodes.UNHANDLED_EXCEPTION,
                                     new RuntimeException("Critical: Product " + productName + " not found in DB")
                             ));
@@ -178,7 +176,7 @@ public class AdminServiceImpl implements AdminService {
                             CategoryItemImageEntity newImage = new CategoryItemImageEntity();
                             newImage.setImageUrl(imageUrl);
                             newImage.setItem(existingItem);
-                            newImage.setUploadStatus(ImageUploadStatus.PENDING);
+                            newImage.setUploadStatus(ImageUploadStatusEnum.PENDING);
                             newImage.setRetryCount(0);
                             existingItem.addImage(newImage);
                             newImagesAdded++;
@@ -214,7 +212,7 @@ public class AdminServiceImpl implements AdminService {
             batchPersistenceService.saveBatch(productBatch);
             totalProductsProcessed += productBatch.size();
         }
-        log.info("[ADMIN SERVICE] Import complete.Products processed: {}, Images queued: {}",
+        log.info("[ADMIN SERVICE] Import complete. Products processed: {}...",
                 totalProductsProcessed, totalImagesQueued);
 
         return new ImportJsonDataResponse(
@@ -247,62 +245,10 @@ public class AdminServiceImpl implements AdminService {
             CategoryItemImageEntity image = new CategoryItemImageEntity();
             image.setImageUrl(imageUrl);
             image.setItem(product);
-            image.setUploadStatus(ImageUploadStatus.PENDING); // For your Keyset Pagination worker
+            image.setUploadStatus(ImageUploadStatusEnum.PENDING); // For your Keyset Pagination worker
             image.setRetryCount(0);
             product.addImage(image);
         }
-    }
-    @Override
-    public GetImageSyncStatusResponse getImageSyncStatus(
-            ImageUploadStatus status,
-            Long lastSeenId) {
-
-        log.info("[ADMIN SERVICE] Image sync status requested. "
-                + "Status filter: {}, lastSeenId: {}", status, lastSeenId);
-
-        long totalPending    = categoryItemImageRepository
-                .countByUploadStatus(ImageUploadStatus.PENDING);
-        long totalProcessing = categoryItemImageRepository
-                .countByUploadStatus(ImageUploadStatus.PROCESSING);
-        long totalUploaded   = categoryItemImageRepository
-                .countByUploadStatus(ImageUploadStatus.UPLOADED);
-        long totalFailed     = categoryItemImageRepository
-                .countByUploadStatus(ImageUploadStatus.FAILED);
-
-        List<CategoryItemImageEntity> images = categoryItemImageRepository
-                .findByStatusAfterIdForAdmin(status, lastSeenId);
-
-        List<GetImageSyncStatusResponse.ImageSyncItemDto> imageDtos = images.stream()
-                .map(image -> GetImageSyncStatusResponse.ImageSyncItemDto.builder()
-                        .id(image.getId())
-                        .imageUrl(image.getImageUrl())
-                        .uploadStatus(image.getUploadStatus())
-                        .retryCount(image.getRetryCount())
-                        .lastSyncedAt(image.getLastSyncedAt())
-                        .productName(image.getItem() != null ? image.getItem().getName()
-                                : "Unknown").build()).toList();
-
-        long newLastSeenId = images.isEmpty()
-                ? lastSeenId
-                : images.get(images.size() - 1)
-                .getId();
-
-        boolean hasMore = images.size() == 20;
-
-        log.info("[ADMIN SERVICE] Sync status — PENDING: {}, PROCESSING: {}, "
-                        + "UPLOADED: {}, FAILED: {}, page size: {}, hasMore: {}",
-                totalPending, totalProcessing, totalUploaded,
-                totalFailed, images.size(), hasMore);
-
-        return GetImageSyncStatusResponse.builder()
-                .totalPending(totalPending)
-                .totalProcessing(totalProcessing)
-                .totalUploaded(totalUploaded)
-                .totalFailed(totalFailed)
-                .images(imageDtos)
-                .lastSeenId(newLastSeenId)
-                .hasMore(hasMore)
-                .build();
     }
     @Override
     public DeleteCustomerResponseDTO deleteCustomerById(Long id) {
@@ -412,19 +358,6 @@ public class AdminServiceImpl implements AdminService {
 
         List<String> errors = new ArrayList<>();
 
-        if (categoriesRequest.getCategories() == null
-                || categoriesRequest.getCategories().isEmpty()) {
-            errors.add("Categories list is null or empty.");
-            throwIfErrors(errors);
-        }
-
-        Set<String> validUnits = Arrays.stream(UnitEnum.values())
-                .flatMap(unitEnum -> Stream.concat(
-                        Stream.of(unitEnum.name()),
-                        Arrays.stream(unitEnum.getUnits())
-                ))
-                .collect(Collectors.toSet());
-
         Set<String> seenCategoryNames = new HashSet<>();
 
         for (int categoryIndex = 0;
@@ -434,11 +367,6 @@ public class AdminServiceImpl implements AdminService {
             Category currentCategory = categoriesRequest
                     .getCategories().get(categoryIndex);
 
-            if (currentCategory.getCategoryName() == null
-                    || currentCategory.getCategoryName().isBlank()) {
-                errors.add("Category[" + categoryIndex + "] has blank or null name.");
-                continue;
-            }
             String trimmedCategoryName = currentCategory.getCategoryName().trim();
 
             if (!seenCategoryNames.add(trimmedCategoryName)) {
@@ -447,14 +375,6 @@ public class AdminServiceImpl implements AdminService {
                         + "' is a duplicate category name in this JSON. "
                         + "Each category name must appear only once per import.");
             }
-
-            if (currentCategory.getProducts() == null
-                    || currentCategory.getProducts().isEmpty()) {
-                errors.add("Category['" + trimmedCategoryName
-                        + "'] has null or empty products list.");
-                continue;
-            }
-
             Set<String> seenProductNamesInCurrentCategory = new HashSet<>();
             for (int productIndex = 0;
                  productIndex < currentCategory.getProducts().size();
@@ -462,43 +382,18 @@ public class AdminServiceImpl implements AdminService {
                 Products currentProduct = currentCategory
                         .getProducts().get(productIndex);
 
-                if (currentProduct.getName() == null
-                        || currentProduct.getName().isBlank()) {
-                    errors.add("Category['" + trimmedCategoryName
-                            + "'] → Product[" + productIndex
-                            + "] has blank or null name.");
-                    continue;
-                }
                 String trimmedProductName = currentProduct.getName().trim();
-                if (!seenProductNamesInCurrentCategory.add(trimmedProductName))
-                {
-                    log.warn("[JSON VALIDATION] Skipping duplicate product in same category — "
-                                    + "Category['{}'] → Product['{}'] at index [{}]. "
-                                    + "First occurrence will be used.",
-                            trimmedCategoryName, trimmedProductName, productIndex);
-                            continue;
-                }
-                if (currentProduct.getUnit() == null) {
-                    errors.add("Category['" + trimmedCategoryName
-                            + "'] → Product['" + trimmedProductName
-                            + "'] has null unit. Valid units: " + validUnits);
-                } else {
-                    String unitName = currentProduct.getUnit().name();
-                    if (!validUnits.contains(unitName)) {
-                        errors.add("Category['" + trimmedCategoryName
-                                + "'] → Product['" + trimmedProductName
-                                + "'] has invalid unit '"
-                                + unitName
-                                + "'. Valid units: " + validUnits);
-                }}
-                if (currentProduct.getImageUrls() == null
-                        || currentProduct.getImageUrls().isEmpty()) {
-                    errors.add("Category['" + trimmedCategoryName
-                            + "'] → Product['" + trimmedProductName
-                            + "'] has no imageUrls. "
-                            + "At least one image URL is required.");
-                    continue;
-                }
+
+               if (!seenProductNamesInCurrentCategory.add(trimmedProductName)) {
+//
+                log.warn("[JSON VALIDATION] Duplicate product skipped — "
+                                + "Category['{}'] → Product['{}'] at index [{}]. "
+                                + "First occurrence will be used.",
+                        trimmedCategoryName,
+                        trimmedProductName,
+                        productIndex);
+            }
+
                 for (int imageIndex = 0;
                      imageIndex < currentProduct.getImageUrls().size();
                      imageIndex++) {

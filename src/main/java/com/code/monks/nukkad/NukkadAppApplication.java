@@ -1,5 +1,6 @@
 package com.code.monks.nukkad;
 
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -9,8 +10,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 @EnableScheduling
 public class  NukkadAppApplication {
-
-
 
 	public static void main(String[] args) {
 		SpringApplication.run(NukkadAppApplication.class, args);

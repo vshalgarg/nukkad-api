@@ -45,7 +45,7 @@ public class ItemEntity extends BaseEntity {
             inverseJoinColumns = @JoinColumn(name = "category_id"))
     private List<CategoryEntity> categories = new ArrayList<>();
 
-    // ✅ HELPER METHOD (VERY IMPORTANT)
+    // HELPER METHOD (VERY IMPORTANT)
     public void addImage(CategoryItemImageEntity image) {
             images.add(image);
         image.setItem(this);

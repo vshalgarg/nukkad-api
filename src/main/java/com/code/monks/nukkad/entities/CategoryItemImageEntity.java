@@ -1,6 +1,5 @@
 package com.code.monks.nukkad.entities;
-
-import com.code.monks.nukkad.enums.ImageUploadStatus;
+import com.code.monks.nukkad.enums.ImageUploadStatusEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,7 +27,7 @@ public class CategoryItemImageEntity extends BaseEntity{
 //Current Firebase upload status of this image.
     @Enumerated(EnumType.STRING)
     @Column(name = "upload_status", nullable = false)
-    private ImageUploadStatus uploadStatus = ImageUploadStatus.PENDING;
+    private ImageUploadStatusEnum uploadStatus = ImageUploadStatusEnum.PENDING;
 
 //Number of times Firebase upload has been attempted and failed.
     @Column(name = "retry_count", nullable = false)

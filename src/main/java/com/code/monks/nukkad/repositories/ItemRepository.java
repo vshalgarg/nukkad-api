@@ -19,19 +19,17 @@ public interface ItemRepository extends JpaRepository<ItemEntity, Long> {
     @Query("SELECT i FROM item i JOIN i.categories c WHERE c.id = :categoryId")
     Page<ItemEntity> findItemsByCategoryId(@Param("categoryId") Long categoryId, Pageable pageable);
 
-    // ManyToMany — use JPQL instead of derived query
-    @Query("SELECT i FROM item i JOIN i.categories c WHERE c.id = :categoryId")
-    List<ItemEntity> findItemsByCategoryIdList(@Param("categoryId") Long categoryId);
-
-    //for Req 3 (duplicate product under different category)
     @Query("SELECT i.name, c.name FROM item i JOIN i.categories c WHERE i.name IN :names")
     List<Object[]> findExistingProductsWithCategory(@Param("names") Set<String> names);
 
+    @Query("SELECT i FROM item i "
+            + "LEFT JOIN FETCH i.categories "
+            + "LEFT JOIN FETCH i.images "
+            + "WHERE i.name = :name")
+    Optional<ItemEntity> findByNameWithCategoriesAndImages(
+            @Param("name") String name);
+
     @Query("SELECT i.name FROM item i WHERE i.name IN :names")
     List<String> findExistingNames(@Param("names") Set<String> names);
-
-    // for Req 3 (fetch existing product to add new category)
-    Optional<ItemEntity> findByName(String name);
-
     boolean existsByName(String name);
 }

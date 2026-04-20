@@ -2,6 +2,7 @@ package com.code.monks.nukkad.dto.jsonUpload;
 
 import com.code.monks.nukkad.enums.UnitEnum;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,6 @@ public class Products {
     @NotNull(message = "Unit cannot be null. Valid: WEIGHT(KG,GM) | VOLUME(L,ML) | PACKET(PKT)")
     private UnitEnum unit;
 
-    @Size(max = 10, message = "Max 10 images allowed per product")
+    @NotEmpty
     private List<String> imageUrls;
 }

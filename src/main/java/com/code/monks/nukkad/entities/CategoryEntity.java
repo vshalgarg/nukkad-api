@@ -8,8 +8,7 @@ import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity(name = "category")
-@Getter
-@Setter
+@Getter@Setter
 public class CategoryEntity extends BaseEntity {
 
 	@Id
@@ -27,5 +26,6 @@ public class CategoryEntity extends BaseEntity {
 
 	@ManyToMany(mappedBy = "categories")
 	private List<ItemEntity> items = new ArrayList<>();
+
 
 }

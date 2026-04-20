@@ -8,7 +8,7 @@ import com.code.monks.nukkad.dto.response.*;
 import com.code.monks.nukkad.entities.CategoryEntity;
 import com.code.monks.nukkad.entities.CategoryItemImageEntity;
 import com.code.monks.nukkad.entities.ItemEntity;
-import com.code.monks.nukkad.enums.ImageUploadStatus;
+import com.code.monks.nukkad.enums.ImageUploadStatusEnum;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.exception.AccessDeniedException;
 import com.code.monks.nukkad.exception.DuplicateResourceException;
@@ -40,21 +40,18 @@ public class ItemService {
 	private final ItemRepository itemRepository;
 	private final CategoryRepository categoryRepository;
 
-    //private helper method-single private helper called everywhere instead
-    private void requireAdminRole(String context) {
+        private void requireAdminRole(String context) {
         User user = UserContextHolder.getRequiredUser();
         if (!user.getRoles().contains(RoleEnum.ADMIN)) {
             log.warn("[{}] Access denied: User is not ADMIN (userId={})", context, user.getId());
             throw new AccessDeniedException(ACCESS_DENIED_FOR_ADMIN_EXCEPTION);
         }
     }
-   //single private helper used in both methods,both bugs fixed here in one place(in createBulkItems
-   // and updateItem, AND createBulkItems was missing:)
     private CategoryItemImageEntity buildImageEntity(String url, ItemEntity item) {
         CategoryItemImageEntity image = new CategoryItemImageEntity();
         image.setImageUrl(url);
         image.setItem(item);
-        image.setUploadStatus(ImageUploadStatus.PENDING);
+        image.setUploadStatus(ImageUploadStatusEnum.PENDING);
         image.setRetryCount(0);
         return image;
     }
@@ -81,6 +78,8 @@ public class ItemService {
 					log.warn("[ITEM BULK CREATE] Item '{}' skipped - No category IDs provided", dto.getName());
 					throw new IllegalArgumentException("Item must be associated with at least one category.");
 				}
+
+
 				List<CategoryEntity> categories = categoryRepository.findAllById(dto.getCategoryIds());
 				if (categories.size() != dto.getCategoryIds().size()) {
 					log.error("[ITEM BULK CREATE] Item '{}' has invalid/missing categories. Expected={}, Found={}",
@@ -88,11 +87,13 @@ public class ItemService {
 					throw new ResourceNotFoundException(CATEGORY_NOT_FOUND_TO_SAVE_ITEM_EXCEPTION);
 				}
 
+
 				ItemEntity item = new ItemEntity();
 				item.setName(dto.getName());
 				item.setUnit(dto.getUnit());
 				item.setCategories(categories);
 				log.debug("[ITEM BULK CREATE] Basic fields and categories set for item '{}'", dto.getName());
+
 
 				if (dto.getImageUrls() != null && !dto.getImageUrls().isEmpty()) {
                     List<CategoryItemImageEntity> images = dto.getImageUrls().stream()
@@ -101,6 +102,8 @@ public class ItemService {
 					item.setImages(images);
 					log.debug("[ITEM BULK CREATE] Attached {} image(s) to item '{}'", images.size(), dto.getName());
 				}
+
+
 				ItemEntity saved = itemRepository.save(item);
 				log.info("[ITEM BULK CREATE] Item saved successfully: ID={}, Name='{}'", saved.getId(), saved.getName());
 				responses.add(CreateItemResponseDTO.fromEntity(saved));
@@ -117,6 +120,9 @@ public class ItemService {
             log.info("[ITEM BULK CREATE] Successfully created {} item(s)", responses.size());
             return new BulkCreateItemResponseDTO(responses);
 	}
+
+
+
 	public Page<GetAllItemResponseDTO> getAllItems(int page, int size, String sortBy) {
         requireAdminRole("ITEM FETCH ALL");
 		log.info("[ITEM FETCH ALL] Fetching items from DB with pagination - page: {}, size: {}, sortBy: {}", page, size, sortBy);
@@ -170,16 +176,7 @@ public class ItemService {
 		User user = UserContextHolder.getRequiredUser();
 		log.info("[ITEM FETCH BY CATEGORY] Request received by userId={} for categoryId={}", user.getId(), categoryId);
 
-		try {
-			// Check if user is CUSTOMER
-//			if (!user.getRoles().contains(RoleEnum.CUSTOMER)) {
-//				log.warn("[ACCESS DENIED] UserId={} with roles={} is not allowed to access items by category",
-//						user.getId(), user.getRoles());
-//				throw new AccessDeniedException(ACCESS_DENIED_FOR_STOREKEEPER_EXCEPTION);
-//			}
-
-			// Validate category
-			categoryRepository.findById(categoryId)
+		try {categoryRepository.findById(categoryId)
 					.orElseThrow(() -> {
 						log.warn("[CATEGORY NOT FOUND] categoryId={} not found", categoryId);
 						return new ResourceNotFoundException(CATEGORY_NOT_FOUND, categoryId);
