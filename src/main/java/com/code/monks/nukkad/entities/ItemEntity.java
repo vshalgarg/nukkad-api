@@ -21,7 +21,7 @@ public class ItemEntity extends BaseEntity {
             pkColumnName = "generator_name",
             valueColumnName = "generator_value",
             pkColumnValue = "item_id",
-            allocationSize = 50,
+            allocationSize = 500,
             initialValue  = 1
     )
     @Column(name = "id")

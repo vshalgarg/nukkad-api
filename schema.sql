@@ -303,5 +303,32 @@ CREATE TABLE exception_log (
     INDEX idx_created_at (created_at)
 );
 
+--MIGRATION REFERENCE — Run manually on prod DB
+-- Feature: Bulk JSON Image Upload
+-- Date: April 2026
+
+--Step 1: Add upload tracking columns to category_item_image
+
+ALTER TABLE category_item_image
+ADD COLUMN IF NOT EXISTS upload_status VARCHAR(20)
+    NOT NULL DEFAULT 'PENDING';
+
+ALTER TABLE category_item_image
+ADD COLUMN IF NOT EXISTS retry_count INT
+    NOT NULL DEFAULT 0;
+
+ALTER TABLE category_item_image
+ADD COLUMN IF NOT EXISTS last_synced_at DATETIME NULL;
+
+-- Step 2: Create id_generator table
+CREATE TABLE IF NOT EXISTS id_generator (
+    generator_name VARCHAR(255) PRIMARY KEY,
+    generator_value BIGINT NOT NULL
+);
+
+-- Step 3: Insert initial row for item ID generation
+INSERT INTO id_generator (generator_name, generator_value)
+VALUES ('item_id', 1)
+ON DUPLICATE KEY UPDATE generator_name = generator_name;
 
 
