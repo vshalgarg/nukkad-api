@@ -94,6 +94,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public ImportJsonDataResponse importProductsToExistingCategories(
             Categories categoriesRequest) {
+        log.debug("[ADMIN SERVICE][IMPORT] Received request payload: {}", categoriesRequest);
 
         // validation call
         validateJsonStructure(categoriesRequest);
@@ -106,6 +107,8 @@ public class AdminServiceImpl implements AdminService {
                 .stream()
                 .map(Category::getCategoryName)
                 .collect(Collectors.toSet());
+        log.debug("[ADMIN SERVICE][IMPORT] Extracted category names: {}", categoryNames);
+
 
         Set<String> allProductNames = categoriesRequest
                 .getCategories()
@@ -113,6 +116,7 @@ public class AdminServiceImpl implements AdminService {
                 .flatMap(category -> category.getProducts().stream())
                 .map(Products::getName)
                 .collect(Collectors.toSet());
+        log.debug("[ADMIN SERVICE][IMPORT] Extracted product names count: {}", allProductNames.size());
 
         Map<String, CategoryEntity> categoryMap = categoryRepository
                 .findAllByNameIn(categoryNames)
@@ -121,6 +125,7 @@ public class AdminServiceImpl implements AdminService {
                         CategoryEntity::getName,
                         Function.identity()
                 ));
+        log.debug("[ADMIN SERVICE][DB] Categories fetched from DB: {}", categoryMap.keySet());
 
         Map<String, Set<String>> existingProductCategoryMap = new HashMap<>();
         if (!allProductNames.isEmpty()) {
@@ -143,11 +148,12 @@ public class AdminServiceImpl implements AdminService {
 
         for (Category categoryData : categoriesRequest.getCategories()) {
             String categoryName = categoryData.getCategoryName();
+            log.debug("[ADMIN SERVICE][CATEGORY] Processing category: {}", categoryName);
             CategoryEntity category = getOrCreateCategory(categoryMap, categoryName);//category creation method called
 
             for (Products productData : categoryData.getProducts()) {
                 String productName = productData.getName();
-
+                log.debug("[ADMIN SERVICE][PRODUCT] Processing product: {}", productName);
                 Set<String> dbCategories = existingProductCategoryMap
                         .getOrDefault(productName, new HashSet<>());
                 if (dbCategories.contains(categoryName)) {
@@ -221,6 +227,7 @@ public class AdminServiceImpl implements AdminService {
         );
     }
     private CategoryEntity getOrCreateCategory(Map<String, CategoryEntity> categoryMap, String categoryName) {
+        log.debug("[ADMIN SERVICE][CATEGORY] Checking category existence: {}", categoryName);
         CategoryEntity category = categoryMap.get(categoryName);
         if (category == null) {
             category = new CategoryEntity();
@@ -232,6 +239,7 @@ public class AdminServiceImpl implements AdminService {
         return category;
     }
     private ItemEntity createProductEntity(Products productData, CategoryEntity category) {
+        log.debug("[ADMIN SERVICE][PRODUCT] Initializing entity for product: {}", productData.getName());
         ItemEntity product = new ItemEntity();
         product.setName(productData.getName());
         product.setUnit(productData.getUnit());
@@ -241,7 +249,9 @@ public class AdminServiceImpl implements AdminService {
         return product;
     }
     private void createProductImages(ItemEntity product, List<String> imageUrls) {
+        log.debug("[ADMIN SERVICE][IMAGE] Adding {} images to new product", imageUrls.size());
         for (String imageUrl : imageUrls) {
+            log.debug("[ADMIN SERVICE][IMAGE] Adding image URL: {}", imageUrl);
             CategoryItemImageEntity image = new CategoryItemImageEntity();
             image.setImageUrl(imageUrl);
             image.setItem(product);

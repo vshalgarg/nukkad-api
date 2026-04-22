@@ -7,11 +7,12 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
-@EqualsAndHashCode(callSuper = true)
+
 @Entity(name = "item")
 @Getter@Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class ItemEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.TABLE, generator = "item_gen")
@@ -27,6 +28,7 @@ public class ItemEntity extends BaseEntity {
     @Column(name = "id")
     private Long id;
 
+    @EqualsAndHashCode.Include
 	@Column(name = "name")
 	private String name;
 
