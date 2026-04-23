@@ -2,6 +2,8 @@ package com.code.monks.nukkad.services;
 
 import com.code.monks.nukkad.exception.ExternalServiceException;
 import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.BlobId;
+import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Bucket;
 import com.google.firebase.cloud.StorageClient;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +15,11 @@ import org.springframework.web.client.RestTemplate;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URLConnection;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.UUID;
 
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.FIREBASE_UPLOAD_FAILED;
@@ -72,19 +77,33 @@ public class FirebaseStorageService {
 
             try (InputStream inputStream =
                          new FileInputStream(tempFile.toFile())) {
+                //Generate token
+                String token = UUID.randomUUID().toString();
 
-                Blob blob = bucket.create(
-                        firebasePath, inputStream, contentType);
+                //Upload with metadata
+                BlobId blobId = BlobId.of(bucket.getName(), firebasePath);
+
+                BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
+                        .setContentType(contentType)
+                        .setMetadata(Map.of("firebaseStorageDownloadTokens", token))
+                        .build();
+
+                Blob blob = bucket.getStorage().create(blobInfo, inputStream);
+
+//               Build Firebase download URL
+                String encodedPath = URLEncoder.encode(blob.getName(), StandardCharsets.UTF_8);
 
                 String firebaseUrl = String.format(
-                        "https://storage.googleapis.com/%s/%s",
+                        "https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media&token=%s",
                         bucket.getName(),
-                        blob.getName()
+                        encodedPath,
+                        token
                 );
 
-                log.info("[FIREBASE STORAGE] Upload successful. URL: {}",
-                        firebaseUrl);
+                log.info("[FIREBASE STORAGE] Upload successful. URL: {}", firebaseUrl);
+
                 return firebaseUrl;
+
             }
 
         } catch (ExternalServiceException e) {

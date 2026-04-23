@@ -1,6 +1,5 @@
 package com.code.monks.nukkad.services;
 
-import com.code.monks.nukkad.constants.FirebaseConstants;
 import com.code.monks.nukkad.context.UserContextHolder;
 import com.code.monks.nukkad.dto.User;
 import com.code.monks.nukkad.dto.category.CategoryDto;
@@ -13,8 +12,6 @@ import com.code.monks.nukkad.dto.response.GetAllCategoryResponseDTO;
 import com.code.monks.nukkad.dto.response.UpdateCategoryResponseDTO;
 import com.code.monks.nukkad.entities.CategoryEntity;
 import com.code.monks.nukkad.entities.CategoryItemImageEntity;
-import com.code.monks.nukkad.entities.ItemEntity;
-import com.code.monks.nukkad.repositories.ItemRepository;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.exception.AccessDeniedException;
 import com.code.monks.nukkad.exception.DuplicateResourceException;
@@ -41,10 +38,6 @@ import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
 @Slf4j
 @AllArgsConstructor
 public class   CategoryService {
-
-    private final FirebaseStorageService firebaseStorageService; // ← add
-
-    private final ItemRepository itemRepository;
 
 	private final CategoryRepository categoryRepository;
 
@@ -73,16 +66,12 @@ public class   CategoryService {
 				category.setName(dto.getName());
 
 				if (dto.getImageUrl() != null && !dto.getImageUrl().isBlank()) {
-
-                    String firebaseUrl = firebaseStorageService
-                            .uploadImageFromUrl(dto.getImageUrl(), FirebaseConstants.CATEGORY_IMAGE_TYPE);//folder/categories/category_123456.png ✅
-
 					CategoryItemImageEntity image = new CategoryItemImageEntity();
 
-                    image.setImageUrl(firebaseUrl);
+                    image.setImageUrl(dto.getImageUrl());
 					category.setImage(image);
 
-                    log.debug("[CATEGORY UPDATE] Image uploaded to Firebase: {}", firebaseUrl);
+                    log.debug("[CATEGORY BULK CREATE] Image set for '{}': {}", dto.getName(), dto.getImageUrl());
                 }
 
 				CategoryEntity saved = categoryRepository.save(category);
@@ -102,8 +91,6 @@ public class   CategoryService {
 			throw new UnhandledException(UNHANDLED_EXCEPTION,e);
 		}
 	}
-
-
 
 	public UpdateCategoryResponseDTO updateCategory(Long id, UpdateCategoryRequestDTO dto) {
 		User user = UserContextHolder.getRequiredUser();
@@ -131,15 +118,13 @@ public class   CategoryService {
 			// Update image if present
 			if (dto.getImageUrl() != null && !dto.getImageUrl().isBlank()) {
 
-                String firebaseUrl = firebaseStorageService
-                        .uploadImageFromUrl(dto.getImageUrl(),FirebaseConstants.CATEGORY_IMAGE_TYPE);
-
 				CategoryItemImageEntity image = new CategoryItemImageEntity();
-				image.setImageUrl(firebaseUrl);
+
+                image.setImageUrl(dto.getImageUrl());
 				category.setImage(image);
-//
-                log.debug("[CATEGORY BULK CREATE] Image uploaded to Firebase for '{}': {}",
-                        dto.getName(), firebaseUrl);
+
+                log.debug("[CATEGORY UPDATE] Category image URL updated to '{}'", dto.getImageUrl());
+
             }
 
 			CategoryEntity saved = categoryRepository.save(category);
@@ -152,8 +137,6 @@ public class   CategoryService {
 			throw new UnhandledException(UNHANDLED_EXCEPTION,e);
 		}
 	}
-
-
 
 	public List<GetAllCategoryResponseDTO> getAllCategories() {
 		log.info("[CATEGORY FETCH ALL] Fetching all categories from the database");
