@@ -66,6 +66,10 @@ public class FirebaseStorageService {
             log.info("[FIREBASE STORAGE] Temp file created: {}", tempFile);
 
             Bucket bucket = StorageClient.getInstance().bucket();
+
+            log.info("[DEBUG] Bucket name: {}", bucket.getName());// log
+
+
            // String firebasePath = folder + "/" + UUID.randomUUID() + ".jpg";
 //            original file extension improved from .jpd to other
 
@@ -86,16 +90,23 @@ public class FirebaseStorageService {
                 //Generate token
                 String token = UUID.randomUUID().toString();
 
+                log.info("[DEBUG] Generated token: {}", token);// log
+
                 //Upload with metadata
                 BlobId blobId = BlobId.of(bucket.getName(), firebasePath);
+
 
                 BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
                         .setContentType(contentType)
                         .setMetadata(Map.of("firebaseStorageDownloadTokens", token))
                         .build();
 
-                Blob blob = bucket.getStorage().create(blobInfo, inputStream);
+                log.info("[DEBUG] Metadata BEFORE upload: {}", blobInfo.getMetadata());//log
+                log.info("[DEBUG] Upload path: {}", firebasePath);//log
 
+                Blob blob = bucket.getStorage().create(blobInfo, inputStream);
+                log.info("[DEBUG] Metadata AFTER upload: {}", blob.getMetadata());//log
+                log.info("[DEBUG] Blob name: {}", blob.getName());//log
 //               Build Firebase download URL
                 String encodedPath = URLEncoder.encode(blob.getName(), StandardCharsets.UTF_8);
 
