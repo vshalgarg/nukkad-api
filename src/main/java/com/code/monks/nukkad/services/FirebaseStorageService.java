@@ -66,7 +66,13 @@ public class FirebaseStorageService {
             log.info("[FIREBASE STORAGE] Temp file created: {}", tempFile);
 
             Bucket bucket = StorageClient.getInstance().bucket();
-            String firebasePath = folder + "/" + UUID.randomUUID() + ".jpg";
+           // String firebasePath = folder + "/" + UUID.randomUUID() + ".jpg";
+//            original file extension improved from .jpd to other
+
+            String extension = imageUrl.substring(imageUrl.lastIndexOf("."));
+            if (extension.length() > 5) extension = ".jpg"; // fallback safety
+
+            String firebasePath = folder + "/" + UUID.randomUUID() + extension;
 
             String contentType = URLConnection
                     .guessContentTypeFromName(imageUrl);
@@ -101,7 +107,6 @@ public class FirebaseStorageService {
                 );
 
                 log.info("[FIREBASE STORAGE] Upload successful. URL: {}", firebaseUrl);
-
                 return firebaseUrl;
 
             }

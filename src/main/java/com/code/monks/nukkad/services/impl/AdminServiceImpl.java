@@ -30,9 +30,6 @@ import com.code.monks.nukkad.mapper.AdminMapper;
 import com.code.monks.nukkad.repositories.*;
 import com.code.monks.nukkad.services.AdminService;
 import com.code.monks.nukkad.services.BatchPersistenceService;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +38,6 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.code.monks.nukkad.enums.ResponseErrorCodes.*;
 
@@ -57,10 +53,6 @@ public class AdminServiceImpl implements AdminService {
     private final StorekeeperRepository storekeeperRepository;
     private final BatchPersistenceService batchPersistenceService;
     private final CategoryItemImageRepository categoryItemImageRepository;
-
-    @PersistenceContext
-    private EntityManager entityManager;
-
     @Override
     public AdminLoginResponseDto login(AdminLoginRequestDto loginRequestDto) {
 

@@ -94,10 +94,12 @@ public class ImageSyncService {
     }
     private void uploadSingleImage(CategoryItemImageEntity image) {
 
-        if (image.getImageUrl().contains("storage.googleapis.com")
-                || image.getImageUrl().contains("firebasestorage.app")) {
-            log.info("[IMAGE SYNC] Image id: {} already on Firebase — "
-                    + "marking UPLOADED directly", image.getId());
+        if (image.getImageUrl().startsWith("https://firebasestorage.googleapis.com/")
+                && image.getImageUrl().contains("token=")) {
+
+            log.info("[IMAGE SYNC] Image id: {} already has valid Firebase URL — skipping upload",
+                    image.getId());
+
             imageRepository.markAsUploaded(
                     image.getId(),
                     image.getImageUrl(),
@@ -105,6 +107,7 @@ public class ImageSyncService {
             );
             return;
         }
+
 
         if (!image.getImageUrl().startsWith("http")) {
                 log.error("[IMAGE SYNC] Image id: {} has invalid URL: '{}' — "
