@@ -310,18 +310,18 @@ CREATE TABLE exception_log (
 --Step 1: Add upload tracking columns to category_item_image
 
 ALTER TABLE category_item_image
-ADD COLUMN IF NOT EXISTS upload_status VARCHAR(20)
+ADD COLUMN  upload_status VARCHAR(20)
     NOT NULL DEFAULT 'PENDING';
 
 ALTER TABLE category_item_image
-ADD COLUMN IF NOT EXISTS retry_count INT
+ADD COLUMN  retry_count INT
     NOT NULL DEFAULT 0;
 
 ALTER TABLE category_item_image
-ADD COLUMN IF NOT EXISTS last_synced_at DATETIME NULL;
+ADD COLUMN last_synced_at DATETIME NULL;
 
 -- Step 2: Create id_generator table
-CREATE TABLE IF NOT EXISTS id_generator (
+CREATE TABLE  id_generator (
     generator_name VARCHAR(255) PRIMARY KEY,
     generator_value BIGINT NOT NULL
 );
@@ -331,4 +331,35 @@ INSERT INTO id_generator (generator_name, generator_value)
 VALUES ('item_id', 1)
 ON DUPLICATE KEY UPDATE generator_name = generator_name;
 
+
+--DB MIGRATION REFERENCE — PROD
+-- Feature  : Bulk JSON Product & Image Upload
+-- Author   : Nukkad App Team
+-- Date     : 27th April 2026
+
+-- TABLE 1: item
+-- CHANGE 1: id INT auto_increment → BIGINT (no auto_increment)
+-- WHY: ItemEntity uses GenerationType.TABLE strategy
+-- CHANGE 2: name VARCHAR(60/150) → VARCHAR(255)
+-- CHANGE 3: Remove UNIQUE constraint on name
+
+ALTER TABLE item MODIFY COLUMN id BIGINT NOT NULL;
+ALTER TABLE item MODIFY COLUMN name VARCHAR(255) NOT NULL;
+ALTER TABLE item DROP INDEX name;
+
+-- TABLE 2: category_item_image
+-- CHANGE 4: item_id INT → BIGINT
+ALTER TABLE category_item_image MODIFY COLUMN item_id BIGINT NULL;
+
+-- TABLE 3: category
+-- WHY: Categories created via bulk JSON have no image
+ALTER TABLE category MODIFY COLUMN image_id BIGINT NULL;
+
+-- CHANGE 9: name VARCHAR → VARCHAR(150)
+ALTER TABLE category MODIFY COLUMN name VARCHAR(150);
+
+-- TABLE 4: order_item
+-- CHANGE 10: item_id INT → BIGINT
+---- WHY: Must match item.id which is now BIGINT
+ALTER TABLE order_item MODIFY COLUMN item_id BIGINT NULL;
 
