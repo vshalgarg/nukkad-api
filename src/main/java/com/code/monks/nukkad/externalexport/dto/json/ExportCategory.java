@@ -11,5 +11,6 @@ import java.util.List;
 @NoArgsConstructor
 public class ExportCategory {
     private String categoryName;
+    private String imageUrl;
     private List<ExportProduct> products;
 }

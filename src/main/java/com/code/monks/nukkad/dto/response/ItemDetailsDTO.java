@@ -13,6 +13,7 @@ import java.util.List;
 public class ItemDetailsDTO {
   private Long itemId;
   private String itemName;
+
   private String unit;
   private BigDecimal quantity;
   private Double price;

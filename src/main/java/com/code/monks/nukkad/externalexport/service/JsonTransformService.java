@@ -12,18 +12,23 @@ import java.util.stream.Collectors;
 @Service
 public class JsonTransformService {
 
-    public ExportRoot transform(Map<String, List<ExternalProduct>> rawData) {
+    public ExportRoot transform(Map<String, Map<String, Object>> rawData) {
 
         List<ExportCategory> categories = new ArrayList<>();
 
-        for (Map.Entry<String, List<ExternalProduct>> entry : rawData.entrySet()) {
+        for (Map.Entry<String, Map<String, Object>> entry : rawData.entrySet()) {
 
             String categoryName = capitalize(entry.getKey());
-            List<ExportProduct> products = new ArrayList<>();
 
+            String categoryImage = (String) entry.getValue().get("image");
+
+            List<ExternalProduct> productList =
+                    (List<ExternalProduct>) entry.getValue().get("products");
+
+            List<ExportProduct> products = new ArrayList<>();
             Set<String> unique = new HashSet<>();
 
-            for (ExternalProduct product : entry.getValue()) {
+            for (ExternalProduct product : productList) {
 
                 if (unique.contains(product.getName()))
                     continue;
@@ -40,7 +45,6 @@ public class JsonTransformService {
                     images = List.of("images/default.jpg");
                 }
 
-
                 products.add(new ExportProduct(
                         product.getName(),
                         unit,
@@ -48,7 +52,12 @@ public class JsonTransformService {
                 ));
             }
 
-            categories.add(new ExportCategory(categoryName, products));
+            // CATEGORY WITH IMAGE
+            categories.add(new ExportCategory(
+                    categoryName,
+                    categoryImage != null ? categoryImage : "images/default-category.jpg",
+                    products
+            ));
         }
 
         return new ExportRoot(categories);
@@ -72,4 +81,3 @@ public class JsonTransformService {
                 .collect(Collectors.joining(" "));
     }
 }
-
