@@ -136,12 +136,16 @@ public class AdminServiceImpl implements AdminService {
 
         int totalProductsProcessed=0;
         int totalImagesQueued = 0;
-        final int BATCH_SIZE = 100;
+        final int BATCH_SIZE = 500;
 
         for (Category categoryData : categoriesRequest.getCategories()) {
             String categoryName = categoryData.getCategoryName();
             log.debug("[ADMIN SERVICE][CATEGORY] Processing category: {}", categoryName);
-            CategoryEntity category = getOrCreateCategory(categoryMap, categoryName);//category creation method called
+            // CHANGED — pass categoryData.getImageUrl() to getOrCreateCategory
+            //            // reason: JSON now contains optional imageUrl per category
+            //            // getOrCreateCategory handles saving category image as PENDING
+            //            // scheduler uploads to Firebase same as product images
+            CategoryEntity category = getOrCreateCategory(categoryMap, categoryName,categoryData.getImageUrl());//category creation method called
 
             for (Products productData : categoryData.getProducts()) {
                 String productName = productData.getName();
@@ -164,7 +168,14 @@ public class AdminServiceImpl implements AdminService {
                                     new RuntimeException("Critical: Product " + productName + " not found in DB")
                             ));
 
-                      existingItem.getCategories().add(category);
+                      //existingItem.getCategories().add(category); -removed
+                    // ADDED — contains() check before adding category
+                    // reason: List allows duplicates — prevent same
+                    // category linked twice to same product
+                    if (!existingItem.getCategories().contains(category)) {
+                        existingItem.getCategories().add(category);
+                    }
+
                       Set<String> existingImageUrls = categoryItemImageRepository
                               .findImageUrlsByItemId(existingItem.getId());
 
@@ -218,12 +229,26 @@ public class AdminServiceImpl implements AdminService {
                         + totalImagesQueued + " images queued for background upload."
         );
     }
-    private CategoryEntity getOrCreateCategory(Map<String, CategoryEntity> categoryMap, String categoryName) {
+    private CategoryEntity getOrCreateCategory(Map<String, CategoryEntity> categoryMap, String categoryName, String imageUrl ) {
+        // ADDED — imageUrl parameter
         log.debug("[ADMIN SERVICE][CATEGORY] Checking category existence: {}", categoryName);
         CategoryEntity category = categoryMap.get(categoryName);
         if (category == null) {
             category = new CategoryEntity();
             category.setName(categoryName);
+            // ADDED — set image if imageUrl provided in JSON
+            // saved as PENDING → scheduler uploads to Firebase
+            // same flow as product images ✅
+            if (imageUrl != null && !imageUrl.isBlank()) {
+                CategoryItemImageEntity image = new CategoryItemImageEntity();
+                image.setImageUrl(imageUrl);
+                image.setUploadStatus(ImageUploadStatusEnum.PENDING);
+                image.setRetryCount(0);
+                category.setImage(image);
+                log.info("[ADMIN SERVICE] Category '{}' image queued: {}",
+                        categoryName, imageUrl);
+            }
+
             category = categoryRepository.save(category);
             categoryMap.put(categoryName, category);
             log.info("Created new category: {}", categoryName);
@@ -377,6 +402,18 @@ public class AdminServiceImpl implements AdminService {
                         + "' is a duplicate category name in this JSON. "
                         + "Each category name must appear only once per import.");
             }
+            //change ADDED — CHECK 2: validate category imageUrl format if provided
+
+            if (currentCategory.getImageUrl() != null
+                    && !currentCategory.getImageUrl().isBlank()
+                    && !currentCategory.getImageUrl().startsWith("http://")
+                    && !currentCategory.getImageUrl().startsWith("https://")) {
+                errors.add("Category[" + categoryIndex + "] '"
+                        + trimmedCategoryName
+                        + "' imageUrl '" + currentCategory.getImageUrl()
+                        + "' must start with http:// or https://");
+            }
+
             Set<String> seenProductNamesInCurrentCategory = new HashSet<>();
             for (int productIndex = 0;
                  productIndex < currentCategory.getProducts().size();
@@ -395,7 +432,7 @@ public class AdminServiceImpl implements AdminService {
                         trimmedProductName,
                         productIndex);
             }
-
+                // CHECK - bad product image URL — hard ERROR
                 for (int imageIndex = 0;
                      imageIndex < currentProduct.getImageUrls().size();
                      imageIndex++) {

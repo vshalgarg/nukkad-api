@@ -94,6 +94,10 @@ public class ImageSyncService {
     }
     private void uploadSingleImage(CategoryItemImageEntity image) {
 
+        if (image.getItem() == null) {
+            log.info("[IMAGE SYNC] Processing category image id: {}",
+                    image.getId());
+        }
         if (image.getImageUrl().startsWith("https://firebasestorage.googleapis.com/")
                 && image.getImageUrl().contains("token=")) {
 
@@ -107,8 +111,6 @@ public class ImageSyncService {
             );
             return;
         }
-
-
         if (!image.getImageUrl().startsWith("http")) {
                 log.error("[IMAGE SYNC] Image id: {} has invalid URL: '{}' — "
                             + "not a valid HTTP URL. Marking FAILED immediately.",
@@ -119,6 +121,10 @@ public class ImageSyncService {
             );
             return;
         }
+        String folder = image.getItem() != null
+                ? FirebaseConstants.PRODUCT_IMAGE_TYPE
+                : FirebaseConstants.CATEGORY_IMAGE_TYPE;
+
         log.info("[IMAGE SYNC] Thread: {} uploading image id: {}, url: {}",
                 Thread.currentThread().getName(),
                 image.getId(),
@@ -126,7 +132,7 @@ public class ImageSyncService {
         // call FirebaseStorageService — throws ExternalServiceException on failure
         String firebaseUrl = firebaseStorageService.uploadImageFromUrl(
                 image.getImageUrl(),
-                FirebaseConstants.PRODUCT_IMAGE_TYPE
+                folder
         );
         // upload succeeded — update DB with Firebase URL
         imageRepository.markAsUploaded(
