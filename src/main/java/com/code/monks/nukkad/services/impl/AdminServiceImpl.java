@@ -20,6 +20,7 @@ import com.code.monks.nukkad.entities.CategoryItemImageEntity;
 import com.code.monks.nukkad.entities.CustomerEntity;
 import com.code.monks.nukkad.entities.ItemEntity;
 import java.util.stream.IntStream;
+import com.code.monks.nukkad.enums.ImageTypeEnum;
 import com.code.monks.nukkad.enums.ImageUploadStatusEnum;
 import com.code.monks.nukkad.enums.ResponseErrorCodes;
 import com.code.monks.nukkad.enums.UnitEnum;
@@ -141,10 +142,7 @@ public class AdminServiceImpl implements AdminService {
         for (Category categoryData : categoriesRequest.getCategories()) {
             String categoryName = categoryData.getCategoryName();
             log.debug("[ADMIN SERVICE][CATEGORY] Processing category: {}", categoryName);
-            // CHANGED — pass categoryData.getImageUrl() to getOrCreateCategory
-            //            // reason: JSON now contains optional imageUrl per category
-            //            // getOrCreateCategory handles saving category image as PENDING
-            //            // scheduler uploads to Firebase same as product images
+
             CategoryEntity category = getOrCreateCategory(categoryMap, categoryName,categoryData.getImageUrl());//category creation method called
 
             for (Products productData : categoryData.getProducts()) {
@@ -168,10 +166,6 @@ public class AdminServiceImpl implements AdminService {
                                     new RuntimeException("Critical: Product " + productName + " not found in DB")
                             ));
 
-                      //existingItem.getCategories().add(category); -removed
-                    // ADDED — contains() check before adding category
-                    // reason: List allows duplicates — prevent same
-                    // category linked twice to same product
                     if (!existingItem.getCategories().contains(category)) {
                         existingItem.getCategories().add(category);
                     }
@@ -185,6 +179,7 @@ public class AdminServiceImpl implements AdminService {
                             CategoryItemImageEntity newImage = new CategoryItemImageEntity();
                             newImage.setImageUrl(imageUrl);
                             newImage.setItem(existingItem);
+                            newImage.setImageType(ImageTypeEnum.PRODUCT);
                             newImage.setUploadStatus(ImageUploadStatusEnum.PENDING);
                             newImage.setRetryCount(0);
                             existingItem.addImage(newImage);
@@ -236,12 +231,12 @@ public class AdminServiceImpl implements AdminService {
         if (category == null) {
             category = new CategoryEntity();
             category.setName(categoryName);
-            // ADDED — set image if imageUrl provided in JSON
-            // saved as PENDING → scheduler uploads to Firebase
-            // same flow as product images ✅
+
             if (imageUrl != null && !imageUrl.isBlank()) {
                 CategoryItemImageEntity image = new CategoryItemImageEntity();
                 image.setImageUrl(imageUrl);
+                image.setItem(null);
+                image.setImageType(ImageTypeEnum.CATEGORY);
                 image.setUploadStatus(ImageUploadStatusEnum.PENDING);
                 image.setRetryCount(0);
                 category.setImage(image);
@@ -265,17 +260,18 @@ public class AdminServiceImpl implements AdminService {
         product.setImages(new ArrayList<>());
         return product;
     }
-    private void createProductImages(ItemEntity product, List<String> imageUrls) {
-        log.debug("[ADMIN SERVICE][IMAGE] Adding {} images to new product", imageUrls.size());
-        for (String imageUrl : imageUrls) {
-            log.debug("[ADMIN SERVICE][IMAGE] Adding image URL: {}", imageUrl);
-            CategoryItemImageEntity image = new CategoryItemImageEntity();
-            image.setImageUrl(imageUrl);
-            image.setItem(product);
-            image.setUploadStatus(ImageUploadStatusEnum.PENDING); // For your Keyset Pagination worker
-            image.setRetryCount(0);
-            product.addImage(image);
-        }
+        private void createProductImages(ItemEntity product, List<String> imageUrls) {
+            log.debug("[ADMIN SERVICE][IMAGE] Adding {} images to new product", imageUrls.size());
+            for (String imageUrl : imageUrls) {
+                log.debug("[ADMIN SERVICE][IMAGE] Adding image URL: {}", imageUrl);
+                CategoryItemImageEntity image = new CategoryItemImageEntity();
+                image.setImageUrl(imageUrl);
+                image.setItem(product);
+                image.setImageType(ImageTypeEnum.PRODUCT);
+                image.setUploadStatus(ImageUploadStatusEnum.PENDING); // For your Keyset Pagination worker
+                image.setRetryCount(0);
+                product.addImage(image);
+            }
     }
     @Override
     public DeleteCustomerResponseDTO deleteCustomerById(Long id) {

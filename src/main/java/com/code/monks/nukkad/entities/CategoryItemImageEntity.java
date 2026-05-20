@@ -1,5 +1,6 @@
 package com.code.monks.nukkad.entities;
 import com.code.monks.nukkad.enums.ImageUploadStatusEnum;
+import com.code.monks.nukkad.enums.ImageTypeEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,6 +20,10 @@ public class CategoryItemImageEntity extends BaseEntity{
 
     @Column(name = "image_url")
     private String imageUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "image_type", nullable = false)
+    private ImageTypeEnum imageType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id")

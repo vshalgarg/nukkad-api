@@ -12,6 +12,8 @@ import com.code.monks.nukkad.dto.response.GetAllCategoryResponseDTO;
 import com.code.monks.nukkad.dto.response.UpdateCategoryResponseDTO;
 import com.code.monks.nukkad.entities.CategoryEntity;
 import com.code.monks.nukkad.entities.CategoryItemImageEntity;
+import com.code.monks.nukkad.enums.ImageTypeEnum;
+import com.code.monks.nukkad.enums.ImageUploadStatusEnum;
 import com.code.monks.nukkad.enums.RoleEnum;
 import com.code.monks.nukkad.exception.AccessDeniedException;
 import com.code.monks.nukkad.exception.DuplicateResourceException;
@@ -69,6 +71,10 @@ public class   CategoryService {
 					CategoryItemImageEntity image = new CategoryItemImageEntity();
 
                     image.setImageUrl(dto.getImageUrl());
+                    image.setItem(null);
+                    image.setImageType(ImageTypeEnum.CATEGORY);
+                    image.setUploadStatus(ImageUploadStatusEnum.PENDING);
+                    image.setRetryCount(0);
 					category.setImage(image);
 
                     log.debug("[CATEGORY BULK CREATE] Image set for '{}': {}", dto.getName(), dto.getImageUrl());

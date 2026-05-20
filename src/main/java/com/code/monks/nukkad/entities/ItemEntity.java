@@ -29,7 +29,7 @@ public class ItemEntity extends BaseEntity {
     private Long id;
 
     @EqualsAndHashCode.Include
-	@Column(name = "name")
+	@Column(name = "name",nullable = false, length = 255)
 	private String name;
 
 	@Convert(converter = UnitEnumToCodeConverter.class)
