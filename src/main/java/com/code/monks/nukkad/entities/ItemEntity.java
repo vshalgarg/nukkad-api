@@ -15,16 +15,7 @@ import java.util.List;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class ItemEntity extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.TABLE, generator = "item_gen")
-    @TableGenerator(
-            name = "item_gen",
-            table = "id_generator",
-            pkColumnName = "generator_name",
-            valueColumnName = "generator_value",
-            pkColumnValue = "item_id",
-            allocationSize = 500,
-            initialValue  = 1
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
