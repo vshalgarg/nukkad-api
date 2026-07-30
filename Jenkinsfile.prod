@@ -23,20 +23,34 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                withCredentials([
-		  string(credentialsId: 'NUKKAD_MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
-		  file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
-		]) {
-		    sh """
-		    cp $FIREBASE_CRED_FILE firebase.json
-		    docker build -t ${IMAGE_NAME}:latest .
-		    rm -f firebase.json
-		    """
-		}
-            }
-        }
+       stage('Build Docker Image') {
+         steps {
+            withCredentials([
+               string(credentialsId: 'NUKKAD_MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
+               file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
+            ])    {
+            sh '''
+                set -e  # Stop on any error
+
+                # Create absolute path for firebase.json
+                WORK_DIR="$(pwd)"
+                TARGET_JSON="$WORK_DIR/firebase.json"
+
+                echo "Copying Firebase credentials to: $TARGET_JSON"
+                cp "$FIREBASE_CRED_FILE" "$TARGET_JSON"
+                ls -l "$TARGET_JSON"
+
+                echo "Building Docker image: ${IMAGE_NAME}:latest"
+                docker build -t ${IMAGE_NAME}:latest .
+
+                echo "Cleaning up Firebase credentials..."
+                rm -f "$TARGET_JSON"
+
+                echo "✅ Docker build complete!"
+               '''
+           }
+         }
+       }
 
         stage('Save Docker Image') {
             steps {
