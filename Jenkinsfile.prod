@@ -30,21 +30,24 @@ pipeline {
 		  file(credentialsId: 'FIREBASE_CREDENTIAL_PATH', variable: 'FIREBASE_CRED_FILE')
 		]) {
 		   sh '''
-		        set -e
-		        echo "===== Debug Info ====="
-		        pwd
-		        whoami
-		        ls -ld .
-		        echo "======================"
+                set -e  # Stop on any error
 
-		        echo "Copying Firebase credentials safely..."
-		        TMP_JSON=$(mktemp /tmp/firebase.XXXXXX.json)
-		        cat "$FIREBASE_CRED_FILE" > "$TMP_JSON"
+                # Create absolute path for firebase.json
+                WORK_DIR="$(pwd)"
+                TARGET_JSON="$WORK_DIR/firebase.json"
 
-		        docker build -t ${IMAGE_NAME}:latest .
+                echo "Copying Firebase credentials to: $TARGET_JSON"
+                cp "$FIREBASE_CRED_FILE" "$TARGET_JSON"
+                ls -l "$TARGET_JSON"
 
-		        rm -f "$TMP_JSON"
-		    '''
+                echo "Building Docker image: ${IMAGE_NAME}:latest"
+                docker build -t ${IMAGE_NAME}:latest .
+
+                echo "Cleaning up Firebase credentials..."
+                rm -f "$TARGET_JSON"
+
+                echo "✅ Docker build complete!"
+               '''
 		}
             }
         }
